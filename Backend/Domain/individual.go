@@ -31,6 +31,7 @@ type Individual struct {
 	Signature          string             `json:"signature,omitempty" bson:"signature,omitempty"`
 	CreatedAt          time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt          time.Time          `json:"updated_at" bson:"updated_at"`
+	ResetOTP           string              `json:"reset_otp" bson:"reset_otp"` 
 }
 
 // IIndividualRepository now uses context.Context and works with the domain model.
@@ -39,6 +40,9 @@ type IIndividualRepository interface {
 	FindByEmail(ctx context.Context, email string) (*Individual, error)
 	FindByID(ctx context.Context, individualID primitive.ObjectID) (*Individual, error)
 	// UpdateIndividual(ctx context.Context, individualID primitive.ObjectID, updates map[string]interface{}) (*Individual, error) // for the time being
+	UpdateResetOTP(ctx context.Context, email, otp string) error
+	VerifyResetOTP(ctx context.Context, email, otp string) error
+	UpdatePasswordByEmail(ctx context.Context, email, newHashedPassword string) error
 }
 
 // UpdateIndividualDTO now uses pointers and has no BSON tags.
@@ -75,4 +79,15 @@ type UnverifiedUserDTO struct {
 type EmailOTP struct {
 	Email string `json:"email" bson:"email"`
 	OTP   string `json:"otp" bson:"otp"`
+}
+
+type ForgotPasswordRequestDTO struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+
+type ResetPasswordRequestDTO struct {
+	Email       string `json:"email" binding:"required,email"`
+	OTP         string `json:"otp" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=6,max=50"`
 }

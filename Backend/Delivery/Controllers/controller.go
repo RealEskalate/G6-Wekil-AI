@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	domain "wekil_ai/Domain"
@@ -47,6 +48,7 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 
 // VerfiyOTPRequest implements domain.IUserController.
 func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
+
 	var emailOTP domain.EmailOTP
 	if err := ctx.ShouldBindJSON(&emailOTP); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -57,6 +59,7 @@ func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
 		})
 		return
 	}
+
 	userInfo, err := u.userUseCase.ValidOTPRequest(&emailOTP)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{ // Changed to StatusBadRequest for invalid requests
@@ -67,6 +70,7 @@ func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
 		})
 		return
 	}
+
 	_, err = u.userUseCase.StoreUserInMainColl(userInfo)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -104,6 +108,44 @@ func (u *UserController) RefreshTokenHandler(ctx *gin.Context) {
 	ctx.IndentedJSON(http.StatusOK, gin.H{"message": "Login successful. Tokens sent in header and cookie."})
 
 }
+
+
+func (u *UserController) SendResetOTP(c *gin.Context) {
+	var req domain.ForgotPasswordRequestDTO
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	log.Println("Forgot password request received for:", req.Email)
+
+	err := u.userUseCase.SendResetOTP(c, req.Email)
+	if err != nil {
+		log.Println("SendResetOTP error:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send reset OTP"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Reset OTP sent to your email address"})
+}
+
+
+func (uc *UserController) ResetPassword(c *gin.Context) {
+	var req domain.ResetPasswordRequestDTO
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	err := uc.userUseCase.ResetPassword(c, req.Email, req.OTP, req.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+}
+
 
 func NewUserController(userUseCase_ domainInterface.IUserUseCase) domainInterface.IUserController {
 	return &UserController{

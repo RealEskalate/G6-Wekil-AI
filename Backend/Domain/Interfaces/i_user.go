@@ -11,3 +11,9 @@ type IOTPRepository interface {
 	GetByEmail(ctx context.Context, email string) (*domain.UnverifiedUserDTO, error)
 	DeleteByID(ctx context.Context, userID string) error
 }
+
+type IuserRepository interface {
+    UpdateResetOTP(ctx context.Context, email, otp string) error
+    VerifyResetOTP(ctx context.Context, email, otp string) error
+
+}

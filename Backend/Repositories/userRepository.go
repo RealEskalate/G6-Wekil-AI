@@ -53,4 +53,5 @@ func (r *userRepository) UpdatePasswordByEmail(ctx context.Context, email, newHa
 
 	_, err := r.collection.UpdateOne(ctx, filter, update)
 	return err
+	
 }

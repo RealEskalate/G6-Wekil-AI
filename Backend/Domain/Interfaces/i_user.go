@@ -1,8 +1,8 @@
 package domain
 
 import (
+	domain "backend/Domain"
 	"context"
-	domain "wekil_ai/Domain"
 )
 
 // we should use GetByID instead of GetByEmail for performance

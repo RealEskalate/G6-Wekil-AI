@@ -1,10 +1,10 @@
 package infrastracture
 
 import (
+	domain "backend/Domain"
+	domainInterface "backend/Domain/Interfaces"
 	"fmt"
 	"time"
-	domain "wekil_ai/Domain"
-	domainInterface "wekil_ai/Domain/Interfaces"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -17,8 +17,6 @@ const (
 type JWTAuthentication struct {
 	signingKey []byte
 }
-
-
 
 // GenerateToken creates a new signed token with the given claims and type.
 // It sets the correct expiration time based on the tokenType.

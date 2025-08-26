@@ -1,11 +1,11 @@
 package usecases
 
 import (
+	converter "backend/Delivery/Converter"
+	domain "backend/Domain"
+	domainInterface "backend/Domain/Interfaces"
 	"context"
 	"fmt"
-	converter "wekil_ai/Delivery/Converter"
-	domain "wekil_ai/Domain"
-	domainInterface "wekil_ai/Domain/Interfaces"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

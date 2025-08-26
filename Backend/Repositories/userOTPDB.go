@@ -1,10 +1,10 @@
 package repository
 
 import (
+	domain "backend/Domain"
+	domainInterface "backend/Domain/Interfaces"
 	"context"
 	"fmt"
-	domain "wekil_ai/Domain"
-	domainInterface "wekil_ai/Domain/Interfaces"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -33,14 +33,14 @@ func (r *OTPRepository) StoreOTP(ctx context.Context, otp *domain.UnverifiedUser
 	// Only set the specific fields you want to update or insert
 	update := bson.M{
 		"$set": bson.M{
-			"email":               otp.Email,
-			"password":            otp.Password,
-			"first_name":          otp.FirstName,
-			"last_name":           otp.LastName,
-			"middle_name":         otp.MiddleName,
-			"telephone":           otp.Telephone,
-			"account_type":        otp.AccountType,
-			"expires_at":          otp.ExpiresAt,
+			"email":        otp.Email,
+			"password":     otp.Password,
+			"first_name":   otp.FirstName,
+			"last_name":    otp.LastName,
+			"middle_name":  otp.MiddleName,
+			"telephone":    otp.Telephone,
+			"account_type": otp.AccountType,
+			"expires_at":   otp.ExpiresAt,
 		},
 	}
 

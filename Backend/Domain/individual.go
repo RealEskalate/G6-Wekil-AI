@@ -26,6 +26,7 @@ type Individual struct {
 	Telephone          string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
 	Address            string             `json:"address,omitempty" bson:"address,omitempty"`
 	AccountType        string             `json:"account_type" bson:"account_type"`
+	Role               string             `json:"role" bson:"role"` //added role since it was missing
 	IsVerified         bool               `json:"is_verified" bson:"is_verified"`
 	ProfileImage       string             `json:"profile_image,omitempty" bson:"profile_image,omitempty"`
 	Signature          string             `json:"signature,omitempty" bson:"signature,omitempty"`
@@ -34,11 +35,12 @@ type Individual struct {
 }
 
 // IIndividualRepository now uses context.Context and works with the domain model.
-type IIndividualRepository interface {
-	CreateIndividual(ctx context.Context, individual *Individual) (*Individual, error)
+type IUserRepository interface {
+	CreateUser(ctx context.Context, individual *Individual) (*Individual, error)
 	FindByEmail(ctx context.Context, email string) (*Individual, error)
 	FindByID(ctx context.Context, individualID primitive.ObjectID) (*Individual, error)
 	// UpdateIndividual(ctx context.Context, individualID primitive.ObjectID, updates map[string]interface{}) (*Individual, error) // for the time being
+	DeleteIndividual(ctx context.Context, individualID primitive.ObjectID) error
 }
 
 // UpdateIndividualDTO now uses pointers and has no BSON tags.
@@ -55,8 +57,9 @@ type UpdateIndividualDTO struct {
 type UserClaims struct {
 	UserID      string `json:"id"`
 	Email       string `json:"email"`
+	Role        string `json:"role"` //role added here too
 	IsVerified  bool   `json:"is_verified"`
-	AccountType string `json:"account_type"`
+	// AccountType string `json:"account_type"` // considering we don't need this field
 	TokenType   string `json:"token_type"` // The requested field to identify the token's type
 	jwt.RegisteredClaims
 }

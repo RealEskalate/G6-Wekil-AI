@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"backend/config"
 	"context"
 	"log"
 	"time"
+	"wekil_ai/config"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

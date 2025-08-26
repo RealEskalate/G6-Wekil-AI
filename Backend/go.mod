@@ -1,4 +1,4 @@
-module backend
+module wekil_ai
 
 go 1.24.5
 

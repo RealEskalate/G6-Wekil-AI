@@ -1,8 +1,8 @@
 package converter
 
 import (
-	domain "backend/Domain"
 	"time"
+	domain "wekil_ai/Domain"
 )
 
 func ToIndividual(u *domain.UnverifiedUserDTO) *domain.Individual {

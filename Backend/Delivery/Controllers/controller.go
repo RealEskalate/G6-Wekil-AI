@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	domain "backend/Domain"
-	domainInterface "backend/Domain/Interfaces"
+	domain "wekil_ai/Domain"
+	domainInterface "wekil_ai/Domain/Interfaces"
 
 	"github.com/gin-gonic/gin"
 )

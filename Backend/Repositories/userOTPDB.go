@@ -1,10 +1,10 @@
 package repository
 
 import (
-	domain "backend/Domain"
-	domainInterface "backend/Domain/Interfaces"
 	"context"
 	"fmt"
+	domain "wekil_ai/Domain"
+	domainInterface "wekil_ai/Domain/Interfaces"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"

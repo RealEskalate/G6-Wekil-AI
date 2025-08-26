@@ -1,7 +1,7 @@
 package routers
 
 import (
-	domain "backend/Domain/Interfaces"
+	domain "wekil_ai/Domain/Interfaces"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,6 +1,6 @@
 package domain
 
-import domain "backend/Domain"
+import domain "wekil_ai/Domain"
 
 type IUserUseCase interface {
 	ReSendAccessToken(jwtToken string) (string, error) // (accessTokenString, error)

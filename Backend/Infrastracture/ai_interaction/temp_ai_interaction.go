@@ -3,12 +3,12 @@
 package infrastructure
 
 import (
-	domain "backend/Domain"
-	domainInterface "backend/Domain/Interfaces"
 	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
+	domain "wekil_ai/Domain"
+	domainInterface "wekil_ai/Domain/Interfaces"
 
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
@@ -16,15 +16,13 @@ import (
 
 // domain.ClassifierResult represents the structured JSON response from the classifier prompt.
 
-
 // domain.Draft represents the structured JSON response for the document template.
-
 
 // AIInteraction encapsulates the generative AI clients for different tasks.
 type AIInteraction struct {
-	IntakeClient      *genai.GenerativeModel
-	ClassifierClient  *genai.GenerativeModel
-	DocumentClient    *genai.GenerativeModel
+	IntakeClient     *genai.GenerativeModel
+	ClassifierClient *genai.GenerativeModel
+	DocumentClient   *genai.GenerativeModel
 }
 
 // NewAIInteraction creates and initializes clients for the Gemini API.
@@ -163,9 +161,9 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 	}
 
 	return &AIInteraction{
-		IntakeClient: intakeModel,
+		IntakeClient:     intakeModel,
 		ClassifierClient: classifierModel,
-		DocumentClient: documentModel,
+		DocumentClient:   documentModel,
 	}, nil
 }
 

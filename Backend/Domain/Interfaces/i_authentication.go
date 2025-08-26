@@ -1,7 +1,7 @@
 package domain
 
 import (
-	domain "backend/Domain"
+	domain "wekil_ai/Domain"
 )
 
 const (

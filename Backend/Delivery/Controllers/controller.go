@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
+	infrastracture "wekil_ai/Infrastracture"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +28,11 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 		})
 		return
 	}
-	_, err := u.userUseCase.StoreUserInOTPColl(&unverifiedUser)
+	otp:= infrastracture.GenerateOTP()
+	unverifiedUser.OTP=otp
+	infrastracture.SendOTP(unverifiedUser.Email,otp)
+	log.Print("=========",unverifiedUser)
+	err := u.userUseCase.StoreUserInOTPColl(&unverifiedUser)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,
@@ -47,6 +53,7 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 
 // VerfiyOTPRequest implements domain.IUserController.
 func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
+
 	var emailOTP domain.EmailOTP
 	if err := ctx.ShouldBindJSON(&emailOTP); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -57,6 +64,7 @@ func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
 		})
 		return
 	}
+
 	userInfo, err := u.userUseCase.ValidOTPRequest(&emailOTP)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{ // Changed to StatusBadRequest for invalid requests
@@ -67,6 +75,7 @@ func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
 		})
 		return
 	}
+
 	_, err = u.userUseCase.StoreUserInMainColl(userInfo)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -104,6 +113,82 @@ func (u *UserController) RefreshTokenHandler(ctx *gin.Context) {
 	ctx.IndentedJSON(http.StatusOK, gin.H{"message": "Login successful. Tokens sent in header and cookie."})
 
 }
+
+func (uc *UserController) HandleLogin(ctx *gin.Context) {
+
+	var user *domain.LoginDTO
+	if err := ctx.ShouldBindJSON(&user); err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"error": "Invalid request payload",
+		})
+		return
+	}
+	if user.Email == "" || user.Password == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request payload"})
+		return
+	}
+	accessToken,refreshToken, err := uc.userUseCase.Login(user.Email, user.Password)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	ctx.SetCookie(
+		"WEKIL-API-REFRESH-TOKEN",
+		refreshToken,
+		60*60*24*7,      // 7 days in seconds
+		"/api/auth/refresh",      // cookie path
+		"",              // domain ("" means current domain)
+		true,            // secure
+		true,            // httpOnly
+	)
+
+	ctx.Header("Authorization", "Bearer "+accessToken)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "login successful",
+	})
+}
+
+
+func (u *UserController) SendResetOTP(c *gin.Context) {
+	var req domain.ForgotPasswordRequestDTO
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	log.Println("Forgot password request received for:", req.Email)
+
+	err := u.userUseCase.SendResetOTP(c, req.Email)
+	if err != nil {
+		log.Println("SendResetOTP error:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send reset OTP"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Reset OTP sent to your email address"})
+}
+
+
+func (uc *UserController) ResetPassword(c *gin.Context) {
+	var req domain.ResetPasswordRequestDTO
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	err := uc.userUseCase.ResetPassword(c, req.Email, req.OTP, req.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+}
+
 
 func NewUserController(userUseCase_ domainInterface.IUserUseCase) domainInterface.IUserController {
 	return &UserController{

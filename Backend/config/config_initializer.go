@@ -15,6 +15,7 @@ SENDGRID_API_KEY		string
 SigningKey				string
 SENDER_EMAIL			string
 MONGODB 				string
+
 )
 
 func InitEnv() {

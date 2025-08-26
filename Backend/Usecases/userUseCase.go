@@ -2,25 +2,29 @@ package usecases
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	converter "wekil_ai/Delivery/Converter"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type UserUseCase struct {
-	userCollection    domain.IIndividualRepository
+	userCollection    domainInterface.IIndividualRepository
 	userOTPCollection domainInterface.IOTPRepository
 	auth              domainInterface.IAuthentication
+	userValidation	  domainInterface.IUserValidation
+
 }
 
 // StoreUserInMainColl implements domain.IUserUseCase.
 func (u *UserUseCase) StoreUserInMainColl(user *domain.UnverifiedUserDTO) (*domain.Individual, error) {
 	ind := converter.ToIndividual(user)
 	ind.ID = primitive.NilObjectID // making it intentionaly not to store the id of OTP DB in the main
-	return u.userCollection.CreateIndividual(context.Background(), ind)
+	return u.userCollection.CreateIndividual(ind)
 
 }
 
@@ -61,8 +65,57 @@ func (u *UserUseCase) ReSendAccessToken(jwtToken string) (string, error) {
 	return accessTokenString, nil
 }
 
-func NewUserUseCase(AUTH domainInterface.IAuthentication) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
+func (a *UserUseCase) Login(email, password string) (string,string, error) {
+	user, err := a.userCollection.FindByEmail(email)
+	if err != nil {
+		return "", "", errors.New("user not found")
+	}
+
+	err = a.userValidation.ComparePassword(user.PasswordHash, password)
+	if err != nil {
+		return "", "", errors.New("invalid password")
+	}
+	accessClaims := &domain.UserClaims{
+		UserID: user.ID.String(),
+		Email: user.Email,
+		IsVerified: true,
+		AccountType:user.AccountType,
+		TokenType: domainInterface.AccessToken,
+
+	}
+	accessToken, err := a.auth.GenerateToken(accessClaims, domainInterface.AccessToken)
+    if err != nil {
+        panic(err)
+    }
+	refreshClaims := &domain.UserClaims{
+		UserID: user.ID.String(),
+		Email: user.Email,
+		IsVerified: true,
+		AccountType:user.AccountType,
+		TokenType: domainInterface.AccessToken,
+
+	}
+    // Generate Refresh Token
+    refreshToken, err := a.auth.GenerateToken(refreshClaims, domainInterface.RefreshToken)
+    if err != nil {
+        panic(err)
+    }
+	updateUser := bson.M{
+    "refresh_token": refreshToken,
+	}
+	user.RefreshToken = refreshToken
+	err = a.userCollection.UpdateIndividual(user.ID,updateUser)
+	if err != nil {
+		return "", "", err
+	}
+
+	return accessToken,refreshToken, nil
+}
+
+func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
 	return &UserUseCase{
 		auth: AUTH,
+		userCollection: UserColl,
+		userValidation: userValid,
 	}
 }

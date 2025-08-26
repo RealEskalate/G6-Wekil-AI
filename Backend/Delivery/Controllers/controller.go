@@ -126,12 +126,21 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 		})
 		return
 	}
-	tokens := map[string]string{
-		"access_token":  accessToken,
-		"refresh_token": refreshToken,
-	}
-	ctx.JSON(200, gin.H{"message": "User logged in successfully", "token": tokens})
+	ctx.SetCookie(
+		"WEKIL-API-REFRESH-TOKEN",
+		refreshToken,
+		60*60*24*7,      // 7 days in seconds
+		"/api/auth/refresh",      // cookie path
+		"",              // domain ("" means current domain)
+		true,            // secure
+		true,            // httpOnly
+	)
 
+	ctx.Header("Authorization", "Bearer "+accessToken)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "login successful",
+	})
 }
 
 func NewUserController(userUseCase_ domainInterface.IUserUseCase) domainInterface.IUserController {

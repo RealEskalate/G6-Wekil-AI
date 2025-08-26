@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FaArrowLeft, FaEnvelope, FaRobot } from "react-icons/fa";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -15,10 +16,12 @@ export default function ForgotPassword() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("Password reset email sent to:", email);
+      // console.log("Password reset email sent to:", email);
+      toast.success(`Password reset email sent to: ${email}`);
       setIsSubmitted(true);
     } catch (error) {
       console.error("Error sending reset email:", error);
+      toast.error(`Error sending reset email: ${error}`);
     } finally {
       setIsLoading(false);
     }

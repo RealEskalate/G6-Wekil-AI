@@ -44,6 +44,22 @@ func (r *UserRepository) CreateIndividual(ctx context.Context, individual *domai
 
 func (r *UserRepository) UpdateIndividual(ctx context.Context, UserID primitive.ObjectID,updates map[string]interface{}) (error){
     
+     filter := bson.M{"_id": UserID}
+
+    // Build the update document using $set
+    update := bson.M{"$set": updates}
+
+    // Execute the update
+    result, err := r.collection.UpdateOne(ctx, filter, update)
+    if err != nil {
+        return err // database error
+    }
+
+    // Check if any document was actually updated
+    if result.MatchedCount == 0 {
+        return fmt.Errorf("no user found with id %s", UserID.Hex())
+    }
+
     return nil
 }
 

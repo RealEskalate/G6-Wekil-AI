@@ -9,6 +9,7 @@ import (
 )
 
 
+
 func Router(uc domain.IUserController) { 
 
 	auth := infrastracture.NewJWTAuthentication(config.SigningKey)
@@ -31,3 +32,4 @@ func Router(uc domain.IUserController) {
 	
 	mainRouter.Run()	
 }
+

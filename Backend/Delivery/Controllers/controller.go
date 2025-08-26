@@ -14,6 +14,7 @@ import (
 
 type UserController struct {
 	userUseCase domainInterface.IUserUseCase
+
 }
 
 // RegisterIndividual implements domain.IUserController.
@@ -28,6 +29,26 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 		})
 		return
 	}
+	if !infrastracture.NewPasswordService().IsValidEmail(unverifiedUser.Email){
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"error": "wrong email format",
+			},
+		})
+		return
+	}
+	if !infrastracture.NewPasswordService().IsStrongPassword(unverifiedUser.Password){
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"error": "your password is not strong Enough",
+			},
+		})
+		return
+	}
+	
+	unverifiedUser.Password = infrastracture.NewPasswordService().Hashpassword(unverifiedUser.Password)
 	otp:= infrastracture.GenerateOTP()
 	unverifiedUser.OTP=otp
 	infrastracture.SendOTP(unverifiedUser.Email,otp)
@@ -140,7 +161,7 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 		"WEKIL-API-REFRESH-TOKEN",
 		refreshToken,
 		60*60*24*7,      // 7 days in seconds
-		"/api/auth/refresh",      // cookie path
+		"/",      // cookie path
 		"",              // domain ("" means current domain)
 		true,            // secure
 		true,            // httpOnly
@@ -150,6 +171,8 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "login successful",
+		"refresh": refreshToken,
+		"access":accessToken,
 	})
 }
 

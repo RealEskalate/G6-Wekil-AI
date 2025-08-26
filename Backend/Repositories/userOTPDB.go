@@ -27,7 +27,9 @@ func NewUnverifiedUserRepository(client *mongo.Client) domainInterface.IOTPRepos
 	}
 }
 
+
 func (r *OTPRepository) CreateUnverifiedUser(ctx context.Context, unverifiedUser *domain.UnverifiedUserDTO) error {
+
 
 	_, err := r.collection.InsertOne(ctx, unverifiedUser)
 	if err != nil {

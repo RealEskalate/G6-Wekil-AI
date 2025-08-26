@@ -19,7 +19,7 @@ func main() {
 	defer mongoClient.Disconnect()
 
 	password_service := infrastracture.NewPasswordService()
-	userRepo := repository.NewUserRepository(mongoClient.Client,config.MONGODB_URI,"user")
+	userRepo := repository.NewUserRepository(mongoClient.Client,config.MONGODB,"user")
 	auth := infrastracture.NewJWTAuthentication(config.SigningKey)
 	unverifiedUserRepo := repository.NewUnverifiedUserRepository(mongoClient.Client)
 	userUsecase := usecases.NewUserUseCase(auth,userRepo,password_service,unverifiedUserRepo)

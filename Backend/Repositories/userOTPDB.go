@@ -5,6 +5,7 @@ import (
 	"fmt"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
+	"wekil_ai/config"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,10 +15,10 @@ import (
 
 type OTPRepository struct {
 	collection *mongo.Collection
-}
+} 
 
 func NewUnverifiedUserRepository(client *mongo.Client) domainInterface.IOTPRepository {
-	dbName := "your_database_name"      // Replace with your database name
+	dbName :=  config.MONGODB     // Replace with your database name
 	collectionName := "Unverified User" // Replace with your collection name
 	coll := client.Database(dbName).Collection(collectionName)
 

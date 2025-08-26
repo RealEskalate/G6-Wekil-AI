@@ -14,6 +14,7 @@ JWT_REFRESH_TOKEN_SECRET string
 SENDGRID_API_KEY		string
 SigningKey				string
 SENDER_EMAIL			string
+MONGODB 				string
 )
 
 func InitEnv() {
@@ -28,7 +29,8 @@ func InitEnv() {
 	
 	SigningKey  = getEnv("SigningKey")
 	SENDER_EMAIL = getEnv("SENDER_EMAIL")
-	
+
+	MONGODB = getEnv("MONGODB")
 }
 
 func getEnv(key string) string {

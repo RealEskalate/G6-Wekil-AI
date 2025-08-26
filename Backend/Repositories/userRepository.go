@@ -1,5 +1,6 @@
 package repository
 
+
 import (
     "context"
     "errors"
@@ -19,19 +20,14 @@ type UserRepository struct {
 }
 
 // NewUserRepository creates a new repository for the given Mongo client.
-func NewUserRepository(client *mongo.Client, dbName, collectionName string) domainInterface.IuserRepository {
+func NewUserRepository(client *mongo.Client, dbName, collectionName string) domainInterface.IIndividualRepository {
     coll := client.Database(dbName).Collection(collectionName)
     return &UserRepository{collection: coll}
 }
 
-// (Optional) Backward compatibility if older code used NewuserRepository (note the lowercase 'u').
-func NewuserRepository(client *mongo.Client) domainInterface.IuserRepository {
-    coll := client.Database("wekilDb").Collection("user_collection")
-    return &UserRepository{collection: coll}
-}
 
 // CreateUser inserts a new Individual.
-func (r *UserRepository) CreateUser(ctx context.Context, individual *domain.Individual) (*domain.Individual, error) {
+func (r *UserRepository) CreateIndividual(ctx context.Context, individual *domain.Individual) (*domain.Individual, error) {
     if individual == nil {
         return nil, errors.New("individual is nil")
     }
@@ -44,6 +40,11 @@ func (r *UserRepository) CreateUser(ctx context.Context, individual *domain.Indi
         return nil, fmt.Errorf("failed to insert individual: %w", err)
     }
     return individual, nil
+}
+
+func (r *UserRepository) UpdateIndividual(ctx context.Context, UserID primitive.ObjectID,updates map[string]interface{}) (error){
+    
+    return nil
 }
 
 // FindByEmail returns the individual by email or (nil, nil) if not found.

@@ -3,7 +3,6 @@ package usecases
 import (
 	"context"
 	"errors"
-	"errors"
 	"fmt"
 	converter "wekil_ai/Delivery/Converter"
 	domain "wekil_ai/Domain"
@@ -16,7 +15,7 @@ import (
 
 type UserUseCase struct {
 	userCollection    domainInterface.IIndividualRepository
-	userOTPCollection domainInterface.IOTPRepository
+	unverifiedUserCollection domainInterface.IOTPRepository
 	auth              domainInterface.IAuthentication
 	userValidation	  domainInterface.IUserValidation
 
@@ -26,18 +25,18 @@ type UserUseCase struct {
 func (u *UserUseCase) StoreUserInMainColl(user *domain.UnverifiedUserDTO) (*domain.Individual, error) {
 	ind := converter.ToIndividual(user)
 	ind.ID = primitive.NilObjectID // making it intentionaly not to store the id of OTP DB in the main
-	return u.userCollection.CreateUser(context.Background(), ind)
+	return u.userCollection.CreateIndividual(context.Background(), ind)
 
 }
 
 // StoreUserInOTPColl implements domain.IUserUseCase.
-func (u *UserUseCase) StoreUserInOTPColl(user *domain.UnverifiedUserDTO) (*domain.UnverifiedUserDTO, error) {
-	return u.userOTPCollection.StoreOTP(context.Background(), user)
+func (u *UserUseCase) StoreUserInOTPColl(user *domain.UnverifiedUserDTO) ( error) {
+	return u.unverifiedUserCollection.CreateUnverifiedUser(context.Background(), user)
 }
 
 // ValidOTPRequest implements domain.IUserUseCase.
 func (u *UserUseCase) ValidOTPRequest(emailOtp *domain.EmailOTP) (*domain.UnverifiedUserDTO, error) {
-	user, err := u.userOTPCollection.GetByEmail(context.Background(), emailOtp.Email)
+	user, err := u.unverifiedUserCollection.GetByEmail(context.Background(), emailOtp.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +44,7 @@ func (u *UserUseCase) ValidOTPRequest(emailOtp *domain.EmailOTP) (*domain.Unveri
 		return nil, fmt.Errorf("incorrect OTP")
 	}
 	// if the otp is a match it should be deleted from the otp db
-	u.userOTPCollection.DeleteByID(context.Background(), user.ID.Hex()) // it shouldn't return an error because of this
+	u.unverifiedUserCollection.DeleteByID(context.Background(), user.ID.Hex()) // it shouldn't return an error because of this
 	return user, err
 }
 
@@ -101,7 +100,7 @@ func (u *UserUseCase) ResetPassword(ctx context.Context, email, otp, newPassword
 
 
 func (a *UserUseCase) Login(email, password string) (string,string, error) {
-	user, err := a.userCollection.FindByEmail(email)
+	user, err := a.userCollection.FindByEmail(context.Background(),email)
 	if err != nil {
 		return "", "", errors.New("user not found")
 	}
@@ -139,7 +138,7 @@ func (a *UserUseCase) Login(email, password string) (string,string, error) {
     "refresh_token": refreshToken,
 	}
 	user.RefreshToken = refreshToken
-	err = a.userCollection.UpdateIndividual(user.ID,updateUser)
+	err = a.userCollection.UpdateIndividual(context.Background(),user.ID,updateUser)
 	if err != nil {
 		return "", "", err
 	}
@@ -147,10 +146,11 @@ func (a *UserUseCase) Login(email, password string) (string,string, error) {
 	return accessToken,refreshToken, nil
 }
 
-func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
+func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
 	return &UserUseCase{
 		auth: AUTH,
 		userCollection: UserColl,
 		userValidation: userValid,
+		unverifiedUserCollection: unverifiedUserColl,
 	}
 }

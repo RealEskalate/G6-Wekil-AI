@@ -7,6 +7,7 @@ import (
 
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
+	infrastracture "wekil_ai/Infrastracture"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,7 +28,11 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 		})
 		return
 	}
-	_, err := u.userUseCase.StoreUserInOTPColl(&unverifiedUser)
+	otp:= infrastracture.GenerateOTP()
+	unverifiedUser.OTP=otp
+	infrastracture.SendOTP(unverifiedUser.Email,otp)
+	log.Print("=========",unverifiedUser)
+	err := u.userUseCase.StoreUserInOTPColl(&unverifiedUser)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,

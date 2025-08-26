@@ -11,7 +11,9 @@ MONGODB_URI              string
 PORT                     string
 JWT_ACCESS_TOKEN_SECRET  string
 JWT_REFRESH_TOKEN_SECRET string
-
+SENDGRID_API_KEY		string
+SigningKey				string
+SENDER_EMAIL			string
 )
 
 func InitEnv() {
@@ -22,6 +24,10 @@ func InitEnv() {
 	MONGODB_URI = getEnv("MONGODB_URI")
 	JWT_ACCESS_TOKEN_SECRET = getEnv("JWT_ACCESS_TOKEN_SECRET")
 	JWT_REFRESH_TOKEN_SECRET = getEnv("JWT_REFRESH_TOKEN_SECRET")
+	SENDGRID_API_KEY = getEnv("SENDGRID_API_KEY")
+	
+	SigningKey  = getEnv("SigningKey")
+	SENDER_EMAIL = getEnv("SENDER_EMAIL")
 	
 }
 

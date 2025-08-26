@@ -8,4 +8,5 @@ type IUserController interface {
 	RegisterIndividualOnly(ctx *gin.Context)
 	SendResetOTP(ctx *gin.Context)
 	ResetPassword(ctx *gin.Context)
+	HandleLogin(ctx *gin.Context) 
 }

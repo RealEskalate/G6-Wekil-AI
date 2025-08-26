@@ -160,7 +160,7 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 		"WEKIL-API-REFRESH-TOKEN",
 		refreshToken,
 		60*60*24*7,      // 7 days in seconds
-		"/api/auth/refresh",      // cookie path
+		"/",      // cookie path
 		"",              // domain ("" means current domain)
 		true,            // secure
 		true,            // httpOnly

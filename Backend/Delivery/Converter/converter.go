@@ -16,10 +16,12 @@ func ToIndividual(u *domain.UnverifiedUserDTO) *domain.Individual {
 		Telephone:    u.Telephone,
 		AccountType:  u.AccountType,
 		// New fields for the Individual struct, initialized to default values
-		IsVerified:   false, // Setting to true as this conversion implies verification
-		Address:      "",    // Add logic to get this value if needed
-		ProfileImage: "",    // Add logic to get this value if needed
-		Signature:    "",    // Add logic to get this value if needed
+
+		IsVerified:  true, // Setting to true as this conversion implies verification
+		Address:      "",   // Add logic to get this value if needed
+		ProfileImage: "",   // Add logic to get this value if needed
+		Signature:    "",   // Add logic to get this value if needed
+
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}

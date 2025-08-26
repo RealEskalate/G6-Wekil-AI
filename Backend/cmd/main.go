@@ -24,6 +24,5 @@ func main() {
 	unverifiedUserRepo := repository.NewUnverifiedUserRepository(mongoClient.Client)
 	userUsecase := usecases.NewUserUseCase(auth,userRepo,password_service,unverifiedUserRepo)
 	userController := controllers.NewUserController(userUsecase)
-
 	routers.Router(userController)
 }

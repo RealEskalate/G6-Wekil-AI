@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
 
@@ -128,6 +129,7 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 	}
 
 	// 3. Initialize and configure the client for the Document Draft task.
+	// This configuration uses the schema from the 'Draft' model to ensure a structured JSON response.
 	documentModel := baseClient.GenerativeModel("gemini-2.5-flash")
 	documentModel.GenerationConfig = genai.GenerationConfig{
 		ResponseMIMEType: "application/json",
@@ -170,7 +172,7 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 // GenerateIntake sends a request with a prompt and expects a structured
 // JSON response. It then unmarshals the response into the desired Go struct.
 func (ai *AIInteraction) GenerateIntake(ctx context.Context, prompt string, language string) (*domain.Intake, error) {
-	fullPrompt := fmt.Sprintf("Extract the following information from this %s text: %s", language, prompt)
+	fullPrompt := fmt.Sprintf("Extract the following information from this in the language of %s text: %s   TODAY IS %s  ", language, prompt, time.Now().Format("2006-01-02"))
 	parts := []genai.Part{genai.Text(fullPrompt)}
 
 	// Send the request and get the response. The SDK handles all HTTP details.
@@ -200,9 +202,11 @@ func (ai *AIInteraction) GenerateIntake(ctx context.Context, prompt string, lang
 
 // ClassifyDeal sends a prompt to a dedicated model instance to classify the deal type.
 // It returns a structured domain.ClassifierResult.
-func (ai *AIInteraction) ClassifyDeal(ctx context.Context, text string, language string) (*domain.ClassifierResult, error) {
+func (ai *AIInteraction) ClassifyDeal(ctx context.Context, text string) (*domain.ClassifierResult, error) {
 	// Define the specific prompt for this classification task.
-	prompt := fmt.Sprintf("Decide if this deal is basic (service, small sale, simple loan, simple NDA) or complex (employment, land/real estate, corporate shares, regulated sectors) based on the %s text. Return JSON: {category: \"basic|complex|unknown\", reasons: []}. Text: <<%s>>", language, text)
+	prompt := fmt.Sprintf(`Decide if this deal is basic (service, small sale, simple loan, simple NDA) or complex (employment, land/real estate, corporate shares, regulated sectors) based on the text. Return JSON: {category: \"basic|complex|unknown\", reasons: []}. 
+	Test: <<%s>>`,
+		text)
 
 	parts := []genai.Part{genai.Text(prompt)}
 
@@ -236,17 +240,18 @@ func (ai *AIInteraction) ClassifyDeal(ctx context.Context, text string, language
 func (ai *AIInteraction) GenerateDocumentDraft(ctx context.Context, intake *domain.Intake, language string) (*domain.Draft, error) {
 	// Marshal the intake object into a JSON string to be included in the prompt.
 	intakeJSON, err := json.MarshalIndent(intake, "", "  ")
+	fmt.Println("=> json: ", string(intakeJSON)) //! don't forget to delete
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal intake data to JSON: %w", err)
 	}
 
 	// Define the prompt for the AI.
 	prompt := fmt.Sprintf(`
-		Fill this one-page template in simple %s. Avoid legal jargon. Keep each section short (2–4 lines).
+		Fill this one-page template in simple with language of %s. Avoid legal jargon. Keep each section short (2–4 lines).
 		Always include this footer: 'This document is for information only and is not legal advice. Consult a qualified lawyer for legal matters.'
 		Input JSON: <<%s>>
-		Output: sections as JSON: {title, sections:[{heading,text}], signatures:{partyA,partyB,place,date}}`,
-		language, string(intakeJSON))
+		Output: sections as JSON: {title, sections:[{heading,text}], signatures:{partyA,partyB,place,date}} and TODAY IS: %s`,
+		language, string(intakeJSON), time.Now().Format("2006-01-02"))
 
 	parts := []genai.Part{genai.Text(prompt)}
 

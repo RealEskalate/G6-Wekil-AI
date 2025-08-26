@@ -9,8 +9,8 @@ import (
 	domainInterface "wekil_ai/Domain/Interfaces"
 	infrastracture "wekil_ai/Infrastracture"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserUseCase struct {
@@ -37,9 +37,11 @@ func (u *UserUseCase) StoreUserInOTPColl(user *domain.UnverifiedUserDTO) ( error
 // ValidOTPRequest implements domain.IUserUseCase.
 func (u *UserUseCase) ValidOTPRequest(emailOtp *domain.EmailOTP) (*domain.UnverifiedUserDTO, error) {
 	user, err := u.unverifiedUserCollection.GetByEmail(context.Background(), emailOtp.Email)
+
 	if err != nil {
 		return nil, err
 	}
+
 	if user.OTP != emailOtp.OTP {
 		return nil, fmt.Errorf("incorrect OTP")
 	}

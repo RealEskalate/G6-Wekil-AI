@@ -21,6 +21,10 @@ type IOTPRepository interface {
 	DeleteByID(ctx context.Context, userID string) error
 }
 
+type IuserRepository interface {
+    UpdateResetOTP(ctx context.Context, email, otp string) error
+    VerifyResetOTP(ctx context.Context, email, otp string) error
+}
 type IUserValidation interface {
 	IsValidEmail(email string) bool
 	IsStrongPassword(password string) bool

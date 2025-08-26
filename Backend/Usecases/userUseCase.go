@@ -3,10 +3,12 @@ package usecases
 import (
 	"context"
 	"errors"
+	"errors"
 	"fmt"
 	converter "wekil_ai/Delivery/Converter"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
+	infrastracture "wekil_ai/Infrastracture"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/bson"
@@ -24,7 +26,7 @@ type UserUseCase struct {
 func (u *UserUseCase) StoreUserInMainColl(user *domain.UnverifiedUserDTO) (*domain.Individual, error) {
 	ind := converter.ToIndividual(user)
 	ind.ID = primitive.NilObjectID // making it intentionaly not to store the id of OTP DB in the main
-	return u.userCollection.CreateIndividual(ind)
+	return u.userCollection.CreateUser(context.Background(), ind)
 
 }
 
@@ -64,6 +66,39 @@ func (u *UserUseCase) ReSendAccessToken(jwtToken string) (string, error) {
 	}
 	return accessTokenString, nil
 }
+
+
+
+func (u *UserUseCase) SendResetOTP(ctx context.Context, email string) error {
+	user, err := u.userCollection.FindByEmail(ctx, email)
+	if err != nil || user == nil {
+		return errors.New("user not found")
+	}
+
+	otp := infrastracture.GenerateOTP()
+	if err := u.userCollection.UpdateResetOTP(ctx, email, otp); err != nil {
+		return err
+	}
+
+	return infrastracture.SendOTP(email, otp)
+}
+
+func (u *UserUseCase) ResetPassword(ctx context.Context, email, otp, newPassword string) error {
+	err := u.userCollection.VerifyResetOTP(ctx, email, otp)
+	if err != nil {
+		return err
+	}
+
+	hashedPassword, err := infrastracture.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+
+	return u.userCollection.UpdatePasswordByEmail(ctx, email, hashedPassword)
+}
+
+
+
 
 func (a *UserUseCase) Login(email, password string) (string,string, error) {
 	user, err := a.userCollection.FindByEmail(email)

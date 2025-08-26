@@ -5,7 +5,6 @@ import (
 	"fmt"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -71,6 +70,7 @@ func (r *OTPRepository) GetByEmail(ctx context.Context, email string) (*domain.U
 	return &entry, nil
 }
 
+
 func (r *OTPRepository) DeleteByID(ctx context.Context, userID string) error {
 	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
@@ -82,3 +82,4 @@ func (r *OTPRepository) DeleteByID(ctx context.Context, userID string) error {
 	}
 	return nil
 }
+

@@ -35,14 +35,15 @@ type Individual struct {
 }
 
 // IIndividualRepository now uses context.Context and works with the domain model.
-type IIndividualRepository interface {
-	CreateIndividual(ctx context.Context, individual *Individual) (*Individual, error)
+type IUserRepository interface {
+	CreateUser(ctx context.Context, individual *Individual) (*Individual, error)
 	FindByEmail(ctx context.Context, email string) (*Individual, error)
 	FindByID(ctx context.Context, individualID primitive.ObjectID) (*Individual, error)
 	// UpdateIndividual(ctx context.Context, individualID primitive.ObjectID, updates map[string]interface{}) (*Individual, error) // for the time being
 	UpdateResetOTP(ctx context.Context, email, otp string) error
 	VerifyResetOTP(ctx context.Context, email, otp string) error
 	UpdatePasswordByEmail(ctx context.Context, email, newHashedPassword string) error
+	DeleteIndividual(ctx context.Context, individualID primitive.ObjectID) error
 }
 
 // UpdateIndividualDTO now uses pointers and has no BSON tags.

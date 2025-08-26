@@ -17,7 +17,6 @@ func Router(uc domain.IUserController) {
 	mainRouter.POST("/forgot-password", uc.SendResetOTP)
 	mainRouter.POST("/reset-password", uc.ResetPassword)
 
-
 	mainRouter.POST("/api/auth/register/individual",uc.RegisterIndividualOnly)
 		
 

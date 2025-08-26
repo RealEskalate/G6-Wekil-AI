@@ -15,5 +15,10 @@ type IOTPRepository interface {
 type IuserRepository interface {
     UpdateResetOTP(ctx context.Context, email, otp string) error
     VerifyResetOTP(ctx context.Context, email, otp string) error
-
+}
+type IUserValidation interface {
+	IsValidEmail(email string) bool
+	IsStrongPassword(password string) bool
+	Hashpassword(password string) string
+	ComparePassword(userPassword, password string) error
 }

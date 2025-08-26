@@ -13,7 +13,7 @@ import (
 )
 
 type UserUseCase struct {
-	userCollection    domain.IIndividualRepository
+	userCollection    domain.IUserRepository
 	userOTPCollection domainInterface.IOTPRepository
 	auth              domainInterface.IAuthentication
 }
@@ -22,7 +22,7 @@ type UserUseCase struct {
 func (u *UserUseCase) StoreUserInMainColl(user *domain.UnverifiedUserDTO) (*domain.Individual, error) {
 	ind := converter.ToIndividual(user)
 	ind.ID = primitive.NilObjectID // making it intentionaly not to store the id of OTP DB in the main
-	return u.userCollection.CreateIndividual(context.Background(), ind)
+	return u.userCollection.CreateUser(context.Background(), ind)
 
 }
 

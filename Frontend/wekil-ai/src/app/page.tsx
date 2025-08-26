@@ -20,6 +20,8 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import LoginPage from "./auth/login/page";
 import SignupPage from "./auth/signup/page";
+import { signIn } from "next-auth/react";
+import toast from "react-hot-toast";
 
 export default function HomePage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -89,10 +91,25 @@ export default function HomePage() {
     document.body.style.overflow = "hidden";
   };
 
-  const handleAuthComplete = (email: string) => {
-    setShowAuthModal(false);
-    document.body.style.overflow = "unset";
-    console.log(`Auth completed for ${email}`);
+  const handleAuthComplete = async (
+    email: string,
+    password: string,
+    rememberMe: boolean
+  ) => {
+    try {
+      setShowAuthModal(false);
+      document.body.style.overflow = "unset";
+      await signIn("credentials", {
+        email,
+        password,
+        rememberMe: rememberMe,
+        callbackUrl: "/dashboard",
+      });
+      toast.success("Login Successful!");
+    } catch (err) {
+      console.log(err);
+      toast.error("Login Failed!");
+    }
   };
 
   const handleBackToLogin = () => {

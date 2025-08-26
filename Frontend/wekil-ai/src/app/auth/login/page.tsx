@@ -1,10 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { FaGoogle, FaEnvelope, FaLock, FaRobot } from "react-icons/fa";
+import { signIn } from "next-auth/react";
 
 interface LoginPageProps {
-  onLoginComplete: (email: string) => void;
+  onLoginComplete: (
+    email: string,
+    password: string,
+    rememberMe: boolean
+  ) => void;
   onSwitchToSignup: () => void;
 }
 
@@ -15,6 +21,7 @@ export default function LoginPage({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -48,7 +55,7 @@ export default function LoginPage({
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      onLoginComplete(email);
+      onLoginComplete(email, password, rememberMe);
     } catch (err) {
       setErrors({
         general: `Invalid email or password. Please try again. ${err}`,
@@ -58,8 +65,17 @@ export default function LoginPage({
     }
   };
 
-  const handleGoogleLogin = () => {
-    console.log("Google login clicked");
+  const handleGoogleLogin = async () => {
+    // console.log("Google login clicked");
+    try {
+      await signIn("google", {
+        callbackUrl: "/dashboard",
+        keepAlive: rememberMe,
+      });
+      toast.success("Login with email successful!");
+    } catch (err) {
+      toast.error(`Login Failed ${err}`);
+    }
   };
 
   return (
@@ -149,6 +165,7 @@ export default function LoginPage({
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-3 w-3 text-blue-600 focus:ring-1 focus:ring-blue-400 border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-1 text-gray-700">

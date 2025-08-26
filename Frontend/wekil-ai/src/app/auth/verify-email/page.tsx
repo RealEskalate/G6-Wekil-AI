@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FaEnvelope } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 export default function VerifyEmail() {
   const [otp, setOtp] = useState("");
@@ -23,7 +24,7 @@ export default function VerifyEmail() {
       //   const data = await res.json();
 
       //   if (res.ok) {
-      setMessage("✅ Email verified successfully!");
+      toast.success("✅ Email verified successfully!");
       console.log("email verified");
       // redirect after success
       setTimeout(() => {
@@ -33,7 +34,7 @@ export default function VerifyEmail() {
       //     setMessage(data.error || "❌ Invalid OTP, please try again.");
       //   }
     } catch (err) {
-      setMessage(`⚠️ Something went wrong, try again later. ${err}`);
+      toast.error(`⚠️ Something went wrong, try again later. ${err}`);
     } finally {
       setLoading(false);
     }

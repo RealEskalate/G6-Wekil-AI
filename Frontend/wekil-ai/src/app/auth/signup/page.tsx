@@ -12,6 +12,7 @@ import {
 } from "@/utils/validation";
 import IndividualForm from "@/components/auth/IndividualForm";
 import VerifyEmail from "../verify-email/page";
+import toast from "react-hot-toast";
 
 interface SignupPageProps {
   onBackToLogin: () => void;
@@ -83,10 +84,12 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
       // Fake API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setShowVerifyModal(true); // 👈 show popup after success
+      toast.success("Form Submitted!");
     } catch (error) {
       setErrors({
         general: `An error occurred during registration. Please try again. ${error}`,
       });
+      toast.error("An error occurred during registration. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

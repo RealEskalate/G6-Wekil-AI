@@ -9,6 +9,7 @@ import {
   FaEyeSlash,
 } from "react-icons/fa";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function ChangePassword({
   searchParams,
@@ -53,10 +54,12 @@ export default function ChangePassword({
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       console.log("Password changed successfully with token:", token);
+      toast.success("Password changed successfully");
       setIsSuccess(true);
     } catch (error) {
       console.error("Error changing password:", error);
       setErrors({ password: "Failed to change password. Please try again." });
+      toast.error("Error changing password");
     } finally {
       setIsLoading(false);
     }

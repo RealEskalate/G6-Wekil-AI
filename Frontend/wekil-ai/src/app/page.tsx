@@ -508,10 +508,7 @@ export default function HomePage() {
                 onSwitchToSignup={() => setAuthMode("signup")}
               />
             ) : (
-              <SignupPage
-                onSignupComplete={handleAuthComplete}
-                onBackToLogin={handleBackToLogin}
-              />
+              <SignupPage onBackToLogin={handleBackToLogin} />
             )}
           </div>
         </div>

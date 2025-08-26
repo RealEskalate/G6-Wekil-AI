@@ -9,9 +9,12 @@ import {
   FaEyeSlash,
 } from "react-icons/fa";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
-export default function ChangePassword() {
+export default function ChangePassword({
+  searchParams,
+}: {
+  searchParams: { token?: string };
+}) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -23,8 +26,7 @@ export default function ChangePassword() {
     confirmPassword?: string;
   }>({});
 
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = searchParams.token;
 
   const validateForm = () => {
     const newErrors: { password?: string; confirmPassword?: string } = {};

@@ -18,8 +18,6 @@ type JWTAuthentication struct {
 	signingKey []byte
 }
 
-
-
 // GenerateToken creates a new signed token with the given claims and type.
 // It sets the correct expiration time based on the tokenType.
 func (j *JWTAuthentication) GenerateToken(claims *domain.UserClaims, tokenType string) (string, error) {

@@ -11,16 +11,13 @@ import {
   validateConfirmPassword,
 } from "@/utils/validation";
 import IndividualForm from "@/components/auth/IndividualForm";
+import VerifyEmail from "../verify-email/page";
 
 interface SignupPageProps {
-  onSignupComplete: (email: string) => void;
   onBackToLogin: () => void;
 }
 
-export default function SignupPage({
-  onSignupComplete,
-  onBackToLogin,
-}: SignupPageProps) {
+export default function SignupPage({ onBackToLogin }: SignupPageProps) {
   const [individualForm, setIndividualForm] = useState<IndividualFormData>({
     firstName: "",
     lastName: "",
@@ -33,6 +30,7 @@ export default function SignupPage({
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -42,28 +40,17 @@ export default function SignupPage({
     setIndividualForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    fieldName: string
-  ) => {
-    const file = e.target.files?.[0] || null;
-    if (errors[fieldName as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [fieldName]: undefined }));
-    }
-    setIndividualForm((prev) => ({ ...prev, [fieldName]: file }));
-  };
-
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
     if (!validateName(individualForm.firstName)) {
       newErrors.firstName = "First name must be at least 2 letters";
     }
-    if (!validateName(individualForm.lastName)) {
-      newErrors.lastName = "Last name must be at least 2 letters";
-    }
     if (!validateName(individualForm.middleName)) {
       newErrors.middleName = "Middle name must be at least 2 letters";
+    }
+    if (!validateName(individualForm.lastName)) {
+      newErrors.lastName = "Last name must be at least 2 letters";
     }
     if (!validateEmail(individualForm.email)) {
       newErrors.email = "Invalid email address";
@@ -82,6 +69,7 @@ export default function SignupPage({
     ) {
       newErrors.confirmPassword = "Passwords do not match";
     }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -92,9 +80,9 @@ export default function SignupPage({
 
     setIsSubmitting(true);
     try {
-      // Simulate API call
+      // Fake API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      onSignupComplete(individualForm.email);
+      setShowVerifyModal(true); // 👈 show popup after success
     } catch (error) {
       setErrors({
         general: `An error occurred during registration. Please try again. ${error}`,
@@ -136,7 +124,6 @@ export default function SignupPage({
               formData={individualForm}
               errors={errors}
               onInputChange={handleInputChange}
-              onFileChange={handleFileChange}
             />
 
             <button
@@ -175,6 +162,9 @@ export default function SignupPage({
           </form>
         </div>
       </div>
+
+      {/* Verify Email Modal */}
+      {showVerifyModal && <VerifyEmail />}
     </div>
   );
 }

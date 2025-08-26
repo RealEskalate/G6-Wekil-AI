@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"context"
+
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -10,9 +10,8 @@ import (
 )
 
 const (
-	OrganizationOwnerRole = "organizationOwner"
-	IndividualRole        = "individual"
-	AdminRole             = "admin"
+	User       = "user"
+	AdminRole  = "admin"
 )
 
 // Individual represents a person's complete data model in the database.
@@ -31,20 +30,10 @@ type Individual struct {
 	Signature          string             `json:"signature,omitempty" bson:"signature,omitempty"`
 	CreatedAt          time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt          time.Time          `json:"updated_at" bson:"updated_at"`
-	ResetOTP           string              `json:"reset_otp" bson:"reset_otp"` 
+	RefreshToken	   string			  `json:"refresh_token" bson:"refresh_token"`
 }
 
-// IIndividualRepository now uses context.Context and works with the domain model.
-type IUserRepository interface {
-	CreateUser(ctx context.Context, individual *Individual) (*Individual, error)
-	FindByEmail(ctx context.Context, email string) (*Individual, error)
-	FindByID(ctx context.Context, individualID primitive.ObjectID) (*Individual, error)
-	// UpdateIndividual(ctx context.Context, individualID primitive.ObjectID, updates map[string]interface{}) (*Individual, error) // for the time being
-	UpdateResetOTP(ctx context.Context, email, otp string) error
-	VerifyResetOTP(ctx context.Context, email, otp string) error
-	UpdatePasswordByEmail(ctx context.Context, email, newHashedPassword string) error
-	DeleteIndividual(ctx context.Context, individualID primitive.ObjectID) error
-}
+
 
 // UpdateIndividualDTO now uses pointers and has no BSON tags.
 // the string being a pointer helps to use omitempty when editing a user's profile, meaning empty strings won't be saved as a name.
@@ -80,6 +69,10 @@ type UnverifiedUserDTO struct {
 type EmailOTP struct {
 	Email string `json:"email" bson:"email"`
 	OTP   string `json:"otp" bson:"otp"`
+}
+type LoginDTO struct{
+	Email string `json:"email" bson:"email"`
+	Password string `json:"password" bson:"password"`
 }
 
 type ForgotPasswordRequestDTO struct {

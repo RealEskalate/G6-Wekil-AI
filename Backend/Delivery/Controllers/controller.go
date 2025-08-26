@@ -7,6 +7,7 @@ import (
 
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
+	infrastracture "wekil_ai/Infrastracture"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,7 +28,11 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 		})
 		return
 	}
-	_, err := u.userUseCase.StoreUserInOTPColl(&unverifiedUser)
+	otp:= infrastracture.GenerateOTP()
+	unverifiedUser.OTP=otp
+	infrastracture.SendOTP(unverifiedUser.Email,otp)
+	log.Print("=========",unverifiedUser)
+	err := u.userUseCase.StoreUserInOTPColl(&unverifiedUser)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,
@@ -107,6 +112,44 @@ func (u *UserController) RefreshTokenHandler(ctx *gin.Context) {
 	ctx.Header("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 	ctx.IndentedJSON(http.StatusOK, gin.H{"message": "Login successful. Tokens sent in header and cookie."})
 
+}
+
+func (uc *UserController) HandleLogin(ctx *gin.Context) {
+
+	var user *domain.LoginDTO
+	if err := ctx.ShouldBindJSON(&user); err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"error": "Invalid request payload",
+		})
+		return
+	}
+	if user.Email == "" || user.Password == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request payload"})
+		return
+	}
+	accessToken,refreshToken, err := uc.userUseCase.Login(user.Email, user.Password)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	ctx.SetCookie(
+		"WEKIL-API-REFRESH-TOKEN",
+		refreshToken,
+		60*60*24*7,      // 7 days in seconds
+		"/api/auth/refresh",      // cookie path
+		"",              // domain ("" means current domain)
+		true,            // secure
+		true,            // httpOnly
+	)
+
+	ctx.Header("Authorization", "Bearer "+accessToken)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "login successful",
+	})
 }
 
 

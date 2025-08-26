@@ -107,18 +107,18 @@ func (u *UserController) RefreshTokenHandler(ctx *gin.Context) {
 
 func (uc *UserController) HandleLogin(ctx *gin.Context) {
 
-	var user *domain.Individual
+	var user *domain.LoginDTO
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{
 			"error": "Invalid request payload",
 		})
 		return
 	}
-	if user.Email == "" || user.PasswordHash == "" {
+	if user.Email == "" || user.Password == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request payload"})
 		return
 	}
-	accessToken,refreshToken, err := uc.userUseCase.Login(user.Email, user.PasswordHash)
+	accessToken,refreshToken, err := uc.userUseCase.Login(user.Email, user.Password)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{

@@ -70,3 +70,7 @@ type EmailOTP struct {
 	Email string `json:"email" bson:"email"`
 	OTP   string `json:"otp" bson:"otp"`
 }
+type LoginDTO struct{
+	Email string `json:"email" bson:"email"`
+	Password string `json:"password" bson:"password"`
+}

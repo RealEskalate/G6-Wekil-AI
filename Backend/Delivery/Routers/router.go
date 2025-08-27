@@ -15,7 +15,7 @@ func Router(uc domain.IUserController, ai *controllers.AIController) {
 	auth := infrastracture.NewJWTAuthentication(config.SigningKey)
 	authMiddleware := infrastracture.NewAuthMiddleware(auth)
 
-	mainRouter := gin.Default()	
+	
 	
 	mainRouter.POST("/api/auth/refresh",uc.RefreshTokenHandler)
 	mainRouter.POST("/api/auth/verify-otp",uc.VerfiyOTPRequest)

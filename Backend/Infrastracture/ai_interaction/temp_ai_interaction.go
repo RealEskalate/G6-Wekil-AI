@@ -43,6 +43,9 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 		ResponseSchema: &genai.Schema{
 			Type: genai.TypeObject,
 			Properties: map[string]*genai.Schema{
+				"agreement_type": {
+					Type: genai.TypeString,
+				},
 				"parties": {
 					Type: genai.TypeArray,
 					Items: &genai.Schema{
@@ -172,7 +175,7 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 // GenerateIntake sends a request with a prompt and expects a structured
 // JSON response. It then unmarshals the response into the desired Go struct.
 func (ai *AIInteraction) GenerateIntake(ctx context.Context, prompt string, language string) (*domain.Intake, error) {
-	fullPrompt := fmt.Sprintf("Extract the following information from this in the language of %s text: %s   TODAY IS %s  ", language, prompt, time.Now().Format("2006-01-02"))
+	fullPrompt := fmt.Sprintf("Extract the agreement details from the following text in %s language. Include an explicit field `agreement_type` with value 'sale', 'service', or 'loan' based on the text. Today is %s. Text: %s", language, prompt, time.Now().Format("2006-01-02"))
 	parts := []genai.Part{genai.Text(fullPrompt)}
 
 	// Send the request and get the response. The SDK handles all HTTP details.
@@ -247,11 +250,12 @@ func (ai *AIInteraction) GenerateDocumentDraft(ctx context.Context, intake *doma
 
 	// Define the prompt for the AI.
 	prompt := fmt.Sprintf(`
-		Fill this one-page template in simple with language of %s. Avoid legal jargon. Keep each section short (2–4 lines).
-		Always include this footer: 'This document is for information only and is not legal advice. Consult a qualified lawyer for legal matters.'
+		Fill this one-page template in simple %s language. Avoid legal jargon. Keep each section short (2–4 lines).
+		Include the agreement type in the draft: %s.
+		Always include this footer: 'This document is for information only and is not legal advice. Consult a qualified lawyer.'
 		Input JSON: <<%s>>
-		Output: sections as JSON: {title, sections:[{heading,text}], signatures:{partyA,partyB,place,date}} and TODAY IS: %s`,
-		language, string(intakeJSON), time.Now().Format("2006-01-02"))
+		Output: sections as JSON: {title, sections:[{heading,text}], signatures:{partyA,partyB,place,date}}. Today is: %s`,
+		language, intake.AgreementType, string(intakeJSON), time.Now().Format("2006-01-02"))
 
 	parts := []genai.Part{genai.Text(prompt)}
 

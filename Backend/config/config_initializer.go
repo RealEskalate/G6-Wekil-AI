@@ -15,6 +15,9 @@ SENDGRID_API_KEY		string
 SigningKey				string
 SENDER_EMAIL			string
 MONGODB 				string
+CLIENT_ID 		string
+CLIENT_SECRET 		string 
+CLIENT_CALLBACK_URL 		string 
 
 )
 
@@ -30,6 +33,10 @@ func InitEnv() {
 	
 	SigningKey  = getEnv("SigningKey")
 	SENDER_EMAIL = getEnv("SENDER_EMAIL")
+	CLIENT_ID = getEnv("CLIENT_ID")
+	CLIENT_SECRET = getEnv("CLIENT_SECRET")
+	CLIENT_CALLBACK_URL = getEnv("CLIENT_CALLBACK_URL")
+	
 
 	MONGODB = getEnv("MONGODB")
 }

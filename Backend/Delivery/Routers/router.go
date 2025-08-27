@@ -13,5 +13,9 @@ func Router(uc domain.IUserController) {
 	mainRouter.POST("/api/auth/verify-otp", uc.VerfiyOTPRequest)
 	mainRouter.POST("/api/auth/register/individual", uc.RegisterIndividualOnly)
 
+	mainRouter.GET("/auth/:provider",uc.SignInWithProvider )
+	mainRouter.GET("/auth/:provider/callback",uc.CallbackHandler )
+	mainRouter.GET("/success", uc.Success)
+
 	mainRouter.Run()
 }

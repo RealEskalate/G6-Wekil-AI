@@ -12,5 +12,8 @@ type IUserUseCase interface {
 	StoreUserInMainColl(user *domain.UnverifiedUserDTO) (*domain.Individual, error)
 	Login(email, password string) (string,string, error)
 	SendResetOTP(ctx context.Context, email string) error
+	Logout(ctx context.Context, user string) error
 	ResetPassword(ctx context.Context, email, otp, newPassword string) error
+	GetProfile(ctx context.Context, userID string) (*domain.Individual, error)
+	UpdateProfile(ctx context.Context, userID string, updateReq *domain.UpdateProfileRequestDTO) error
 }

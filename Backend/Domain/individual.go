@@ -1,7 +1,6 @@
 package domain
 
 import (
-
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -84,4 +83,14 @@ type ResetPasswordRequestDTO struct {
 	Email       string `json:"email" binding:"required,email"`
 	OTP         string `json:"otp" binding:"required"`
 	NewPassword string `json:"new_password" binding:"required,min=6,max=50"`
+}
+
+type UpdateProfileRequestDTO struct {
+	FirstName    *string `json:"first_name,omitempty" binding:"omitempty,min=1,max=50"`
+	LastName     *string `json:"last_name,omitempty" binding:"omitempty,min=1,max=50"`
+	MiddleName   *string `json:"middle_name,omitempty" binding:"omitempty,min=1,max=50"`
+	Address      *string `json:"address,omitempty" binding:"omitempty,min=1,max=100"`
+	Telephone          string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
+	Signature    *string `json:"signature,omitempty" binding:"omitempty"`
+	ProfileImage *string `json:"profile_image,omitempty" binding:"omitempty,url"`
 }

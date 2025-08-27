@@ -180,26 +180,27 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 
 func (uc *UserController) UpdateProfile(ctx *gin.Context) {
 	var updateReq domain.UpdateProfileRequestDTO
+
 	if err := ctx.ShouldBindJSON(&updateReq); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	userID := ctx.GetString("user_id")
-	err := uc.userUseCase.UpdateProfile(ctx, userID, &updateReq)
+	email := ctx.GetString("email")
+	err := uc.userUseCase.UpdateProfile(ctx, email, &updateReq)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
 		return
 	}
-
 	ctx.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully","success": true,})
 }
 
 func (uc *UserController) GetProfile(ctx *gin.Context) {
-	userID := ctx.GetString("user_id")
-	profile, err := uc.userUseCase.GetProfile(ctx, userID)
+	email := ctx.GetString("email")
+	log.Println("id============---------:", email)
+	profile, err := uc.userUseCase.GetProfile(ctx, email)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve profile"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve profile!!"})
 		return
 	}
 
@@ -215,7 +216,7 @@ func (uc UserController) Logout(ctx *gin.Context) {
 
 		err := uc.userUseCase.Logout(ctx, userID)
 			if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "logout failed"})
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "logout failed*****"})
 			return
 		}
 		ctx.JSON(http.StatusOK, gin.H{"message": "logged out successfully"})

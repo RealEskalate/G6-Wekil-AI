@@ -152,13 +152,9 @@ func (uuc *UserUseCase) Logout(ctx context.Context, userID string) error {
     return uuc.userCollection.DeleteRefreshToken(ctx, userID)
 }
 
-func (u *UserUseCase) GetProfile(ctx context.Context, userID string) (*domain.Individual, error) {
-	id, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		return nil, errors.New("invalid user ID")
-	}
-
-	user, err := u.userCollection.FindByID(ctx, id)
+func (u *UserUseCase) GetProfile(ctx context.Context, email string) (*domain.Individual, error) {
+	
+	user, err := u.userCollection.FindByEmail(ctx, email)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
@@ -166,11 +162,9 @@ func (u *UserUseCase) GetProfile(ctx context.Context, userID string) (*domain.In
 	return user, nil
 }
 
-func (u *UserUseCase) UpdateProfile(ctx context.Context, userID string, updateReq *domain.UpdateProfileRequestDTO) error {
-	id, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		return errors.New("invalid user ID")
-	}
+
+func (u *UserUseCase) UpdateProfile(ctx context.Context, email string, updateReq *domain.UpdateProfileRequestDTO) error {
+	
 
 	updateData := bson.M{}
 
@@ -195,7 +189,7 @@ func (u *UserUseCase) UpdateProfile(ctx context.Context, userID string, updateRe
 	if updateReq.ProfileImage != nil {
 		updateData["profile_image"] = *updateReq.ProfileImage
 	}
-	return u.userCollection.UpdateProfile(ctx, id, updateData)
+	return u.userCollection.UpdateProfile(ctx, email, updateData)
 }
 
 func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top

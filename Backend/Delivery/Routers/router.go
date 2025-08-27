@@ -14,8 +14,6 @@ func Router(uc domain.IUserController, ai *controllers.AIController) {
 
 	auth := infrastracture.NewJWTAuthentication(config.SigningKey)
 	authMiddleware := infrastracture.NewAuthMiddleware(auth)
-
-	mainRouter := gin.Default()	
 	
 	mainRouter.POST("/api/auth/refresh",uc.RefreshTokenHandler)
 	mainRouter.POST("/api/auth/verify-otp",uc.VerfiyOTPRequest)
@@ -28,11 +26,10 @@ func Router(uc domain.IUserController, ai *controllers.AIController) {
 
 	mainRouter.PUT("/api/users/profile",authMiddleware.JWTAuthMiddleware(),uc.UpdateProfile)
 	mainRouter.GET("/api/users/profile",authMiddleware.JWTAuthMiddleware(),uc.GetProfile)
-  mainRouter.GET("/auth/:provider",uc.SignInWithProvider )
+  	mainRouter.GET("/auth/:provider",uc.SignInWithProvider )
 	mainRouter.GET("/auth/:provider/callback",uc.CallbackHandler )
 	mainRouter.GET("/success", uc.Success)
-	
-	mainRouter.Run()	
+		
 
 	aiRoutes := mainRouter.Group("/ai")
 	{
@@ -40,6 +37,6 @@ func Router(uc domain.IUserController, ai *controllers.AIController) {
 		aiRoutes.POST("/extract", ai.Extract)
 		aiRoutes.POST("/draft", ai.Draft)
 	}
-
+	mainRouter.Run()
 }
 

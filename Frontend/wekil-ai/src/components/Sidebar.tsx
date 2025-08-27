@@ -9,8 +9,10 @@ import {
   Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { useRouter } from "next/router";
 
 export function Sidebar() {
+  const router = useRouter();
   return (
     <div className="w-64 bg-white text-blue-950 flex flex-col shadow-sm">
       {/* Header */}
@@ -22,6 +24,7 @@ export function Sidebar() {
       <nav className="flex-1 p-4 space-y-2">
         <Button
           variant="ghost"
+          onClick={() => router.push("/dashboard")}
           className="w-full justify-start text-blue-950 hover:text-white hover:bg-slate-700"
         >
           <Home className="mr-3 h-4 w-4" />
@@ -30,6 +33,7 @@ export function Sidebar() {
 
         <Button
           variant="default"
+          onClick={() => router.push("/create-contract")}
           className="w-full justify-start hover:bg-slate-700 text-blue-950 hover:text-white"
         >
           <FileText className="mr-3 h-4 w-4" />
@@ -38,6 +42,7 @@ export function Sidebar() {
 
         <Button
           variant="ghost"
+          onClick={() => router.push("/my-contract")}
           className="w-full justify-start text-blue-950 hover:text-white hover:bg-slate-700"
         >
           <FolderOpen className="mr-3 h-4 w-4" />

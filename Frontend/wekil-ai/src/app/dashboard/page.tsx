@@ -5,7 +5,7 @@ import AgreementType from "@/components/dashboard/AgreementType";
 import DashBoardContract, {
   ContractFormat,
 } from "@/components/dashboard/DashBoardContract";
-const Contracttype: ("service" | "loan" | "sale" | "nonDisclosure")[] = [
+const ContractType: ("service" | "loan" | "sale" | "nonDisclosure")[] = [
   "service",
   "loan",
   "sale",
@@ -21,8 +21,7 @@ const data1: ContractFormat = {
   date: "2024-01-15",
   status: "completed",
   language: "en",
-
-
+};
 
 const data2: ContractFormat = { ...data1, type: "loan" };
 const data3: ContractFormat = {
@@ -61,7 +60,7 @@ const Dashboard = () => {
           Choose Contract Type
         </p>
         <div className="grid grid-cols-4 gap-4">
-          {Contracttype.map((item, index) => (
+          {ContractType.map((item, index) => (
             <AgreementType type={item} key={index} />
           ))}
         </div>

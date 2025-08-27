@@ -8,6 +8,7 @@ import (
 )
 
 var (
+
 	MONGODB_URI              string
 	PORT                     string
 	JWT_ACCESS_TOKEN_SECRET  string
@@ -17,6 +18,10 @@ var (
 	SENDER_EMAIL             string
 	MONGODB                  string
 	GEMINI_API_KEY               string
+  CLIENT_ID 		string
+  CLIENT_SECRET 		string 
+  CLIENT_CALLBACK_URL 		string 
+
 )
 
 func InitEnv() {
@@ -33,6 +38,9 @@ func InitEnv() {
 	SENDER_EMAIL = getEnv("SENDER_EMAIL")
 	GEMINI_API_KEY = getEnv("GEMINI_API_KEY")
 	MONGODB = getEnv("MONGODB")
+  CLIENT_ID = getEnv("CLIENT_ID")
+	CLIENT_SECRET = getEnv("CLIENT_SECRET")
+	CLIENT_CALLBACK_URL = getEnv("CLIENT_CALLBACK_URL")
 }
 
 func getEnv(key string) string {

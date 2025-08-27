@@ -83,7 +83,7 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
     try {
       // Fake API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      setShowVerifyModal(true); // 👈 show popup after success
+      setShowVerifyModal(true);
       toast.success("Form Submitted!");
     } catch (error) {
       setErrors({

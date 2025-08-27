@@ -1,6 +1,7 @@
 package routers
 
 import (
+	controllers "wekil_ai/Delivery/Controllers"
 	domain "wekil_ai/Domain/Interfaces"
 	infrastracture "wekil_ai/Infrastracture"
 	"wekil_ai/config"
@@ -8,13 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-func Router(uc domain.IUserController) { 
+func Router(uc domain.IUserController, ai *controllers.AIController) {
+	mainRouter := gin.Default()
 
 	auth := infrastracture.NewJWTAuthentication(config.SigningKey)
 	authMiddleware := infrastracture.NewAuthMiddleware(auth)
-
-	mainRouter := gin.Default()	
 	
 	mainRouter.POST("/api/auth/refresh",uc.RefreshTokenHandler)
 	mainRouter.POST("/api/auth/verify-otp",uc.VerfiyOTPRequest)
@@ -28,11 +27,17 @@ func Router(uc domain.IUserController) {
 	mainRouter.PUT("/api/users/profile",authMiddleware.JWTAuthMiddleware(),uc.UpdateProfile)
 	mainRouter.GET("/api/users/profile",authMiddleware.JWTAuthMiddleware(),uc.GetProfile)
 
-    mainRouter.GET("/auth/:provider",uc.SignInWithProvider )
+  	mainRouter.GET("/auth/:provider",uc.SignInWithProvider )
 	mainRouter.GET("/auth/:provider/callback",uc.CallbackHandler )
 	mainRouter.GET("/success", uc.Success)
-	
-	mainRouter.Run()	
+		
 
+	aiRoutes := mainRouter.Group("/ai")
+	{
+		aiRoutes.POST("/classify", ai.Classify)
+		aiRoutes.POST("/extract", ai.Extract)
+		aiRoutes.POST("/draft", ai.Draft)
+	}
+	mainRouter.Run()
 }
 

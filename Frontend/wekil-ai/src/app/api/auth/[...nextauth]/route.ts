@@ -1,4 +1,4 @@
-import NextAuth, { NextAuthOptions, Session, User} from "next-auth";
+import NextAuth, { NextAuthOptions, Session, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { JWT } from "next-auth/jwt";
@@ -12,33 +12,28 @@ interface ExtendedJWT extends JWT {
   error?: string;
 }
 
-// Demo function for refreshing backend token (commented out until backend is ready)
+// Refresh token function (can call backend API if needed)
 async function refreshBackendToken(token: ExtendedJWT): Promise<ExtendedJWT> {
-//   try {
-//     const res = await fetch(`${process.env.API_URL}/auth/refresh-token`, {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({ refreshToken: token.refreshToken }),
-//     });
+  try {
+    const res = await fetch(`${process.env.API_URL}/auth/refresh-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken: token.refreshToken }),
+    });
 
-//     const data = await res.json();
-//     if (!res.ok) throw data;
+    const data = await res.json();
+    if (!res.ok) throw data;
 
-//     return {
-//       ...token,
-//       accessToken: data.accessToken,
-//       accessTokenExpires: Date.now() + 24 * 60 * 60 * 1000, // 1 day
-//       refreshToken: data.refreshToken ?? token.refreshToken,
-//     };
-      return {
-          ...token,
-          accessToken: "demo-access-token-" + Date.now(),
-          accessTokenExpires: Date.now() + 60 * 60 * 1000, // 1 hour
-        };
-//   } catch (err) {
-//     console.error("Error refreshing backend token", err);
-//     return { ...token, error: "RefreshTokenError" };
-//   }
+    return {
+      ...token,
+      accessToken: data.accessToken,
+      accessTokenExpires: Date.now() + 60 * 60 * 1000, // 1 hour
+      refreshToken: data.refreshToken ?? token.refreshToken,
+    };
+  } catch (err) {
+    console.error("Error refreshing backend token", err);
+    return { ...token, error: "RefreshTokenError" };
+  }
 }
 
 export const authOptions: NextAuthOptions = {
@@ -51,28 +46,37 @@ export const authOptions: NextAuthOptions = {
         rememberMe: { label: "Remember Me", type: "text" },
       },
       async authorize(credentials) {
-        const demoUser = {
-          id: "1",
-          name: "John Doe",
-          email: "test@example.com",
-          password: "12345678",
-        };
-
-        if (credentials?.email === demoUser.email && credentials?.password === demoUser.password) {
-          return {
-            id: demoUser.id,
-            name: demoUser.name,
-            email: demoUser.email,
-            rememberMe: Boolean(credentials.rememberMe),
-            accessToken: "demo-access-token", 
-            refreshToken: "demo-refresh-token", 
-          };
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Email and password are required");
         }
 
-        throw new Error("Invalid email or password");
+        // Call your backend API to authenticate user
+        const res = await fetch(`${process.env.API_URL}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: credentials.email,
+            password: credentials.password,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "Invalid email or password");
+        }
+
+        // Return user object to NextAuth
+        return {
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          rememberMe: Boolean(credentials.rememberMe),
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+        };
       },
     }),
-
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -90,29 +94,15 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({
-      token,
-      user,
-    }: {
-      token: ExtendedJWT;
-      user?: User & { rememberMe?: boolean; accessToken?: string; refreshToken?: string };
-    }) {
+    async jwt({ token, user }: { token: ExtendedJWT; user?: User & { rememberMe?: boolean; accessToken?: string; refreshToken?: string } }) {
       if (user) {
         token.id = user.id;
         token.rememberMe = user.rememberMe;
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.accessTokenExpires = Date.now() + 60 * 60 * 1000;
-
-        // If backend tokens exist in future:
-        // token.accessToken = user.accessToken;
-        // token.refreshToken = user.refreshToken;
-        // token.accessTokenExpires = user.rememberMe
-        //   ? Date.now() + 7 * 24 * 60 * 60 * 1000
-        //   : Date.now() + 24 * 60 * 60 * 1000;
       }
 
-      // Future refresh logic:
       if (token.accessTokenExpires && Date.now() > token.accessTokenExpires && token.refreshToken) {
         return refreshBackendToken(token);
       }

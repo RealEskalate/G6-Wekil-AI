@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { FaRobot } from "react-icons/fa";
+import { translations } from "@/lib/translations";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface HeaderProps {
   activeSection: string;
@@ -17,12 +19,13 @@ export default function Header({
   onScrollToSection,
 }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { lang, setLang } = useLanguage();
+  const t = translations[lang];
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -40,8 +43,11 @@ export default function Header({
           <div className="bg-blue-600 text-white p-2 rounded-lg mr-2 animate-pulse">
             <FaRobot className="text-xl" />
           </div>
-          <span className="text-2xl font-bold text-blue-800">Wekil AI</span>
+          <span className="text-2xl font-bold text-blue-800">
+            {t.headerBrand}
+          </span>
         </div>
+
         <div className="hidden md:flex space-x-8">
           <button
             onClick={() => onScrollToSection("features")}
@@ -51,7 +57,7 @@ export default function Header({
                 : "text-gray-700 hover:text-blue-600"
             }`}
           >
-            Features
+            {t.navFeatures}
           </button>
           <button
             onClick={() => onScrollToSection("how-it-works")}
@@ -61,7 +67,7 @@ export default function Header({
                 : "text-gray-700 hover:text-blue-600"
             }`}
           >
-            How It Works
+            {t.navHowItWorks}
           </button>
           <button
             onClick={() => onScrollToSection("pricing")}
@@ -71,7 +77,7 @@ export default function Header({
                 : "text-gray-700 hover:text-blue-600"
             }`}
           >
-            Pricing
+            {t.navPricing}
           </button>
           <button
             onClick={() => onScrollToSection("faq")}
@@ -81,21 +87,30 @@ export default function Header({
                 : "text-gray-700 hover:text-blue-600"
             }`}
           >
-            FAQ
+            {t.navFAQ}
           </button>
         </div>
+
         <div className="flex items-center space-x-4">
           <button
             onClick={onLoginClick}
             className="text-blue-600 cursor-pointer hover:text-blue-800 font-medium transition-colors"
           >
-            Log In
+            {t.loginButton}
           </button>
           <button
             onClick={onSignupClick}
             className="bg-blue-600 cursor-pointer text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
-            Sign Up
+            {t.signupButton}
+          </button>
+
+          {/* Language toggle */}
+          <button
+            onClick={() => setLang(lang === "en" ? "am" : "en")}
+            className="ml-2 border px-2 py-1 rounded text-sm font-medium hover:bg-gray-200 transition"
+          >
+            {lang === "en" ? "AM" : "EN"}
           </button>
         </div>
       </div>

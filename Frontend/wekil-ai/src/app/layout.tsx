@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Provider from "@/providers/AuthProvider";
 import { Toaster } from "react-hot-toast";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 export const metadata: Metadata = {
   title: "Wekil AI - Create Informal Agreements in Seconds",
@@ -26,7 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="">
-        <Provider>{children}</Provider>
+        <Provider>
+          <LanguageProvider>{children}</LanguageProvider>
+        </Provider>
         <Toaster
           position="bottom-right"
           toastOptions={{

@@ -1,31 +1,36 @@
 import { FaRobot } from "react-icons/fa";
+import { translations } from "@/lib/translations";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function Footer() {
+  const { lang } = useLanguage();
+  const t = translations[lang];
+
   return (
     <footer className="bg-gray-800 text-white py-12 px-4">
       <div className="container mx-auto">
         <div className="grid md:grid-cols-4 gap-8">
+          {/* Brand */}
           <div>
             <div className="flex items-center mb-4">
               <div className="bg-blue-600 text-white p-2 rounded-lg mr-2">
                 <FaRobot className="text-xl" />
               </div>
-              <span className="text-xl font-bold">Wekil AI</span>
+              <span className="text-xl font-bold">{t.footerBrand}</span>
             </div>
-            <p className="text-gray-400">
-              Making informal agreements simple and accessible for Ethiopian
-              businesses.
-            </p>
+            <p className="text-gray-400">{t.footerDesc}</p>
           </div>
+
+          {/* Product */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Product</h3>
+            <h3 className="text-lg font-semibold mb-4">{t.productTitle}</h3>
             <ul className="space-y-2">
               <li>
                 <a
                   href="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Features
+                  {t.productFeatures}
                 </a>
               </li>
               <li>
@@ -33,7 +38,7 @@ export default function Footer() {
                   href="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Pricing
+                  {t.productPricing}
                 </a>
               </li>
               <li>
@@ -41,7 +46,7 @@ export default function Footer() {
                   href="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Use Cases
+                  {t.productUseCases}
                 </a>
               </li>
               <li>
@@ -49,20 +54,22 @@ export default function Footer() {
                   href="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Demo
+                  {t.productDemo}
                 </a>
               </li>
             </ul>
           </div>
+
+          {/* Company */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Company</h3>
+            <h3 className="text-lg font-semibold mb-4">{t.companyTitle}</h3>
             <ul className="space-y-2">
               <li>
                 <a
                   href="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  About Us
+                  {t.companyAbout}
                 </a>
               </li>
               <li>
@@ -70,7 +77,7 @@ export default function Footer() {
                   href="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Blog
+                  {t.companyBlog}
                 </a>
               </li>
               <li>
@@ -78,7 +85,7 @@ export default function Footer() {
                   href="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Careers
+                  {t.companyCareers}
                 </a>
               </li>
               <li>
@@ -86,20 +93,22 @@ export default function Footer() {
                   href="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Contact
+                  {t.companyContact}
                 </a>
               </li>
             </ul>
           </div>
+
+          {/* Legal */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Legal</h3>
+            <h3 className="text-lg font-semibold mb-4">{t.legalTitle}</h3>
             <ul className="space-y-2">
               <li>
                 <a
                   href="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Privacy Policy
+                  {t.legalPrivacy}
                 </a>
               </li>
               <li>
@@ -107,7 +116,7 @@ export default function Footer() {
                   href="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Terms of Service
+                  {t.legalTerms}
                 </a>
               </li>
               <li>
@@ -115,7 +124,7 @@ export default function Footer() {
                   href="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Disclaimer
+                  {t.legalDisclaimer}
                 </a>
               </li>
               <li>
@@ -123,14 +132,18 @@ export default function Footer() {
                   href="#"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Security
+                  {t.legalSecurity}
                 </a>
               </li>
             </ul>
           </div>
         </div>
+
+        {/* Copyright */}
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-          <p>© {new Date().getFullYear()} Wekil AI. All rights reserved.</p>
+          <p>
+            {t.copyright.replace("{year}", String(new Date().getFullYear()))}
+          </p>
         </div>
       </div>
     </footer>

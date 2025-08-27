@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"net/http"
 	domain "wekil_ai/Domain"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -20,7 +21,9 @@ type IIndividualRepository interface {
 	DeleteRefreshToken(ctx context.Context, userID string) error
 	UpdateProfile(ctx context.Context, id primitive.ObjectID, updateData map[string]interface{}) error
 }
-
+type IOAuthUsecase interface {
+	HandleOAuthLogin(req *http.Request, res http.ResponseWriter) (*domain.Individual, error)
+}
  
 
 // we should use GetByID instead of GetByEmail for performance

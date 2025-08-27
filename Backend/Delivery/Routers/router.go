@@ -1,6 +1,7 @@
 package routers
 
 import (
+	controllers "wekil_ai/Delivery/Controllers"
 	domain "wekil_ai/Domain/Interfaces"
 	infrastracture "wekil_ai/Infrastracture"
 	"wekil_ai/config"
@@ -8,8 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-func Router(uc domain.IUserController) { 
+func Router(uc domain.IUserController, ai *controllers.AIController) {
+	mainRouter := gin.Default()
 
 	auth := infrastracture.NewJWTAuthentication(config.SigningKey)
 	authMiddleware := infrastracture.NewAuthMiddleware(auth)
@@ -32,6 +33,13 @@ func Router(uc domain.IUserController) {
 	mainRouter.GET("/success", uc.Success)
 	
 	mainRouter.Run()	
+
+	aiRoutes := mainRouter.Group("/ai")
+	{
+		aiRoutes.POST("/classify", ai.Classify)
+		aiRoutes.POST("/extract", ai.Extract)
+		aiRoutes.POST("/draft", ai.Draft)
+	}
 
 }
 

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:wekil_ai_mobile_app/core/ui/app_svg_icon.dart';
 
-import '../../domain/entities/contract.dart';
+import '../../domain/entities/agreement.dart';
 
 class RecentContractCard extends StatelessWidget {
-  final Contract contract;
+  final Agreement contract;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   const RecentContractCard({
@@ -14,25 +15,61 @@ class RecentContractCard extends StatelessWidget {
     this.onEdit,
   });
 
+  String _typeLabel(Agreement a) {
+    switch (a.type) {
+      case AgreementType.service:
+        return 'Service';
+      case AgreementType.sales:
+        return 'Sales';
+      case AgreementType.loan:
+        return 'Loan';
+      case AgreementType.generic:
+        return 'Agreement';
+    }
+  }
+
+  Color _statusColor(String? status) {
+    switch ((status ?? '').toLowerCase()) {
+      case 'draft':
+        return const Color(0xFF3B82F6); // blue
+      case 'exported':
+        return const Color(0xFF10B981); // green
+      case 'signed':
+        return const Color(0xFF14B8A6); // teal
+      default:
+        return Colors.grey;
+    }
+  }
+
+  double _amountValue(Agreement a) {
+    if (a.totalAmount != null) return a.totalAmount!;
+    if (a.goods.isNotEmpty) {
+      return a.goods
+          .map((g) => g.quantity * g.unitPrice)
+          .fold(0.0, (p, e) => p + e);
+    }
+    if (a.principal != null) return a.principal!;
+    return 0;
+  }
+
+  DateTime _displayDate(Agreement a) {
+    return a.startDate ??
+        (a.dueDates.isNotEmpty ? a.dueDates.first : null) ??
+        a.endDate ??
+        DateTime.now();
+  }
+
+  String _partyLabel(Agreement a) {
+    return a.parties.isNotEmpty ? a.parties.first.name : '—';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final border = theme.dividerColor.withOpacity(.25);
-    final dateStr = DateFormat('dd MMM yyyy').format(contract.createdAt);
-    final amountStr = NumberFormat('#,##0').format(contract.amount);
-
-    Color statusColor;
-    switch (contract.status) {
-      case ContractStatus.draft:
-        statusColor = const Color(0xFF3B82F6); // blue
-        break;
-      case ContractStatus.exported:
-        statusColor = const Color(0xFF10B981); // green
-        break;
-      case ContractStatus.signed:
-        statusColor = const Color(0xFF14B8A6); // teal
-        break;
-    }
+    final dateStr = DateFormat('dd MMM yyyy').format(_displayDate(contract));
+    final amountStr = NumberFormat('#,##0').format(_amountValue(contract));
+    final statusColor = _statusColor(contract.status);
 
     return InkWell(
       borderRadius: BorderRadius.circular(14),
@@ -56,10 +93,13 @@ class RecentContractCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                _Pill(label: contract.type, color: const Color(0xFF3B82F6)),
+                _Pill(
+                  label: _typeLabel(contract),
+                  color: const Color(0xFF3B82F6),
+                ),
                 const SizedBox(width: 8),
                 _Pill(
-                  label: contract.status.name,
+                  label: (contract.status ?? 'unknown').toLowerCase(),
                   color: statusColor,
                   lowercase: true,
                 ),
@@ -69,7 +109,7 @@ class RecentContractCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              contract.title,
+              contract.title ?? 'Agreement',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -78,7 +118,7 @@ class RecentContractCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              contract.party,
+              _partyLabel(contract),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.hintColor,
               ),
@@ -88,11 +128,21 @@ class RecentContractCard extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                const Icon(Icons.event, size: 16, color: Colors.grey),
+                const AppSvgIcon(
+                  name: 'calendar',
+                  size: 16,
+                  color: Colors.grey,
+                  fallback: Icons.event,
+                ),
                 const SizedBox(width: 6),
                 Text(dateStr, style: theme.textTheme.bodySmall),
                 const SizedBox(width: 16),
-                const Icon(Icons.attach_money, size: 16, color: Colors.grey),
+                const AppSvgIcon(
+                  name: 'currency-dollar',
+                  size: 16,
+                  color: Colors.grey,
+                  fallback: Icons.attach_money,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   '$amountStr ${contract.currency}',
@@ -159,7 +209,11 @@ class _EditIcon extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: theme.dividerColor.withOpacity(.25)),
         ),
-        child: const Icon(Icons.edit_outlined, size: 16),
+        child: const AppSvgIcon(
+          name: 'pencil-square',
+          size: 16,
+          fallback: Icons.edit_outlined,
+        ),
       ),
     );
   }

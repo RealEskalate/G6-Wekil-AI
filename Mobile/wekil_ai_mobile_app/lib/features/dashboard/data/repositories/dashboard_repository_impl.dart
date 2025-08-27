@@ -1,4 +1,4 @@
-import '../../domain/entities/contract.dart';
+import '../../domain/entities/agreement.dart';
 import '../../domain/entities/dashboard_summary.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../datasources/dashboard_remote_data_source.dart';
@@ -19,7 +19,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<List<Contract>> getRecentContracts({int limit = 5}) {
-    return remote.fetchRecentContracts(limit: limit);
+  Future<List<Agreement>> getTopAgreements({int limit = 3}) async {
+    final list = await remote.fetchAgreements();
+    return list.take(limit).toList();
   }
 }

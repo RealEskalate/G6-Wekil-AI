@@ -6,6 +6,13 @@ import 'bloc/dashboard_cubit.dart';
 import 'bloc/dashboard_state.dart';
 import 'widgets/stat_card.dart';
 import 'widgets/recent_contract_card.dart';
+import '../domain/repositories/dashboard_repository.dart' as d;
+import '../domain/usecases/get_dashboard_data.dart' as u;
+import '../data/repositories/dashboard_repository_impl.dart' as impl;
+import '../data/datasources/dashboard_remote_data_source.dart' as ds;
+// Import entity types for easier references
+import '../domain/entities/dashboard_summary.dart';
+import '../domain/entities/agreement.dart';
 
 class DashboardPage extends StatelessWidget {
   final VoidCallback? onCreate;
@@ -15,6 +22,55 @@ class DashboardPage extends StatelessWidget {
     return BlocProvider(
       create: (_) => getIt<DashboardCubit>()..load(),
       child: const DashboardPage(),
+    );
+  }
+
+  /// Easy-to-integrate builder. Pass either an existing [DashboardCubit],
+  /// or a [GetDashboardData] use case, or a [DashboardRepository]. If nothing is
+  /// provided, a lightweight in-memory implementation is used so the screen
+  /// works out-of-the-box without DI.
+  static Widget withDependencies({
+    DashboardCubit? cubit,
+    u.GetDashboardData? usecase,
+    d.DashboardRepository? repository,
+    bool autoLoad = true,
+    VoidCallback? onCreate,
+  }) {
+    if (cubit != null) {
+      if (autoLoad) cubit.load();
+      return BlocProvider.value(
+        value: cubit,
+        child: DashboardPage(onCreate: onCreate),
+      );
+    }
+
+    final resolvedUsecase =
+        usecase ??
+        u.GetDashboardData(
+          repository ??
+              impl.DashboardRepositoryImpl(
+                remote: ds.DashboardRemoteDataSource(),
+              ),
+        );
+
+    return BlocProvider(
+      create: (_) => DashboardCubit(resolvedUsecase)..load(),
+      child: DashboardPage(onCreate: onCreate),
+    );
+  }
+
+  /// Quick builder for showcases/tests: pass final data directly.
+  /// No backend or DI required.
+  static Widget withMockData({
+    required DashboardSummary summary,
+    required List<Agreement> recent,
+    VoidCallback? onCreate,
+  }) {
+    final repo = _FakeDashboardRepository(summary: summary, recent: recent);
+    final uc = u.GetDashboardData(repo);
+    return BlocProvider(
+      create: (_) => DashboardCubit(uc)..load(),
+      child: DashboardPage(onCreate: onCreate),
     );
   }
 
@@ -55,7 +111,15 @@ class DashboardPage extends StatelessWidget {
                       ),
                       const Spacer(),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          if ((state.recent).isEmpty) {
+                            // If empty, reuse create action
+                            (onCreate ?? () {})();
+                          } else {
+                            // Placeholder route for View All
+                            Navigator.of(context).pushNamed('/agreements');
+                          }
+                        },
                         child: const Text('View All'),
                       ),
                     ],
@@ -71,6 +135,17 @@ class DashboardPage extends StatelessWidget {
       ),
     );
   }
+}
+
+class _FakeDashboardRepository implements d.DashboardRepository {
+  final DashboardSummary summary;
+  final List<Agreement> recent;
+  _FakeDashboardRepository({required this.summary, required this.recent});
+  @override
+  Future<DashboardSummary> getSummary() async => summary;
+  @override
+  Future<List<Agreement>> getTopAgreements({int limit = 3}) async =>
+      recent.take(limit).toList();
 }
 
 class _OverviewRow extends StatelessWidget {

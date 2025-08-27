@@ -190,7 +190,7 @@ func (uc *UserController) UpdateProfile(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully","success": true,})
 }
 
 func (uc *UserController) GetProfile(ctx *gin.Context) {

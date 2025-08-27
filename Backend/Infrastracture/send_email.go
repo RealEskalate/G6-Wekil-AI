@@ -9,7 +9,7 @@ import (
 
 func SendOTP(toEmail, otp string) error {
 	from := mail.NewEmail("blogapp", os.Getenv("SENDER_EMAIL")) 
-	subject := "Verify your BlogApp account"
+	subject := "Verify your Wekilai account"
 	to := mail.NewEmail("", toEmail)
 
 	plainText := fmt.Sprintf("Your OTP is: %s", otp)

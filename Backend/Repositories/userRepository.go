@@ -147,6 +147,38 @@ func (r *UserRepository) DeleteIndividual(ctx context.Context, individualID prim
     return nil
 }
 
+func (ur UserRepository) DeleteRefreshToken(ctx context.Context, userID string) error {
+    objID, err := primitive.ObjectIDFromHex(userID)
+    if err != nil {
+        return errors.New("invalid user ID")
+    }
+
+    filter := bson.M{"_id": objID}
+    update := bson.M{"$unset": bson.M{"refresh_token": ""}} 
+
+    _, err = ur.collection.UpdateOne(ctx, filter, update)
+    return err
+}
+
+// UpdateProfile updates the profile of an individual by ID with the provided update data.
+func (r *UserRepository) UpdateProfile(ctx context.Context, id primitive.ObjectID, updateData map[string]interface{}) error {
+    if len(updateData) == 0 {
+        return errors.New("update data is empty")
+    }
+
+    filter := bson.M{"_id": id}
+    update := bson.M{"$set": updateData}
+
+    res, err := r.collection.UpdateOne(ctx, filter, update)
+    if err != nil {
+        return fmt.Errorf("failed to update profile: %w", err)
+    }
+    if res.MatchedCount == 0 {
+        return errors.New("individual not found")
+    }
+    return nil
+}
+
 // Compile-time interface assertions (comment out if interfaces differ).
 // var _ domainInterface.IUserRepository = (*UserRepository)(nil)
 // var _ domainInterface.IuserRepository = (*UserRepository)(nil)

@@ -25,8 +25,8 @@ func main() {
 	auth := infrastracture.NewJWTAuthentication(config.SigningKey)
 	unverifiedUserRepo := repository.NewUnverifiedUserRepository(mongoClient.Client)
 	userUsecase := usecases.NewUserUseCase(auth,userRepo,password_service,unverifiedUserRepo)
+
 	oAuthusecase := usecases.NewOAuthUsecase(userRepo,auth)
 	userController := controllers.NewUserController(userUsecase,oAuthusecase)
-
 	routers.Router(userController)
 }

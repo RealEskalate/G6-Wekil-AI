@@ -12,4 +12,8 @@ type IUserController interface {
 	SignInWithProvider(c *gin.Context) 
 	CallbackHandler(c *gin.Context)
 	Success(c *gin.Context)
+	Logout(ctx *gin.Context)
+	UpdateProfile(ctx *gin.Context)
+	GetProfile(ctx *gin.Context)
+
 }

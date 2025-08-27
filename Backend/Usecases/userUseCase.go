@@ -148,6 +148,56 @@ func (a *UserUseCase) Login(email, password string) (string,string, error) {
 	return accessToken,refreshToken, nil
 }
 
+func (uuc *UserUseCase) Logout(ctx context.Context, userID string) error {
+    return uuc.userCollection.DeleteRefreshToken(ctx, userID)
+}
+
+func (u *UserUseCase) GetProfile(ctx context.Context, userID string) (*domain.Individual, error) {
+	id, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, errors.New("invalid user ID")
+	}
+
+	user, err := u.userCollection.FindByID(ctx, id)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	return user, nil
+}
+
+func (u *UserUseCase) UpdateProfile(ctx context.Context, userID string, updateReq *domain.UpdateProfileRequestDTO) error {
+	id, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return errors.New("invalid user ID")
+	}
+
+	updateData := bson.M{}
+
+	if updateReq.FirstName != nil {
+		updateData["first_name"] = *updateReq.FirstName
+	}
+	if updateReq.LastName != nil {
+		updateData["last_name"] = *updateReq.LastName
+	}
+	if updateReq.MiddleName != nil {
+		updateData["middle_name"] = *updateReq.MiddleName
+	}
+	if updateReq.Address != nil {
+		updateData["address"] = *updateReq.Address
+	}
+	if updateReq.Telephone != "" {
+		updateData["telephone"] = updateReq.Telephone
+	}
+	if updateReq.Signature != nil {
+		updateData["signature"] = *updateReq.Signature
+	}
+	if updateReq.ProfileImage != nil {
+		updateData["profile_image"] = *updateReq.ProfileImage
+	}
+	return u.userCollection.UpdateProfile(ctx, id, updateData)
+}
+
 func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
 	return &UserUseCase{
 		auth: AUTH,

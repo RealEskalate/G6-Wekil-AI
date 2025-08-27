@@ -79,7 +79,7 @@ export const DashBoardContract: React.FC<DashBoardContractProps> = ({
           {contract.title}
         </p>
         <p className="text-gray-500 mb-2 text-sm font-bold ml-4">{`${contract.party1} <-> ${contract.party2} . ${contract.payment} ETB`}</p>
-        <p className="text-blue-950 font-semibold mb-2 text-sm">
+        <p className="text-blue-950 text-center font-semibold mb-2 text-sm">
           {contract.date}
         </p>
         <div className="flex justify-around">

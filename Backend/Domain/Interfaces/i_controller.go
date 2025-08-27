@@ -9,7 +9,11 @@ type IUserController interface {
 	SendResetOTP(ctx *gin.Context)
 	ResetPassword(ctx *gin.Context)
 	HandleLogin(ctx *gin.Context) 
+	SignInWithProvider(c *gin.Context) 
+	CallbackHandler(c *gin.Context)
+	Success(c *gin.Context)
 	Logout(ctx *gin.Context)
 	UpdateProfile(ctx *gin.Context)
 	GetProfile(ctx *gin.Context)
+
 }

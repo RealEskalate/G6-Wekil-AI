@@ -129,7 +129,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gray-100">
       <Header
         activeSection={activeSection}
         onLoginClick={handleLoginClick}

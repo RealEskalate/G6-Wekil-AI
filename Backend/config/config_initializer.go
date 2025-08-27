@@ -15,8 +15,8 @@ SENDGRID_API_KEY		string
 SigningKey				string
 SENDER_EMAIL			string
 MONGODB 				string
-
-)
+GEMINI_API_KEY			string
+)	
 
 func InitEnv() {
 	err := godotenv.Load()
@@ -32,6 +32,7 @@ func InitEnv() {
 	SENDER_EMAIL = getEnv("SENDER_EMAIL")
 
 	MONGODB = getEnv("MONGODB")
+	GEMINI_API_KEY = getEnv("GEMINI_API_KEY")
 }
 
 func getEnv(key string) string {

@@ -5,6 +5,7 @@ import (
 	controllers "wekil_ai/Delivery/Controllers"
 	routers "wekil_ai/Delivery/Routers"
 	infrastracture "wekil_ai/Infrastracture"
+	ai_interaction "wekil_ai/Infrastracture/ai_interaction"
 	"wekil_ai/Repositories"
 	usecases "wekil_ai/Usecases"
 	"wekil_ai/config"
@@ -16,6 +17,10 @@ func main() {
 	if err != nil {
 		log.Fatal("❌Failed to connect:", err)
 	}
+	apiKey := config.GEMINI_API_KEY
+	if apiKey == "" {
+		log.Fatal("❌ GEMINI_API_KEY not set")
+	}
 	defer mongoClient.Disconnect()
 
 	password_service := infrastracture.NewPasswordService()
@@ -25,5 +30,14 @@ func main() {
 	userUsecase := usecases.NewUserUseCase(auth,userRepo,password_service,unverifiedUserRepo)
 	userController := controllers.NewUserController(userUsecase)
 
-	routers.Router(userController)
+
+	aiInfra, err := ai_interaction.NewAIInteraction(apiKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	aiUsecase := usecases.NewAIUsecase(aiInfra)
+
+	aiController := controllers.NewAIController(aiUsecase)
+	routers.Router(userController, aiController)
 }

@@ -1,4 +1,5 @@
 import React from "react";
+
 import DashboardCard from "@/components/dashboard/dashboardCard";
 import AgreementType from "@/components/dashboard/AgreementType";
 import DashBoardContract, {
@@ -20,7 +21,8 @@ const data1: ContractFormat = {
   date: "2024-01-15",
   status: "completed",
   language: "en",
-};
+
+
 
 const data2: ContractFormat = { ...data1, type: "loan" };
 const data3: ContractFormat = {

@@ -32,7 +32,10 @@ func (c *AIController) Extract(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, result)
+	ctx.JSON(http.StatusOK, gin.H{
+        "agreement_type": result.AgreementType, // include the new field
+        "intake": result,
+    })
 }
 
 func (c *AIController) Classify(ctx *gin.Context) {
@@ -44,7 +47,7 @@ func (c *AIController) Classify(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	result, err := c.aiUsecase.Classify(context.Background(), req.Text, req.Language)
+	result, err := c.aiUsecase.Classify(context.Background(), req.Text)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -20,8 +20,8 @@ func (u *AIUsecase) Extract(ctx context.Context, text, language string) (*domain
 }
 
 // Classify deal type
-func (u *AIUsecase) Classify(ctx context.Context, text, language string) (*domain.ClassifierResult, error) {
-	return u.aiRepo.ClassifyDeal(ctx, text, language)
+func (u *AIUsecase) Classify(ctx context.Context, text string) (*domain.ClassifierResult, error) {
+	return u.aiRepo.ClassifyDeal(ctx, text)
 }
 
 // Generate document draft

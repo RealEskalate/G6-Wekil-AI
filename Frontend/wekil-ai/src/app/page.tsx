@@ -307,9 +307,6 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row space-y-8 md:space-y-0 md:space-x-8 items-center">
             <div className="flex-1">
               <div className="relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-full w-1 bg-blue-200"></div>
-                </div>
                 <ul className="relative space-y-12">
                   {[
                     {

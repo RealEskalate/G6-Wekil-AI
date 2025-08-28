@@ -10,14 +10,19 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/router";
+import { sidebarTranslations } from "@/lib/sidebarTranslations";
+import { useLanguage } from "@/context/LanguageContext";
 
 export function Sidebar() {
   const router = useRouter();
+  const { lang, setLang } = useLanguage();
+  const t = sidebarTranslations[lang];
+
   return (
     <div className="w-64 bg-white text-blue-950 flex flex-col shadow-sm">
       {/* Header */}
       <div className="p-6 border-b border-gray-400">
-        <h1 className="text-xl font-semibold">Wekil AI</h1>
+        <h1 className="text-xl font-semibold">{t.app_name}</h1>
       </div>
 
       {/* Navigation */}
@@ -28,7 +33,7 @@ export function Sidebar() {
           className="w-full justify-start text-blue-950 hover:text-white hover:bg-slate-700"
         >
           <Home className="mr-3 h-4 w-4" />
-          Dashboard
+          {t.dashboard}
         </Button>
 
         <Button
@@ -37,7 +42,7 @@ export function Sidebar() {
           className="w-full justify-start hover:bg-slate-700 text-blue-950 hover:text-white"
         >
           <FileText className="mr-3 h-4 w-4" />
-          Create Contract
+          {t.create_contract}
         </Button>
 
         <Button
@@ -46,7 +51,7 @@ export function Sidebar() {
           className="w-full justify-start text-blue-950 hover:text-white hover:bg-slate-700"
         >
           <FolderOpen className="mr-3 h-4 w-4" />
-          My Contracts
+          {t.my_contracts}
         </Button>
       </nav>
 
@@ -54,7 +59,13 @@ export function Sidebar() {
       <div className="p-4 border-t border-slate-300 space-y-2">
         <div className="flex items-center text-blue-950 text-sm mb-4">
           <Globe className="mr-2 h-4 w-4" />
-          አማርኛ
+          <Button
+            variant="ghost"
+            onClick={() => setLang(lang === "en" ? "am" : "en")}
+            className="p-0 h-auto text-blue-950 hover:bg-transparent"
+          >
+            {lang === "en" ? "አማርኛ" : "English"}
+          </Button>
         </div>
 
         <Button
@@ -62,7 +73,7 @@ export function Sidebar() {
           className="w-full justify-start text-blue-950 hover:text-white hover:bg-slate-700"
         >
           <Settings className="mr-3 h-4 w-4" />
-          Settings
+          {t.settings}
         </Button>
 
         <Button
@@ -70,7 +81,7 @@ export function Sidebar() {
           className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-slate-700"
         >
           <LogOut className="mr-3 h-4 w-4" />
-          Sign Out
+          {t.sign_out}
         </Button>
       </div>
     </div>

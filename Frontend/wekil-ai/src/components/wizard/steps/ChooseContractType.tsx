@@ -1,6 +1,6 @@
 "use client"
-
-import { Card } from "@/components/ui/Card"
+import React from "react";
+import {Card} from "@/components/ui/Card"
 import type { ContractData, Language } from "../ContractWizard"
 import { Shield, ShoppingCart, CreditCard, Lock } from "lucide-react"
 

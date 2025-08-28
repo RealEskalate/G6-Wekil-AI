@@ -22,7 +22,7 @@ const data1: ContractFormat = {
   status: "completed",
   language: "en",
 
-
+}
 
 const data2: ContractFormat = { ...data1, type: "loan" };
 const data3: ContractFormat = {

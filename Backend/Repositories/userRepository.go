@@ -69,7 +69,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain
     err := r.collection.FindOne(ctx, bson.M{"email": email}).Decode(&ind)
     if err != nil {
         if errors.Is(err, mongo.ErrNoDocuments) {
-            return nil, nil
+            return nil,errors.New("user does not exist")
         }
         return nil, fmt.Errorf("failed to find individual: %w", err)
     }

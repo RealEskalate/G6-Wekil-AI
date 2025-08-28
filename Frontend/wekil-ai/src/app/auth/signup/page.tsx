@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
-import { IndividualFormData, FormErrors } from "@/types/auth";
+import { SignupFormData, FormErrors } from "@/types/auth";
 import {
   validateEmail,
   validatePhone,
@@ -21,7 +21,7 @@ interface SignupPageProps {
 }
 
 export default function SignupPage({ onBackToLogin }: SignupPageProps) {
-  const [individualForm, setIndividualForm] = useState<IndividualFormData>({
+  const [individualForm, setIndividualForm] = useState<SignupFormData>({
     firstName: "",
     lastName: "",
     middleName: "",

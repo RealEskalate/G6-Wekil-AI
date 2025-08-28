@@ -448,7 +448,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 bg-blue-600 text-white">
+      <section className="py-16 bg-[#1e2b4d] text-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
@@ -479,7 +479,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+      <section className="py-20 bg-gradient-to-r from-[#02425f] to-[#39d9f1] text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-6 animate-on-scroll opacity-0 translate-y-10 transition-all duration-700">
             {t.ctaTitle}

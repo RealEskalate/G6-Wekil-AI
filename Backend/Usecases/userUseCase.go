@@ -31,7 +31,21 @@ func (u *UserUseCase) StoreUserInMainColl(user *domain.UnverifiedUserDTO) (*doma
 
 // StoreUserInOTPColl implements domain.IUserUseCase.
 func (u *UserUseCase) StoreUserInOTPColl(user *domain.UnverifiedUserDTO) ( error) {
-	return u.unverifiedUserCollection.CreateUnverifiedUser(context.Background(), user)
+	_, errUnverified := u.unverifiedUserCollection.GetByEmail(context.Background(), user.Email)
+	_,errVerified := u.userCollection.FindByEmail(context.Background(),user.Email)
+	
+	if errVerified == nil {
+   
+    return fmt.Errorf("user with email %s is already registered", user.Email)
+	}
+
+	if errUnverified != nil && errUnverified.Error() == "user does not exist" {
+		
+		return u.unverifiedUserCollection.CreateUnverifiedUser(context.Background(), user)
+	}
+
+	
+	return fmt.Errorf("user with email %s is already in registration process please verify your email", user.Email)
 }
 
 // ValidOTPRequest implements domain.IUserUseCase.

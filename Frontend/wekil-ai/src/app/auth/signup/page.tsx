@@ -13,6 +13,8 @@ import {
 import IndividualForm from "@/components/auth/IndividualForm";
 import VerifyEmail from "../verify-email/page";
 import toast from "react-hot-toast";
+import { useLanguage } from "@/context/LanguageContext";
+import { authTranslations } from "@/lib/authTranslations";
 
 interface SignupPageProps {
   onBackToLogin: () => void;
@@ -32,6 +34,8 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const { lang } = useLanguage();
+  const t = authTranslations[lang];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -45,22 +49,22 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
     const newErrors: FormErrors = {};
 
     if (!validateName(individualForm.firstName)) {
-      newErrors.firstName = "First name must be at least 2 letters";
+      newErrors.firstName = t.firstNameError;
     }
     if (!validateName(individualForm.middleName)) {
-      newErrors.middleName = "Middle name must be at least 2 letters";
+      newErrors.middleName = t.middleNameError;
     }
     if (!validateName(individualForm.lastName)) {
-      newErrors.lastName = "Last name must be at least 2 letters";
+      newErrors.lastName = t.lastNameError;
     }
     if (!validateEmail(individualForm.email)) {
-      newErrors.email = "Invalid email address";
+      newErrors.email = t.emailError;
     }
     if (!validatePhone(individualForm.telephone)) {
-      newErrors.telephone = "Invalid phone number";
+      newErrors.telephone = t.telephoneError;
     }
     if (!validatePassword(individualForm.password)) {
-      newErrors.password = "Password must be at least 8 characters";
+      newErrors.password = t.passwordError;
     }
     if (
       !validateConfirmPassword(
@@ -68,7 +72,7 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
         individualForm.confirmPassword
       )
     ) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = t.confirmPasswordError;
     }
 
     setErrors(newErrors);
@@ -84,12 +88,12 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
       // Fake API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setShowVerifyModal(true);
-      toast.success("Form Submitted!");
+      toast.success(t.signupSuccess);
     } catch (error) {
       setErrors({
-        general: `An error occurred during registration. Please try again. ${error}`,
+        general: `${t.generalError} ${error}`,
       });
-      toast.error("An error occurred during registration. Please try again.");
+      toast.error(t.signupFailed);
     } finally {
       setIsSubmitting(false);
     }
@@ -104,13 +108,13 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-800">
-              Create Account
+              {t.createAccount}
             </h2>
             <button
               onClick={onBackToLogin}
               className="text-blue-600 cursor-pointer hover:text-blue-800 text-sm flex items-center"
             >
-              <FaArrowLeft className="mr-1" /> Back
+              <FaArrowLeft className="mr-1" /> {t.back}
             </button>
           </div>
 
@@ -156,10 +160,10 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Processing...
+                  {t.processing}
                 </>
               ) : (
-                "Create Account"
+                t.createAccount
               )}
             </button>
           </form>

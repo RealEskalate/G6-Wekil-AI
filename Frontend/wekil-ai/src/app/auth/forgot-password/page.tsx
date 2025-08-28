@@ -5,11 +5,17 @@ import { FaEnvelope, FaRobot } from "react-icons/fa";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
+import { authTranslations } from "@/lib/authTranslations";
 
 function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { lang } = useLanguage();
+  const t = authTranslations[lang];
+
+  console.log(lang);
 
   const handleResendOTP = async (targetEmail?: string) => {
     const finalEmail = targetEmail || email;
@@ -17,10 +23,10 @@ function ForgotPasswordForm() {
     setIsLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success(`OTP sent to: ${finalEmail}`);
+      toast.success(`${t.otpSentSuccess} ${finalEmail}`);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to send OTP");
+      toast.error(t.otpSentFailed);
     } finally {
       setIsLoading(false);
     }
@@ -50,17 +56,15 @@ function ForgotPasswordForm() {
           <span className="text-3xl font-bold text-blue-800">Wekil AI</span>
         </div>
         <h2 className="mt-2 text-3xl font-bold text-gray-800">
-          Forgot Password
+          {t.forgotPasswordTitle}
         </h2>
-        <p className="mt-2 text-sm text-gray-600">
-          Enter your email to reset your password
-        </p>
+        <p className="mt-2 text-sm text-gray-600">{t.forgotPasswordDesc}</p>
       </div>
 
       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
         <div>
           <label htmlFor="email" className="sr-only">
-            Email address
+            {t.emailAddress}
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -75,7 +79,7 @@ function ForgotPasswordForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="appearance-none relative block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Email address"
+              placeholder={t.emailAddress}
             />
           </div>
         </div>
@@ -85,18 +89,18 @@ function ForgotPasswordForm() {
           disabled={isLoading}
           className="group relative cursor-pointer w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-300 transform hover:-translate-y-0.5 shadow-md hover:shadow-lg disabled:opacity-75 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Sending..." : "Send OTP to Email"}
+          {isLoading ? t.sending : t.sendOtpButton}
         </button>
       </form>
 
       <div className="text-center text-sm text-gray-600 mt-4">
         <p>
-          Remember your password?{" "}
+          {t.rememberPassword}{" "}
           <Link
             href="/"
             className="text-blue-600 hover:text-blue-800 font-medium"
           >
-            Sign in
+            {t.signInLink}
           </Link>
         </p>
       </div>

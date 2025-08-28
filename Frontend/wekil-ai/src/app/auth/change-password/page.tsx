@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FaArrowLeft, FaRobot, FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { useLanguage } from "@/context/LanguageContext";
+import { authTranslations } from "@/lib/authTranslations";
 
 function ChangePasswordForm() {
   const router = useRouter();
@@ -24,13 +26,15 @@ function ChangePasswordForm() {
     confirmPassword?: string;
   }>({});
 
+  const { lang } = useLanguage();
+  const t = authTranslations[lang];
+
   const validateForm = () => {
     const newErrors: typeof errors = {};
-    if (!otp) newErrors.otp = "OTP is required";
-    if (password.length < 8)
-      newErrors.password = "Password must be at least 8 characters";
+    if (!otp) newErrors.otp = t.otpRequired;
+    if (password.length < 8) newErrors.password = t.passwordError;
     if (password !== confirmPassword)
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = t.confirmPasswordError;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -41,22 +45,13 @@ function ChangePasswordForm() {
 
     setIsLoading(true);
     try {
-      const res = await fetch("/api/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp, password }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Failed to change password");
-      }
-
-      toast.success("Password changed successfully!");
+      // Fake API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      toast.success(t.passwordChangedSuccess);
       router.push("/");
     } catch (error) {
       console.error(error);
-      toast.error("Error changing password");
+      toast.error(t.passwordChangeFailed);
     } finally {
       setIsLoading(false);
     }
@@ -75,11 +70,11 @@ function ChangePasswordForm() {
     if (!email) return;
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success(`OTP resent to: ${email}`);
+      toast.success(`${t.otpSentSuccess} ${email}`);
       setResendCountdown(30);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to resend OTP");
+      toast.error(t.otpSentFailed);
     }
   };
 
@@ -93,11 +88,9 @@ function ChangePasswordForm() {
           <span className="text-3xl font-bold text-blue-800">Wekil AI</span>
         </div>
         <h2 className="mt-2 text-3xl font-bold text-gray-800">
-          Change Password
+          {t.changePasswordTitle}
         </h2>
-        <p className="mt-2 text-sm text-gray-600">
-          Enter OTP and your new password
-        </p>
+        <p className="mt-2 text-sm text-gray-600">{t.changePasswordDesc}</p>
       </div>
 
       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -106,7 +99,7 @@ function ChangePasswordForm() {
           <input
             type="text"
             maxLength={6}
-            placeholder="XXX-XXX"
+            placeholder={t.otpPlaceholder}
             value={otp}
             onChange={(e) => setOtp(e.target.value.replace(/\D/, ""))}
             autoComplete="off"
@@ -122,7 +115,7 @@ function ChangePasswordForm() {
                 : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
           >
-            {resendCountdown > 0 ? `${resendCountdown}s` : "Resend"}
+            {resendCountdown > 0 ? `${resendCountdown}s` : t.resend}
           </button>
         </div>
 
@@ -134,7 +127,7 @@ function ChangePasswordForm() {
         <div className="relative">
           <input
             type={showPassword ? "text" : "password"}
-            placeholder="New Password"
+            placeholder={t.newPassword}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -154,7 +147,7 @@ function ChangePasswordForm() {
         <div className="relative">
           <input
             type={showConfirmPassword ? "text" : "password"}
-            placeholder="Confirm Password"
+            placeholder={t.confirmNewPassword}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -178,7 +171,7 @@ function ChangePasswordForm() {
           disabled={isLoading}
           className="w-full py-3 cursor-pointer px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-75 disabled:cursor-not-allowed"
         >
-          {isLoading ? "Changing Password..." : "Change Password"}
+          {isLoading ? t.changingPassword : t.changePasswordButton}
         </button>
 
         <div className="text-center mt-4">
@@ -186,7 +179,7 @@ function ChangePasswordForm() {
             href="/"
             className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center justify-center"
           >
-            <FaArrowLeft className="mr-2" /> Back to Login
+            <FaArrowLeft className="mr-2" /> {t.backToLogin}
           </Link>
         </div>
       </form>

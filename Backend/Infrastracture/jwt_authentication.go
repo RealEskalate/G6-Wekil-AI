@@ -2,11 +2,13 @@ package infrastracture
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/markbates/goth/gothic"
 )
 
 const (
@@ -17,8 +19,6 @@ const (
 type JWTAuthentication struct {
 	signingKey []byte
 }
-
-
 
 // GenerateToken creates a new signed token with the given claims and type.
 // It sets the correct expiration time based on the tokenType.
@@ -80,6 +80,20 @@ func (j *JWTAuthentication) ParseTokenToClaim(tokenString string) (*domain.UserC
 
 	// Return the claims if the token is valid.
 	return claims, nil
+}
+
+func (o *JWTAuthentication) OAuthLogin(req *http.Request, res http.ResponseWriter) (*domain.Individual, error) {
+	user, err := gothic.CompleteUserAuth(res, req)
+	fmt.Print("+++++++", req, "+++++++", err, "------")
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Individual{
+		Email: user.Email,
+		FirstName: user.FirstName,
+		LastName: user.LastName,
+	}, nil
 }
 
 // NewJWTAuthentication creates a new JWT authentication service instance.

@@ -6,10 +6,6 @@ interface IndividualFormProps {
   formData: IndividualFormData;
   errors: FormErrors;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onFileChange: (
-    e: React.ChangeEvent<HTMLInputElement>,
-    fieldName: string
-  ) => void;
 }
 
 export default function IndividualForm({
@@ -48,7 +44,7 @@ export default function IndividualForm({
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Last Name *
+            Middle Name *
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -56,24 +52,24 @@ export default function IndividualForm({
             </div>
             <input
               type="text"
-              name="lastName"
-              placeholder="Last name"
+              name="middleName"
+              placeholder="Middle name"
               className={`${inputClass} ${
-                errors.lastName ? "border-red-500" : "border-gray-300"
+                errors.middleName ? "border-red-500" : "border-gray-300"
               }`}
-              value={formData.lastName}
+              value={formData.middleName}
               onChange={onInputChange}
             />
           </div>
-          {errors.lastName && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.lastName}</p>
+          {errors.middleName && (
+            <p className="mt-0.5 text-xs text-red-600">{errors.middleName}</p>
           )}
         </div>
       </div>
 
       <div className="mb-3">
         <label className="block text-xs font-medium text-gray-700 mb-1">
-          Middle Name *
+          Last Name *
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -81,17 +77,17 @@ export default function IndividualForm({
           </div>
           <input
             type="text"
-            name="middleName"
-            placeholder="Middle name"
+            name="lastName"
+            placeholder="Last name"
             className={`${inputClass} ${
-              errors.middleName ? "border-red-500" : "border-gray-300"
+              errors.lastName ? "border-red-500" : "border-gray-300"
             }`}
-            value={formData.middleName}
+            value={formData.lastName}
             onChange={onInputChange}
           />
         </div>
-        {errors.middleName && (
-          <p className="mt-0.5 text-xs text-red-600">{errors.middleName}</p>
+        {errors.lastName && (
+          <p className="mt-0.5 text-xs text-red-600">{errors.lastName}</p>
         )}
       </div>
 

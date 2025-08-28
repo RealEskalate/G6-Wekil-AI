@@ -2,16 +2,21 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
+	infrastracture "wekil_ai/Infrastracture"
 
 	"github.com/gin-gonic/gin"
+	"github.com/markbates/goth/gothic"
 )
 
 type UserController struct {
 	userUseCase domainInterface.IUserUseCase
+	OAuthUseCase domainInterface.IOAuthUsecase
+
 }
 
 // RegisterIndividual implements domain.IUserController.
@@ -26,7 +31,31 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 		})
 		return
 	}
-	_, err := u.userUseCase.StoreUserInOTPColl(&unverifiedUser)
+	if !infrastracture.NewPasswordService().IsValidEmail(unverifiedUser.Email){
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"error": "wrong email format",
+			},
+		})
+		return
+	}
+	if !infrastracture.NewPasswordService().IsStrongPassword(unverifiedUser.Password){
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"error": "your password is not strong Enough",
+			},
+		})
+		return
+	}
+	
+	unverifiedUser.Password = infrastracture.NewPasswordService().Hashpassword(unverifiedUser.Password)
+	otp:= infrastracture.GenerateOTP()
+	unverifiedUser.OTP=otp
+	infrastracture.SendOTP(unverifiedUser.Email,otp)
+	log.Print("=========",unverifiedUser)
+	err := u.userUseCase.StoreUserInOTPColl(&unverifiedUser)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,
@@ -47,6 +76,7 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 
 // VerfiyOTPRequest implements domain.IUserController.
 func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
+
 	var emailOTP domain.EmailOTP
 	if err := ctx.ShouldBindJSON(&emailOTP); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -57,6 +87,7 @@ func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
 		})
 		return
 	}
+
 	userInfo, err := u.userUseCase.ValidOTPRequest(&emailOTP)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{ // Changed to StatusBadRequest for invalid requests
@@ -67,6 +98,7 @@ func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
 		})
 		return
 	}
+
 	_, err = u.userUseCase.StoreUserInMainColl(userInfo)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -77,6 +109,7 @@ func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
 		})
 		return
 	}
+	
 	ctx.IndentedJSON(http.StatusAccepted, gin.H{
 		"success": true,
 		"data": gin.H{
@@ -105,8 +138,194 @@ func (u *UserController) RefreshTokenHandler(ctx *gin.Context) {
 
 }
 
-func NewUserController(userUseCase_ domainInterface.IUserUseCase) domainInterface.IUserController {
+func (uc *UserController) HandleLogin(ctx *gin.Context) {
+
+	var user *domain.LoginDTO
+	if err := ctx.ShouldBindJSON(&user); err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"error": "Invalid request payload",
+		})
+		return
+	}
+	if user.Email == "" || user.Password == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request payload"})
+		return
+	}
+	accessToken,refreshToken, err := uc.userUseCase.Login(user.Email, user.Password)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	ctx.SetCookie(
+		"WEKIL-API-REFRESH-TOKEN",
+		refreshToken,
+		60*60*24*7,      // 7 days in seconds
+		"/",      // cookie path
+		"",              // domain ("" means current domain)
+		true,            // secure
+		true,            // httpOnly
+	)
+
+	ctx.Header("Authorization", "Bearer "+accessToken)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "login successful",
+		"refresh": refreshToken,
+		"access":accessToken,
+	})
+}
+
+func (uc *UserController) UpdateProfile(ctx *gin.Context) {
+	var updateReq domain.UpdateProfileRequestDTO
+	if err := ctx.ShouldBindJSON(&updateReq); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	userID := ctx.GetString("user_id")
+	err := uc.userUseCase.UpdateProfile(ctx, userID, &updateReq)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully","success": true,})
+}
+
+func (uc *UserController) GetProfile(ctx *gin.Context) {
+	userID := ctx.GetString("user_id")
+	profile, err := uc.userUseCase.GetProfile(ctx, userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve profile"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    profile,
+	})
+}
+
+func (uc UserController) Logout(ctx *gin.Context) {
+		userID := ctx.GetString("user_id")
+		log.Println("id============:", userID)
+
+		err := uc.userUseCase.Logout(ctx, userID)
+			if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "logout failed"})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{"message": "logged out successfully"})
+	}
+
+
+func (u *UserController) SendResetOTP(c *gin.Context) {
+	var req domain.ForgotPasswordRequestDTO
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	log.Println("Forgot password request received for:", req.Email)
+
+	err := u.userUseCase.SendResetOTP(c, req.Email)
+	if err != nil {
+		log.Println("SendResetOTP error:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send reset OTP"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Reset OTP sent to your email address"})
+}
+
+
+func (uc *UserController) ResetPassword(c *gin.Context) {
+	var req domain.ResetPasswordRequestDTO
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	err := uc.userUseCase.ResetPassword(c, req.Email, req.OTP, req.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+}
+
+
+
+func (uc *UserController) SignInWithProvider(c *gin.Context) {
+
+	provider := c.Param("provider")
+	q := c.Request.URL.Query()
+	q.Add("provider", provider)
+	c.Request.URL.RawQuery = q.Encode()
+	// req := c.Request
+	// req = req.WithContext(context.WithValue(req.Context(), "provider", provider))
+	gothic.BeginAuthHandler(c.Writer, c.Request)
+}
+
+func (uc *UserController) CallbackHandler(c *gin.Context) {
+
+	provider := c.Param("provider")
+	q := c.Request.URL.Query()
+	q.Add("provider", provider)
+	c.Request.URL.RawQuery = q.Encode()
+	// req := c.Request
+	// fmt.Println("^^^^^",provider)
+	// req = req.WithContext(context.WithValue(c.Request.Context(), "provider", provider))
+
+	user, err := uc.OAuthUseCase.HandleOAuthLogin(c.Request, c.Writer)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	//   _, err := gothic.CompleteUserAuth(c.Writer, c.Request)
+	// if err != nil {
+	// 	c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	// 	return
+	// }
+
+	c.JSON(http.StatusOK, gin.H{"message": "Logged in", "user": user})
+
+	// user, err := gothic.CompleteUserAuth(c.Writer, c.Request)
+
+	// if err != nil {
+	// 	c.AbortWithError(http.StatusInternalServerError, err)
+	// 	return
+	// }
+
+	c.Redirect(http.StatusTemporaryRedirect, "/success")
+}
+func (uc *UserController) Success(c *gin.Context) {
+
+	c.Data(http.StatusOK, "text/html; charset=utf-8", fmt.Appendf(nil, `
+      <div style="
+          background-color: #fff;
+          padding: 40px;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          text-align: center;
+      ">
+          <h1 style="
+              color: #333;
+              margin-bottom: 20px;
+          ">You have Successfull signed in!</h1>
+          
+          </div>
+      </div>
+  `))
+}
+
+func NewUserController(userUseCase_ domainInterface.IUserUseCase,OAuthUsecase domainInterface.IOAuthUsecase) domainInterface.IUserController {
 	return &UserController{
 		userUseCase: userUseCase_,
+		OAuthUseCase: OAuthUsecase,
 	}
 }

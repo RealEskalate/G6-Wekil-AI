@@ -33,7 +33,7 @@ const data4: ContractFormat = { ...data1, type: "sale" };
 
 const Dashboard = () => {
   return (
-    <div className="lg:ml-80 bg-gray-50 sm:pl-6 lg:pl-8 h-full">
+    <div className="bg-gray-50 sm:pl-6 lg:pl-8 h-full">
       <div className="p-4 sm:p-6 lg:p-8 w-auto">
         <p className="text-center my-4 text-3xl font-bold text-blue-950">
           Wekil AI

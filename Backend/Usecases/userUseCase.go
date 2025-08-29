@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	
 	converter "wekil_ai/Delivery/Converter"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
@@ -18,6 +19,7 @@ type UserUseCase struct {
 	unverifiedUserCollection domainInterface.IOTPRepository
 	auth              domainInterface.IAuthentication
 	userValidation	  domainInterface.IUserValidation
+	NotificationCollection domainInterface.INotification
 
 }
 
@@ -206,11 +208,21 @@ func (u *UserUseCase) UpdateProfile(ctx context.Context, email string, updateReq
 	return u.userCollection.UpdateProfile(ctx, email, updateData)
 }
 
-func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
+func (u *UserUseCase) GetNotification(userID string)( *domain.Notification,error){
+	
+	fmt.Print("!#$%$$$$$$$$$$$$$$$$$$$", userID)
+	notify, err := u.NotificationCollection.FindByID(context.Background(),userID)
+	if err != nil {
+		return nil , err
+	}
+	return notify, nil
+}
+func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository, notify domainInterface.INotification) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
 	return &UserUseCase{
 		auth: AUTH,
 		userCollection: UserColl,
 		userValidation: userValid,
 		unverifiedUserCollection: unverifiedUserColl,
+		NotificationCollection: notify,
 	}
 }

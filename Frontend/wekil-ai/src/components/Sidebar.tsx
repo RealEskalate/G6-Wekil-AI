@@ -19,7 +19,7 @@ export function Sidebar() {
   const t = sidebarTranslations[lang];
 
   return (
-    <div className="w-64 bg-white text-blue-950 flex flex-col shadow-sm">
+    <div className="w-64 bg-white text-blue-950 flex flex-col shadow-xl border-gray-200">
       {/* Header */}
       <div className="p-6 border-b border-gray-400">
         <h1 className="text-xl font-semibold">{t.app_name}</h1>

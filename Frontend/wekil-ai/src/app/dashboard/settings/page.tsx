@@ -44,7 +44,7 @@ export default function SettingsPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/dashboard")}
             className="gap-2 cursor-pointer hover:bg-blue-100 transition-colors w-fit"
           >
             <ArrowLeft className="w-4 h-4" />

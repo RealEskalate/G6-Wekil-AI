@@ -345,6 +345,23 @@ func (uc *UserController) Success(c *gin.Context) {
   `))
 }
 
+func(uc *UserController) HandleNotification(ctx *gin.Context){
+	userId := ctx.GetString("user_id")
+
+	notify , err := uc.userUseCase.GetNotification(userId)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(),"success": false,})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    notify,
+	})
+
+
+}
 func NewUserController(userUseCase_ domainInterface.IUserUseCase,OAuthUsecase domainInterface.IOAuthUsecase) domainInterface.IUserController {
 	return &UserController{
 		userUseCase: userUseCase_,

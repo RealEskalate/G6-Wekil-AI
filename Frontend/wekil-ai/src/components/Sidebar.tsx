@@ -9,7 +9,7 @@ import {
   Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { sidebarTranslations } from "@/lib/sidebarTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 

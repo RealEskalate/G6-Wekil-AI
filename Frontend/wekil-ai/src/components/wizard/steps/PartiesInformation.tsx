@@ -1,115 +1,161 @@
 "use client";
 
-import { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
-import { toast } from "sonner";
+import { Label } from "@/components/ui/Label";
+import { User, Users } from "lucide-react";
 import { Language, ContractData } from "@/components/wizard/ContractWizard";
+
+const CONTRACT_TYPE_KEYS = ["service", "goods", "loan", "nda"] as const;
+type ContractType = typeof CONTRACT_TYPE_KEYS[number];
 
 interface PartiesInformationProps {
   currentLanguage: Language;
-  onNext: (data: Partial<ContractData>) => void;
   contractType?: string;
+  parties: { fullName: string; phone: string; email: string }[];
+  setParties: (parties: { fullName: string; phone: string; email: string }[]) => void;
 }
 
-export default function PartiesInformation({ currentLanguage, onNext, contractType }: PartiesInformationProps) {
-  const [parties, setParties] = useState([
-    { fullName: "", phone: "", email: "" },
-    { fullName: "", phone: "", email: "" },
-  ]);
+function isContractType(key: string | undefined): key is ContractType {
+  return CONTRACT_TYPE_KEYS.includes(key as ContractType);
+}
 
+export function PartiesInformation({ currentLanguage, contractType, parties, setParties }: PartiesInformationProps) {
   const t = {
     en: {
       title: "Parties Information",
-      subtitle: "Enter details for both parties",
-      party1Label: contractType === "service" ? "Service Provider" : 
-                    contractType === "goods" ? "Seller" : 
-                    contractType === "loan" ? "Lender" : 
-                    "Disclosing Party",
-      party2Label: contractType === "service" ? "Client" : 
-                    contractType === "goods" ? "Buyer" : 
-                    contractType === "loan" ? "Borrower" : 
-                    "Receiving Party",
+      subtitle: "Enter details for both parties involved in the agreement",
+      firstParty: "First Party",
+      secondParty: "Second Party",
       fullName: "Full Name",
       phone: "Phone Number",
-      email: "Email",
-      next: "Next",
-      error: "Please fill in all fields for both parties",
+      email: "Email Address",
+      partyTitles: {
+        service: ["Service Provider", "Client"],
+        goods: ["Seller", "Buyer"],
+        loan: ["Lender", "Borrower"],
+        nda: ["Disclosing Party", "Receiving Party"],
+      },
     },
     am: {
       title: "የተዋዋዮች መረጃ",
-      subtitle: "ለሁለቱም ወገኖች ዝርዝሮችን ያስገቡ",
-      party1Label: contractType === "service" ? "የአገልግሎት ሰጪ" : 
-                    contractType === "goods" ? "ሻጭ" : 
-                    contractType === "loan" ? "አበዳሪ" : 
-                    "መረጃ ሰጪ ወገን",
-      party2Label: contractType === "service" ? "ደንበኛ" : 
-                    contractType === "goods" ? "ገዢ" : 
-                    contractType === "loan" ? "ተበዳሪ" : 
-                    "መረጃ ተቀባይ ወገን",
+      subtitle: "በስምምነቱ ውስጥ ለተሳተፉ ሁለቱም ወገኖች ዝርዝሮችን ያስገቡ",
+      firstParty: "የመጀመሪያ ወገን",
+      secondParty: "ሁለተኛ ወገን",
       fullName: "ሙሉ ስም",
       phone: "ስልክ ቁጥር",
-      email: "ኢሜይል",
-      next: "ቀጣይ",
-      error: "እባክዎ ለሁለቱም ወገኖች ሁሉንም መስኮች ይሙሉ",
+      email: "ኢሜል አድራሻ",
+      partyTitles: {
+        service: ["የአገልግሎት ሰጪ", "ደንበኛ"],
+        goods: ["ሻጭ", "ገዢ"],
+        loan: ["አበዳሪ", "ተበዳሪ"],
+        nda: ["መረጃ ሰጪ ወገን", "መረጃ ተቀባይ ወገን"],
+      },
     },
   }[currentLanguage];
 
-  const handleInputChange = (index: number, field: string, value: string) => {
+  const updateParty = (index: number, field: string, value: string) => {
     const newParties = [...parties];
     newParties[index] = { ...newParties[index], [field]: value };
     setParties(newParties);
   };
 
-  const handleNext = () => {
-    if (parties.some(party => !party.fullName || !party.phone || !party.email)) {
-      toast.error(t.error);
-      return;
-    }
-    onNext({ parties });
-  };
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t.title}</CardTitle>
-        <p className="text-sm text-gray-600">{t.subtitle}</p>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {[0, 1].map(index => (
-          <div key={index} className="border p-4 rounded-lg">
-            <h3 className="text-lg font-semibold">{index === 0 ? t.party1Label : t.party2Label}</h3>
-            <div className="space-y-4 mt-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{t.fullName}</label>
-                <Input
-                  value={parties[index].fullName}
-                  onChange={(e) => handleInputChange(index, "fullName", e.target.value)}
-                  placeholder={t.fullName}
-                />
+    <div className="max-w-4xl mx-auto p-6 bg-gray-100 rounded-xl">
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {isContractType(contractType)
+              ? t.partyTitles[contractType][0] + " & " + t.partyTitles[contractType][1]
+              : t.title}
+          </CardTitle>
+          <p className="text-sm text-gray-600">{t.subtitle}</p>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* First Party */}
+            <Card className="p-6 bg-white">
+              <div className="flex items-center mb-4">
+                <User className="h-5 w-5 mr-2 text-gray-600" />
+                <h3 className="text-lg font-semibold">
+                  {isContractType(contractType) ? t.partyTitles[contractType][0] : t.firstParty}
+                </h3>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{t.phone}</label>
-                <Input
-                  value={parties[index].phone}
-                  onChange={(e) => handleInputChange(index, "phone", e.target.value)}
-                  placeholder={t.phone}
-                />
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="first-name">{t.fullName}</Label>
+                  <Input
+                    id="first-name"
+                    placeholder={t.fullName}
+                    value={parties[0].fullName}
+                    onChange={(e) => updateParty(0, "fullName", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="first-phone">{t.phone}</Label>
+                  <Input
+                    id="first-phone"
+                    placeholder="+251..."
+                    value={parties[0].phone}
+                    onChange={(e) => updateParty(0, "phone", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="first-email">{t.email}</Label>
+                  <Input
+                    id="first-email"
+                    type="email"
+                    placeholder="example@example.com"
+                    value={parties[0].email}
+                    onChange={(e) => updateParty(0, "email", e.target.value)}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{t.email}</label>
-                <Input
-                  value={parties[index].email}
-                  onChange={(e) => handleInputChange(index, "email", e.target.value)}
-                  placeholder={t.email}
-                />
+            </Card>
+
+            {/* Second Party */}
+            <Card className="p-6 bg-white">
+              <div className="flex items-center mb-4">
+                <Users className="h-5 w-5 mr-2 text-gray-600" />
+                <h3 className="text-lg font-semibold">
+                  {isContractType(contractType) ? t.partyTitles[contractType][1] : t.secondParty}
+                </h3>
               </div>
-            </div>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="second-name">{t.fullName}</Label>
+                  <Input
+                    id="second-name"
+                    placeholder={t.fullName}
+                    value={parties[1].fullName}
+                    onChange={(e) => updateParty(1, "fullName", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="second-phone">{t.phone}</Label>
+                  <Input
+                    id="second-phone"
+                    placeholder="+251..."
+                    value={parties[1].phone}
+                    onChange={(e) => updateParty(1, "phone", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="second-email">{t.email}</Label>
+                  <Input
+                    id="second-email"
+                    type="email"
+                    placeholder="example@example.com"
+                    value={parties[1].email}
+                    onChange={(e) => updateParty(1, "email", e.target.value)}
+                  />
+                </div>
+              </div>
+            </Card>
           </div>
-        ))}
-        <Button onClick={handleNext}>{t.next}</Button>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

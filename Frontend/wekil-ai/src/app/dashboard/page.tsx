@@ -11,6 +11,7 @@ const Contracttype: ("service" | "loan" | "sale" | "nonDisclosure")[] = [
 import { data1, data2, data3, data4 } from "@/types/Contracttype";
 import { DashBoardContract } from "@/components/dashboard/DashBoardContract";
 import Link from "next/link";
+import { Globe } from "lucide-react";
 
 const Dashboard = () => {
   return (
@@ -23,8 +24,9 @@ const Dashboard = () => {
           Simple, Clear Agreements in Amharic & English
         </p>
         <div className="flex justify-center my-4">
-          <button className="mb-6 w-auto border border-gray-200 px-2 rounded-full">
-            am
+          <button className="py-1 px-3 rounded-full border text-sm border-gray-200 mr-6 hover:text-blue-400">
+            <Globe className="w-4 h-4 inline mx-2" />
+            አማርኛ
           </button>
         </div>
         <div className="grid grid-cols-2 gap-4 mx-4">
@@ -33,7 +35,7 @@ const Dashboard = () => {
               Create a new contract quickly and easily
             </DashboardCard>
           </Link>
-          <Link href="/my-contracts">
+          <Link href="/dashboard/my-contracts">
             <DashboardCard title="My Contract" type="view">
               View, edit, and manage your existing contracts
             </DashboardCard>

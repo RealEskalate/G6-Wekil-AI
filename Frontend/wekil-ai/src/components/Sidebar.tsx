@@ -50,7 +50,7 @@ export function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 space-y-2 font-semibold">
           <Button
             variant="ghost"
             onClick={() => router.push("/dashboard")}
@@ -62,7 +62,7 @@ export function Sidebar() {
 
           <Button
             variant="default"
-            onClick={() => router.push("/create-contract")}
+            onClick={() => router.push("/dashboard/create-contract")}
             className="w-full cursor-pointer justify-start hover:bg-slate-700 text-blue-950 hover:text-white"
           >
             <FileText className="mr-3 h-4 w-4" />
@@ -71,7 +71,7 @@ export function Sidebar() {
 
           <Button
             variant="ghost"
-            onClick={() => router.push("/my-contract")}
+            onClick={() => router.push("/dashboard/my-contracts")}
             className="w-full cursor-pointer justify-start text-blue-950 hover:text-white hover:bg-slate-700"
           >
             <FolderOpen className="mr-3 h-4 w-4" />

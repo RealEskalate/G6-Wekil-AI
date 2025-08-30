@@ -25,11 +25,15 @@ const DashboardCard = ({
       <p className="text-center my-6 text-md text-gray-600 ">{children}</p>
       {type === "view" ? (
         <div className="flex justify-center">
-          <div className="border p-2 font-bold text-blue-600 border-blue-800 rounded-full">
+          <div className="border px-2 py-1 font-bold text-blue-600 border-blue-800 rounded-full">
             3 Contracts
           </div>
         </div>
-      ) : null}
+      ) : (
+        <div className="border px-2 py-1 font-bold ml-16 text-blue-600 border-blue-800 rounded-full w-fit">
+          Free,AI powered agreements
+        </div>
+      )}
     </div>
   );
 };

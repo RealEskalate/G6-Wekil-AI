@@ -35,3 +35,31 @@ export interface LoginData {
   email: string;
   password: string;
 }
+
+export interface AnalyticsData {
+  month: string;
+  contracts: number;
+  users: number;
+  revenue: number;
+}
+
+export interface Contract {
+  id: string;
+  title: string;
+  type: "service" | "sale" | "loan" | "nda";
+  status: "draft" | "pending" | "active" | "completed" | "cancelled";
+  creator: string;
+  createdAt: string;
+  amount: number;
+  currency: string;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  joinDate: string;
+  contractsCount: number;
+  status: "active" | "inactive";
+  lastActivity: string;
+}

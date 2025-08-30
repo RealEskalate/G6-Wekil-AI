@@ -19,10 +19,10 @@ const DashboardCard = ({
           <FileText className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all text-blue-500 " />
         )}
       </div>
-      <p className="text-center my-6 text-xl text-blue-950 font-bold">
+      <p className="text-center my-6 text-xl text-blue-950 font-bold hover:text-blue-400">
         {title}
       </p>
-      <p className="text-center my-6 text-md text-gray-600">{children}</p>
+      <p className="text-center my-6 text-md text-gray-600 ">{children}</p>
       {type === "view" ? (
         <div className="flex justify-center">
           <div className="border p-2 font-bold text-blue-600 border-blue-800 rounded-full">

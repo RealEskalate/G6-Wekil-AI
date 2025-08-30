@@ -104,10 +104,21 @@ export const data1: ContractFormat = {
   purpose:
     "To protect the confidential information exchanged between the parties.",
 };
-export const data2: ContractFormat = { ...data1, type: "loan" };
+export const data2: ContractFormat = {
+  ...data1,
+  type: "loan",
+  createdAt: "2024-12-01",
+  status: "Active",
+};
 export const data3: ContractFormat = {
   ...data1,
   type: "nonDisclosure",
-  status: "drafted",
+  status: "Active",
+  createdAt: "2025-05-01",
 };
-export const data4: ContractFormat = { ...data1, type: "sale" };
+export const data4: ContractFormat = {
+  ...data1,
+  type: "sale",
+  createdAt: "2025-08-30",
+  status: "completed",
+};

@@ -10,10 +10,11 @@ const Contracttype: ("service" | "loan" | "sale" | "nonDisclosure")[] = [
 ];
 import { data1, data2, data3, data4 } from "@/types/Contracttype";
 import { DashBoardContract } from "@/components/dashboard/DashBoardContract";
+import Link from "next/link";
 
 const Dashboard = () => {
   return (
-    <div className="lg:ml-80 bg-gray-50 sm:pl-6 lg:pl-8 h-full">
+    <div className="bg-gray-50 sm:pl-6 lg:pl-8 h-full">
       <div className="p-4 sm:p-6 lg:p-8 w-auto">
         <p className="text-center my-4 text-3xl font-bold text-blue-950">
           Wekil AI
@@ -27,12 +28,16 @@ const Dashboard = () => {
           </button>
         </div>
         <div className="grid grid-cols-2 gap-4 mx-4">
-          <DashboardCard title="Create Contract" type="create">
-            Start create a new agreement with guided wizard
-          </DashboardCard>
-          <DashboardCard title="My Contract" type="view">
-            View, edit, and manage your existing contracts
-          </DashboardCard>
+          <Link href="/create-contract">
+            <DashboardCard title="Create Contract" type="create">
+              Create a new contract quickly and easily
+            </DashboardCard>
+          </Link>
+          <Link href="/my-contracts">
+            <DashboardCard title="My Contract" type="view">
+              View, edit, and manage your existing contracts
+            </DashboardCard>
+          </Link>
         </div>
       </div>
       <div className="bg-white my-6 rounded-2xl border border-gray-200 p-4 sm:p-6 lg:p-8">

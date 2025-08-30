@@ -31,7 +31,7 @@ const contractTypes = {
   },
 };
 import { ContractFormat } from "@/types/Contracttype";
-const options = [
+export const options = [
   {
     label: "show",
     icon: <Eye className="inline mx-2 w-4 h-4 rounded-full  text-blue-400 " />,

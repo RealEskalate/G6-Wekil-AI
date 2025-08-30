@@ -103,13 +103,19 @@ export default function HomePage() {
     try {
       setShowAuthModal(false);
       document.body.style.overflow = "unset";
-      await signIn("credentials", {
+      const res = await signIn("credentials", {
         email,
         password,
         rememberMe: rememberMe,
-        callbackUrl: "/dashboard",
+        redirect: false,
       });
-      toast.success("Login Successful!");
+      if (res?.error) {
+        console.log(res.error);
+        toast.error("Login Failed!");
+      } else {
+        window.location.href = "/dashboard";
+        toast.success("Login Successful!");
+      }
     } catch (err) {
       console.log(err);
       toast.error("Login Failed!");

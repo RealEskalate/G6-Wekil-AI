@@ -39,7 +39,7 @@ async function refreshBackendToken(token: ExtendedJWT): Promise<ExtendedJWT> {
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: "credentials",
       credentials: {
         email: { label: "Email", type: "email", placeholder: "you@example.com" },
         password: { label: "Password", type: "password" },
@@ -50,6 +50,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Email and password are required");
         }
 
+        
         // Call your backend API to authenticate user
         const res = await fetch(`${process.env.API_URL}/auth/login`, {
           method: "POST",

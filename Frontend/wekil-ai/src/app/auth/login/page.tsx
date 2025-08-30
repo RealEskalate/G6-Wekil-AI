@@ -61,7 +61,7 @@ export default function LoginPage({
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       onLoginComplete(email, password, rememberMe);
-      toast.success(t.loginSuccess);
+      // toast.success(t.loginSuccess);
     } catch (err) {
       console.log(err);
       setErrors({

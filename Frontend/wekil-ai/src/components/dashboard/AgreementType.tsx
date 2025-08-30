@@ -1,7 +1,7 @@
 import React from "react";
 import { Handshake, Banknote, ScrollText, Shield } from "lucide-react";
 
-const contractTypes = {
+export const contractTypes = {
   service: {
     icon: (
       <Handshake className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all rounded-full text-blue-500 " />

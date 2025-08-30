@@ -1,35 +1,16 @@
+"use client";
 import React from "react";
-
 import DashboardCard from "@/components/dashboard/dashboardCard";
 import AgreementType from "@/components/dashboard/AgreementType";
-import DashBoardContract, {
-  ContractFormat,
-} from "@/components/dashboard/DashBoardContract";
-const ContractType: ("service" | "loan" | "sale" | "nonDisclosure")[] = [
+const Contracttype: ("service" | "loan" | "sale" | "nonDisclosure")[] = [
   "service",
   "loan",
   "sale",
   "nonDisclosure",
 ];
-
-const data1: ContractFormat = {
-  type: "service",
-  title: "Website Development Contract",
-  party1: "John Doe",
-  party2: "ABC Company",
-  payment: "50,000",
-  date: "2024-01-15",
-  status: "completed",
-  language: "en",
-};
-
-const data2: ContractFormat = { ...data1, type: "loan" };
-const data3: ContractFormat = {
-  ...data1,
-  type: "nonDisclosure",
-  status: "drafted",
-};
-const data4: ContractFormat = { ...data1, type: "sale" };
+import { data1, data2, data3, data4 } from "@/types/Contracttype";
+import { DashBoardContract } from "@/components/dashboard/DashBoardContract";
+import Link from "next/link";
 
 const Dashboard = () => {
   return (
@@ -47,12 +28,16 @@ const Dashboard = () => {
           </button>
         </div>
         <div className="grid grid-cols-2 gap-4 mx-4">
-          <DashboardCard title="Create Contract" type="create">
-            Start create a new agreement with guided wizard
-          </DashboardCard>
-          <DashboardCard title="My Contract" type="view">
-            View, edit, and manage your existing contracts
-          </DashboardCard>
+          <Link href="/create-contract">
+            <DashboardCard title="Create Contract" type="create">
+              Create a new contract quickly and easily
+            </DashboardCard>
+          </Link>
+          <Link href="/my-contracts">
+            <DashboardCard title="My Contract" type="view">
+              View, edit, and manage your existing contracts
+            </DashboardCard>
+          </Link>
         </div>
       </div>
       <div className="bg-white my-6 rounded-2xl border border-gray-200 p-4 sm:p-6 lg:p-8">
@@ -60,7 +45,7 @@ const Dashboard = () => {
           Choose Contract Type
         </p>
         <div className="grid grid-cols-4 gap-4">
-          {ContractType.map((item, index) => (
+          {Contracttype.map((item, index) => (
             <AgreementType type={item} key={index} />
           ))}
         </div>

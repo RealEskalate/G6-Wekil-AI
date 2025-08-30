@@ -8,7 +8,6 @@ import {
   Eye,
   Edit3,
 } from "lucide-react";
-
 const contractTypes = {
   service: {
     icon: (
@@ -31,8 +30,8 @@ const contractTypes = {
     ),
   },
 };
-
-const options = [
+import { ContractFormat } from "@/types/Contracttype";
+export const options = [
   {
     label: "show",
     icon: <Eye className="inline mx-2 w-4 h-4 rounded-full  text-blue-400 " />,
@@ -51,17 +50,6 @@ const options = [
   },
 ];
 
-export interface ContractFormat {
-  type: "service" | "loan" | "sale" | "nonDisclosure";
-  title: string;
-  party1: string;
-  party2: string;
-  payment: string;
-  date: string;
-  status: string;
-  language: string;
-}
-
 interface DashBoardContractProps {
   contract: ContractFormat;
 }
@@ -78,7 +66,7 @@ export const DashBoardContract: React.FC<DashBoardContractProps> = ({
         <p className="text-blue-950 font-semibold my-2 text-lg">
           {contract.title}
         </p>
-        <p className="text-gray-500 mb-2 text-sm font-bold ml-4">{`${contract.party1} <-> ${contract.party2} . ${contract.payment} ETB`}</p>
+        <p className="text-gray-500 mb-2 text-sm font-bold ml-4">{`${contract.party1?.name} <-> ${contract.party2?.name} . ${contract.payment} ETB`}</p>
         <p className="text-blue-950 text-center font-semibold mb-2 text-sm">
           {contract.date}
         </p>

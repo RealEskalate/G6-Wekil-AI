@@ -8,10 +8,33 @@ const Contracttype: ("service" | "loan" | "sale" | "nonDisclosure")[] = [
   "sale",
   "nonDisclosure",
 ];
+
+
+const data1: ContractFormat = {
+  type: "service",
+  title: "Website Development Contract",
+  party1: "John Doe",
+  party2: "ABC Company",
+  payment: "50,000",
+  date: "2024-01-15",
+  status: "completed",
+  language: "en",
+};
+
+
+const data2: ContractFormat = { ...data1, type: "loan" };
+const data3: ContractFormat = {
+  ...data1,
+  type: "nonDisclosure",
+  status: "drafted",
+};
+const data4: ContractFormat = { ...data1, type: "sale" };
+
 import { data1, data2, data3, data4 } from "@/types/Contracttype";
 import { DashBoardContract } from "@/components/dashboard/DashBoardContract";
 import Link from "next/link";
 import { Globe } from "lucide-react";
+
 
 const Dashboard = () => {
   return (

@@ -11,7 +11,9 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+
 import { useRouter } from "next/navigation"; // ✅ App Router compatible
+
 import { sidebarTranslations } from "@/lib/sidebarTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 import { useState } from "react";
@@ -23,6 +25,12 @@ export function Sidebar() {
   const [open, setOpen] = useState(false);
 
   return (
+
+    <div className="w-64 bg-white text-blue-950 flex flex-col shadow-xl border-gray-200">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-400">
+        <h1 className="text-xl font-semibold">{t.app_name}</h1>
+
     <>
       {/* Mobile toggle button */}
       <div className="lg:hidden p-4 bg-white shadow-md flex justify-between items-center">
@@ -34,6 +42,7 @@ export function Sidebar() {
             <Menu className="h-6 w-6 text-blue-950" />
           )}
         </button>
+
       </div>
 
       {/* Sidebar */}

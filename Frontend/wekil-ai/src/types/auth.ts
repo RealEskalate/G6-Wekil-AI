@@ -1,9 +1,19 @@
-export type AccountType = "individual" | "organization";
-
-export interface IndividualFormData {
+export interface SignupFormData {
   firstName: string;
-  lastName: string;
   middleName: string;
+  lastName: string;
+  email: string;
+  telephone: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface FormData {
+  profilePicture: string;
+  signatureImage: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
   email: string;
   telephone: string;
   password: string;

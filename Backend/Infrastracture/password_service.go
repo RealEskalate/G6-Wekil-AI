@@ -20,21 +20,18 @@ func (p *PasswordService) IsValidEmail(email string) bool {
 }
 func (p *PasswordService) IsStrongPassword(password string) bool {
 	var (
-		uppercase = `[A-Z]`
 		lowercase = `[a-z]`
 		number    = `[0-9]`
-		special   = `[!@#~$%^&*()_+|<>?:{}]`
 	)
 
 	if len(password) < 8 {
 		return false
 	}
-	hasUpper := regexp.MustCompile(uppercase).MatchString(password)
 	hasLower := regexp.MustCompile(lowercase).MatchString(password)
 	hasNumber := regexp.MustCompile(number).MatchString(password)
-	hasSpecial := regexp.MustCompile(special).MatchString(password)
+	
 
-	return hasUpper && hasLower && hasNumber && hasSpecial
+	return hasLower && hasNumber 
 }
 
 func (p *PasswordService) Hashpassword(password string) string {

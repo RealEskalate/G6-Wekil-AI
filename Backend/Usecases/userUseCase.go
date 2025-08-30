@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	
 	converter "wekil_ai/Delivery/Converter"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
@@ -18,6 +19,7 @@ type UserUseCase struct {
 	unverifiedUserCollection domainInterface.IOTPRepository
 	auth              domainInterface.IAuthentication
 	userValidation	  domainInterface.IUserValidation
+	NotificationCollection domainInterface.INotification
 
 }
 
@@ -31,7 +33,21 @@ func (u *UserUseCase) StoreUserInMainColl(user *domain.UnverifiedUserDTO) (*doma
 
 // StoreUserInOTPColl implements domain.IUserUseCase.
 func (u *UserUseCase) StoreUserInOTPColl(user *domain.UnverifiedUserDTO) ( error) {
-	return u.unverifiedUserCollection.CreateUnverifiedUser(context.Background(), user)
+	_, errUnverified := u.unverifiedUserCollection.GetByEmail(context.Background(), user.Email)
+	_,errVerified := u.userCollection.FindByEmail(context.Background(),user.Email)
+	
+	if errVerified == nil {
+   
+    return fmt.Errorf("user with email %s is already registered", user.Email)
+	}
+
+	if errUnverified != nil && errUnverified.Error() == "user does not exist" {
+		
+		return u.unverifiedUserCollection.CreateUnverifiedUser(context.Background(), user)
+	}
+
+	
+	return fmt.Errorf("user with email %s is already in registration process please verify your email", user.Email)
 }
 
 // ValidOTPRequest implements domain.IUserUseCase.
@@ -152,13 +168,9 @@ func (uuc *UserUseCase) Logout(ctx context.Context, userID string) error {
     return uuc.userCollection.DeleteRefreshToken(ctx, userID)
 }
 
-func (u *UserUseCase) GetProfile(ctx context.Context, userID string) (*domain.Individual, error) {
-	id, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		return nil, errors.New("invalid user ID")
-	}
-
-	user, err := u.userCollection.FindByID(ctx, id)
+func (u *UserUseCase) GetProfile(ctx context.Context, email string) (*domain.Individual, error) {
+	
+	user, err := u.userCollection.FindByEmail(ctx, email)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
@@ -166,11 +178,9 @@ func (u *UserUseCase) GetProfile(ctx context.Context, userID string) (*domain.In
 	return user, nil
 }
 
-func (u *UserUseCase) UpdateProfile(ctx context.Context, userID string, updateReq *domain.UpdateProfileRequestDTO) error {
-	id, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		return errors.New("invalid user ID")
-	}
+
+func (u *UserUseCase) UpdateProfile(ctx context.Context, email string, updateReq *domain.UpdateProfileRequestDTO) error {
+	
 
 	updateData := bson.M{}
 
@@ -195,14 +205,24 @@ func (u *UserUseCase) UpdateProfile(ctx context.Context, userID string, updateRe
 	if updateReq.ProfileImage != nil {
 		updateData["profile_image"] = *updateReq.ProfileImage
 	}
-	return u.userCollection.UpdateProfile(ctx, id, updateData)
+	return u.userCollection.UpdateProfile(ctx, email, updateData)
 }
 
-func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
+func (u *UserUseCase) GetNotification(userID string)( *domain.Notification,error){
+	
+	fmt.Print("!#$%$$$$$$$$$$$$$$$$$$$", userID)
+	notify, err := u.NotificationCollection.FindByID(context.Background(),userID)
+	if err != nil {
+		return nil , err
+	}
+	return notify, nil
+}
+func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository, notify domainInterface.INotification) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
 	return &UserUseCase{
 		auth: AUTH,
 		userCollection: UserColl,
 		userValidation: userValid,
 		unverifiedUserCollection: unverifiedUserColl,
+		NotificationCollection: notify,
 	}
 }

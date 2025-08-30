@@ -1,17 +1,16 @@
 package repository
 
-
 import (
-    "context"
-    "errors"
-    "fmt"
+	"context"
+	"errors"
+	"fmt"
+	"log"
+	domain "wekil_ai/Domain"
+	domainInterface "wekil_ai/Domain/Interfaces"
 
-    domain "wekil_ai/Domain"
-    domainInterface "wekil_ai/Domain/Interfaces"
-
-    "go.mongodb.org/mongo-driver/bson"
-    "go.mongodb.org/mongo-driver/bson/primitive"
-    "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // UserRepository implements user persistence for Individuals.
@@ -69,12 +68,27 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain
     err := r.collection.FindOne(ctx, bson.M{"email": email}).Decode(&ind)
     if err != nil {
         if errors.Is(err, mongo.ErrNoDocuments) {
-            return nil, nil
+            return nil,errors.New("user does not exist")
         }
         return nil, fmt.Errorf("failed to find individual: %w", err)
     }
     return &ind, nil
 }
+func (r *UserRepository) FindUser(ctx context.Context, userID string) (*domain.Individual, error) {
+   
+    var ind domain.Individual
+    err := r.collection.FindOne(ctx, bson.M{"_id": userID}).Decode(&ind)
+    if err != nil {
+        if errors.Is(err, mongo.ErrNoDocuments) {
+            return nil, nil
+        }
+        return nil, fmt.Errorf("failed to find user: %w", err)
+    }
+    log.Println("||||||||||||||============rrrr-:", ind)
+    return &ind, nil
+}
+
+
 
 // FindByID returns the individual by ID or (nil, nil) if not found.
 func (r *UserRepository) FindByID(ctx context.Context, individualID primitive.ObjectID) (*domain.Individual, error) {
@@ -148,25 +162,25 @@ func (r *UserRepository) DeleteIndividual(ctx context.Context, individualID prim
 }
 
 func (ur UserRepository) DeleteRefreshToken(ctx context.Context, userID string) error {
-    objID, err := primitive.ObjectIDFromHex(userID)
-    if err != nil {
-        return errors.New("invalid user ID")
-    }
-
-    filter := bson.M{"_id": objID}
+    objID:=userID
+    log.Println("||||||||||||||============:", objID)
+    
+    filter := bson.M{"_id": userID}
     update := bson.M{"$unset": bson.M{"refresh_token": ""}} 
 
-    _, err = ur.collection.UpdateOne(ctx, filter, update)
+    _, err := ur.collection.UpdateOne(ctx, filter, update)
     return err
 }
 
 // UpdateProfile updates the profile of an individual by ID with the provided update data.
-func (r *UserRepository) UpdateProfile(ctx context.Context, id primitive.ObjectID, updateData map[string]interface{}) error {
+func (r *UserRepository) UpdateProfile(ctx context.Context, email string, updateData map[string]interface{}) error {
     if len(updateData) == 0 {
         return errors.New("update data is empty")
     }
+    	log.Println("%%%%%%%%%%%%%%%%", email)
 
-    filter := bson.M{"_id": id}
+
+    filter := bson.M{"email": email}
     update := bson.M{"$set": updateData}
 
     res, err := r.collection.UpdateOne(ctx, filter, update)

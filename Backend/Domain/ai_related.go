@@ -24,6 +24,8 @@ type ClassifierResult struct {
 // The 'omitempty' tag ensures that fields that are not present for a specific agreement type
 // are not included in the final JSON output.
 type Intake struct {
+	AgreementType string `json:"agreement_type,omitempty"` // "sale" | "service" | "loan"
+	
 	// Common fields
 	Parties    []Party        `json:"parties"`
 	Location   string         `json:"location"`

@@ -2,12 +2,12 @@
 
 import { MdDriveFileRenameOutline } from "react-icons/md";
 import { FaEnvelope, FaPhone, FaLock } from "react-icons/fa";
-import { IndividualFormData, FormErrors } from "@/types/auth";
+import { SignupFormData, FormErrors } from "@/types/auth";
 import { useLanguage } from "@/context/LanguageContext";
 import { authTranslations } from "@/lib/authTranslations";
 
 interface IndividualFormProps {
-  formData: IndividualFormData;
+  formData: SignupFormData;
   errors: FormErrors;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }

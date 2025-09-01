@@ -1,34 +1,16 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import * as SwitchPrimitive from "@radix-ui/react-switch";
-import { cn } from "@/lib/utils";
+import * as React from "react"
+import * as SwitchPrimitive from "@radix-ui/react-switch"
 
-interface SwitchProps
-  extends Omit<
-    React.ComponentProps<typeof SwitchPrimitive.Root>,
-    "onCheckedChange" | "onChange"
-  > {
-  checked?: boolean;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}
+import { cn } from "@/lib/utils"
 
-const Switch = React.forwardRef<
-  React.ElementRef<typeof SwitchPrimitive.Root>,
-  SwitchProps
->(({ className, checked, onChange, ...props }, ref) => {
+function Switch({
+  className,
+  ...props
+}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
   return (
     <SwitchPrimitive.Root
-      ref={ref}
-      checked={checked}
-      onCheckedChange={(checked) => {
-        if (onChange) {
-          const syntheticEvent = {
-            target: { checked } as HTMLInputElement,
-          } as React.ChangeEvent<HTMLInputElement>;
-          onChange(syntheticEvent);
-        }
-      }}
       data-slot="switch"
       className={cn(
         "peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-gray-200 focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent shadow-xs transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
@@ -43,9 +25,7 @@ const Switch = React.forwardRef<
         )}
       />
     </SwitchPrimitive.Root>
-  );
-});
+  )
+}
 
-Switch.displayName = "Switch";
-
-export { Switch };
+export { Switch }

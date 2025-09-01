@@ -1,14 +1,19 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as SwitchPrimitive from "@radix-ui/react-switch"
+import * as React from "react";
+import * as SwitchPrimitive from "@radix-ui/react-switch";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
-function Switch({
-  className,
-  ...props
-}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
+interface CustomSwitchProps
+  extends Omit<
+    React.ComponentProps<typeof SwitchPrimitive.Root>,
+    "onChange" | "onCheckedChange"
+  > {
+  onCheckedChange?: (checked: boolean) => void;
+}
+
+function Switch({ className, onCheckedChange, ...props }: CustomSwitchProps) {
   return (
     <SwitchPrimitive.Root
       data-slot="switch"
@@ -17,6 +22,7 @@ function Switch({
         className
       )}
       {...props}
+      onCheckedChange={onCheckedChange} // ✅ Correctly forward your prop
     >
       <SwitchPrimitive.Thumb
         data-slot="switch-thumb"
@@ -25,7 +31,7 @@ function Switch({
         )}
       />
     </SwitchPrimitive.Root>
-  )
+  );
 }
 
-export { Switch }
+export { Switch };

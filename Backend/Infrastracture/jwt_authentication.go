@@ -108,9 +108,15 @@ func (o *JWTAuthentication) OAuthLogin(req *http.Request, res http.ResponseWrite
 	}
 
 	return &domain.Individual{
+<<<<<<< HEAD
+		Email: user.Email,
+		first_name: user.first_name,
+		last_name: user.last_name,
+=======
 		Email:     user.Email,
 		FirstName: firstName,
 		LastName:  lastName,
+>>>>>>> f4f1ad2eedbb063d254cc2d472612e6bfb592ebb
 	}, nil
 }
 

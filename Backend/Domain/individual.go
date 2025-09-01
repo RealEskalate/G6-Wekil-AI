@@ -57,9 +57,9 @@ type UnverifiedUserDTO struct {
 	ID                 primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Email              string             `json:"email" bson:"email"`
 	Password           string             `json:"password" bson:"password"` // Hidden from JSON
-	FirstName          string             `json:"firstName" bson:"first_name"`
-	LastName           string             `json:"lastName" bson:"last_name"`
-	MiddleName         string             `json:"middleName,omitempty" bson:"middle_name,omitempty"`
+	FirstName          string             `json:"first_name" bson:"first_name"`
+	LastName           string             `json:"last_name" bson:"last_name"`
+	MiddleName         string             `json:"middle_name,omitempty" bson:"middle_name,omitempty"`
 	Telephone          string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
 	AccountType        string             `json:"accountType" bson:"account_type"`
 	OTP                string             `json:"otp,omitempty" bson:"otp,omitempty"`

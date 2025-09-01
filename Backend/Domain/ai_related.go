@@ -25,32 +25,38 @@ type ClassifierResult struct {
 // The 'omitempty' tag ensures that fields that are not present for a specific agreement type
 // are not included in the final JSON output.
 type Intake struct {
-	AgreementType string `json:"agreement_type,omitempty"` // "sale" | "service" | "loan"
-	
-	// Common fields
-	Parties     []Party     `json:"parties"`
-	Location    string      `json:"location"`
-	Currency    string      `json:"currency"`
-	TotalAmount float64     `json:"total_amount,omitempty"`
-	DueDates    []time.Time `json:"due_dates"`
-	StartDate   time.Time   `json:"start_date"`
-	EndDate     time.Time   `json:"end_date"`
+  AgreementType string `json:"agreement_type,omitempty"` // "sale" | "service" | "loan" | "nda"
 
-	// Service-specific fields
-	Services   string      `json:"services,omitempty"`
-	Milestones []Milestone `json:"milestones,omitempty"`
-	Revisions  int         `json:"revisions,omitempty"`
+  // Common fields
+  Parties     []Party     `json:"parties"`
+  Location    string      `json:"location"`
+  Currency    string      `json:"currency"`
+  TotalAmount float64     `json:"total_amount,omitempty"`
+  DueDates    []time.Time `json:"due_dates"`
+  StartDate   time.Time   `json:"start_date"`
+  EndDate     time.Time   `json:"end_date"`
 
-	// Sale-specific fields
-	Goods         []Goods `json:"goods,omitempty"`
-	DeliveryTerms string  `json:"delivery_terms,omitempty"`
+  // Service-specific fields
+  Services   string      `json:"services,omitempty"`
+  Milestones []Milestone `json:"milestones,omitempty"`
+  Revisions  int         `json:"revisions,omitempty"`
 
-	// Loan-specific fields
-	Principal      float64       `json:"principal,omitempty"`
-	Installments   []Installment `json:"installments,omitempty"`
-	LateFeePercent float64       `json:"late_fee_percent,omitempty"`
+  // Sale-specific fields
+  Goods         []Goods `json:"goods,omitempty"`
+  DeliveryTerms string  `json:"delivery_terms,omitempty"`
 
-	//! NON DISCLOSURE IS SUPPOSTED TO BE HERE
+  // Loan-specific fields
+  Principal      float64       `json:"principal,omitempty"`
+  Installments   []Installment `json:"installments,omitempty"`
+  LateFeePercent float64       `json:"late_fee_percent,omitempty"`
+  
+  // NDA fields
+  DisclosingParty     Party     `json:"disclosingParty"`     // The one spilling the beans.
+  ReceivingParty      Party     `json:"receivingParty"`      // The one promising to keep quiet.
+  IsMutual            bool      `json:"isMutual"`            // If true, everyone's sharing secrets.
+  EffectiveDate       time.Time `json:"effectiveDate"`       // When the promise to be quiet officially starts.
+  ConfidentialityTerm int       `json:"confidentialityTerm"` // How many years the secrets must be kept.
+  Purpose             string    `json:"purpose"`             // Why are we sharing secrets? e.g., "To see if we can work together".
 }
 
 // Party represents a party involved in the agreement.

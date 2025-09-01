@@ -1,6 +1,6 @@
 package domain
-// These models are designed to correspond with the JSON outputs described in the prompts.
 
+// These models are designed to correspond with the JSON outputs described in the prompts.
 
 import "time"
 
@@ -12,6 +12,7 @@ const (
 	AmharicLang = "amharic"
 	EnglishLang = "engish"
 )
+
 type ClassifierResult struct {
 	Category string   `json:"category"`
 	Reasons  []string `json:"reasons"`
@@ -25,13 +26,13 @@ type ClassifierResult struct {
 // are not included in the final JSON output.
 type Intake struct {
 	// Common fields
-	Parties    []Party        `json:"parties"`
-	Location   string         `json:"location"`
-	Currency   string         `json:"currency"`
-	TotalAmount float64       `json:"total_amount,omitempty"`
-	DueDates   []time.Time    `json:"due_dates"`
-	StartDate  time.Time      `json:"start_date"`
-	EndDate    time.Time      `json:"end_date"`
+	Parties     []Party     `json:"parties"`
+	Location    string      `json:"location"`
+	Currency    string      `json:"currency"`
+	TotalAmount float64     `json:"total_amount,omitempty"`
+	DueDates    []time.Time `json:"due_dates"`
+	StartDate   time.Time   `json:"start_date"`
+	EndDate     time.Time   `json:"end_date"`
 
 	// Service-specific fields
 	Services   string      `json:"services,omitempty"`
@@ -39,13 +40,15 @@ type Intake struct {
 	Revisions  int         `json:"revisions,omitempty"`
 
 	// Sale-specific fields
-	Goods          []Goods  `json:"goods,omitempty"`
-	DeliveryTerms  string   `json:"delivery_terms,omitempty"`
+	Goods         []Goods `json:"goods,omitempty"`
+	DeliveryTerms string  `json:"delivery_terms,omitempty"`
 
 	// Loan-specific fields
-	Principal        float64       `json:"principal,omitempty"`
-	Installments     []Installment `json:"installments,omitempty"`
-	LateFeePercent   float64       `json:"late_fee_percent,omitempty"`
+	Principal      float64       `json:"principal,omitempty"`
+	Installments   []Installment `json:"installments,omitempty"`
+	LateFeePercent float64       `json:"late_fee_percent,omitempty"`
+
+	//! NON DISCLOSURE IS SUPPOSTED TO BE HERE
 }
 
 // Party represents a party involved in the agreement.
@@ -57,7 +60,7 @@ type Party struct {
 
 // Milestone represents a milestone in a service agreement.
 type Milestone struct {
-	Description string `json:"description"`
+	Description string    `json:"description"`
 	Date        time.Time `json:"date"`
 }
 

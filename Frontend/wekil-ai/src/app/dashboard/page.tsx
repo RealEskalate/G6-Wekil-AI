@@ -51,7 +51,7 @@ const Dashboard = () => {
           </button>
         </div>
         <div className="grid grid-cols-2 gap-4 mx-4">
-          <Link href="/create-contract">
+          <Link href="/dashboard/create-contract">
             <DashboardCard title="Create Contract" type="create">
               Create a new contract quickly and easily
             </DashboardCard>

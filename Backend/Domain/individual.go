@@ -25,8 +25,8 @@ type Individual struct {
 	Address            string             `json:"address,omitempty" bson:"address,omitempty"`
 	AccountType        string             `json:"account_type" bson:"account_type"`
 	IsVerified         bool               `json:"is_verified" bson:"is_verified"`
-	ProfileImage       string             `json:"profile_image,omitempty" bson:"profile_image,omitempty"`
-	Signature          string             `json:"signature,omitempty" bson:"signature,omitempty"`
+	ProfileImage       string             `json:"profile_image" bson:"profile_image"`
+	Signature          string             `json:"signature" bson:"signature"`
 	CreatedAt          time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt          time.Time          `json:"updated_at" bson:"updated_at"`
 	RefreshToken	   string			  `json:"refresh_token" bson:"refresh_token"`

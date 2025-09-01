@@ -28,7 +28,6 @@ func (u *UserUseCase) StoreUserInMainColl(user *domain.UnverifiedUserDTO) (*doma
 	ind := converter.ToIndividual(user)
 	ind.ID = primitive.NilObjectID // making it intentionaly not to store the id of OTP DB in the main
 	return u.userCollection.CreateIndividual(context.Background(), ind)
-
 }
 
 // StoreUserInOTPColl implements domain.IUserUseCase.

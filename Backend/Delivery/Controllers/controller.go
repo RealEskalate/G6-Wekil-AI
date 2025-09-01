@@ -76,7 +76,6 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 
 // VerfiyOTPRequest implements domain.IUserController.
 func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
-
 	var emailOTP domain.EmailOTP
 	if err := ctx.ShouldBindJSON(&emailOTP); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{

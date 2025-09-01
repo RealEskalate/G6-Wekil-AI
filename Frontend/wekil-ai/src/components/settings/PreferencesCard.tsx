@@ -185,8 +185,8 @@ export default function PreferencesCard() {
           </div>
           <Switch
             checked={settings.contractTemplates}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              updateSetting("contractTemplates", e.target.checked)
+            onCheckedChange={(checked: boolean) =>
+              updateSetting("contractTemplates", checked)
             }
           />
         </div>

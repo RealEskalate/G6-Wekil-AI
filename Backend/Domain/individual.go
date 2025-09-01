@@ -90,7 +90,7 @@ type UpdateProfileRequestDTO struct {
 	LastName     *string `json:"last_name,omitempty" binding:"omitempty,min=1,max=50"`
 	MiddleName   *string `json:"middle_name,omitempty" binding:"omitempty,min=1,max=50"`
 	Address      *string `json:"address,omitempty" binding:"omitempty,min=1,max=100"`
-	Telephone          string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
+	Telephone    *string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
 	Signature    *string `json:"signature,omitempty" binding:"omitempty"`
 	ProfileImage *string `json:"profile_image,omitempty" binding:"omitempty,url"`
 }

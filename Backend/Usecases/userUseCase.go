@@ -164,31 +164,34 @@ func (u *UserUseCase) GetProfile(ctx context.Context, email string) (*domain.Ind
 
 
 func (u *UserUseCase) UpdateProfile(ctx context.Context, email string, updateReq *domain.UpdateProfileRequestDTO) error {
-	
-
 	updateData := bson.M{}
 
-	if updateReq.FirstName != nil {
+	if updateReq.FirstName != nil && *updateReq.FirstName != "" {
 		updateData["first_name"] = *updateReq.FirstName
 	}
-	if updateReq.LastName != nil {
+	if updateReq.LastName != nil && *updateReq.LastName != "" {
 		updateData["last_name"] = *updateReq.LastName
 	}
-	if updateReq.MiddleName != nil {
+	if updateReq.MiddleName != nil && *updateReq.MiddleName != "" {
 		updateData["middle_name"] = *updateReq.MiddleName
 	}
-	if updateReq.Address != nil {
+	if updateReq.Address != nil && *updateReq.Address != "" {
 		updateData["address"] = *updateReq.Address
 	}
-	if updateReq.Telephone != "" {
+	if updateReq.Telephone != nil {
 		updateData["telephone"] = updateReq.Telephone
 	}
-	if updateReq.Signature != nil {
+	if updateReq.Signature != nil && *updateReq.Signature != "" {
 		updateData["signature"] = *updateReq.Signature
 	}
-	if updateReq.ProfileImage != nil {
+	if updateReq.ProfileImage != nil && *updateReq.ProfileImage != "" {
 		updateData["profile_image"] = *updateReq.ProfileImage
 	}
+
+	if len(updateData) == 0 {
+		return errors.New("no valid fields to update")
+	}
+
 	return u.userCollection.UpdateProfile(ctx, email, updateData)
 }
 

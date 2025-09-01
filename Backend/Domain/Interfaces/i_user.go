@@ -25,7 +25,7 @@ type IIndividualRepository interface {
 type IOAuthUsecase interface {
 	HandleOAuthLogin(req *http.Request, res http.ResponseWriter) (*domain.Individual, error)
 }
- 
+
 
 // we should use GetByID instead of GetByEmail for performance
 type IOTPRepository interface {

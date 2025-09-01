@@ -21,8 +21,8 @@ import { LanguageAndDescription } from "@/components/wizard/steps/LanguageAndDes
 import { PartiesInformation } from "@/components/wizard/steps/PartiesInformation";
 import CommonDetails from "@/components/wizard/steps/CommonDetails";
 import SpecificDetails from "@/components/wizard/steps/SpecificDetails";
-// import AIDraftPreview from "@/components/wizard/steps/AIDraftPreview"; TODO
-// import FinalPreview from "@/components/wizard/steps/FinalPreview"; TODO
+import { AIDraftPreview } from "@/components/wizard/steps/AIDraftPreview";
+import { FinalPreview } from "@/components/wizard/steps/FinalPreview";
 
 export interface Step {
   id: string;
@@ -367,7 +367,7 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
             setSpecificDetails={setSpecificDetails}
           />
         )}
-        {/* {currentStep === 5 && (   Todo to do
+        {currentStep === 5 && (
           <AIDraftPreview
             currentLanguage={currentLanguage}
             contractData={contractData}
@@ -378,7 +378,7 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
             currentLanguage={currentLanguage}
             contractData={contractData}
           />
-        )} */}
+        )}
       </div>
 
       {/* Footer navigation */}

@@ -106,6 +106,38 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 					},
 				},
 				"late_fee_percent": {Type: genai.TypeNumber},
+				"disclosingParty": {
+					Type: genai.TypeObject,
+					Properties: map[string]*genai.Schema{
+						"name":  {Type: genai.TypeString},
+						"phone": {Type: genai.TypeString},
+						"email": {Type: genai.TypeString},
+					},
+					Required: []string{"name"},
+				},
+				"receivingParty": {
+					Type: genai.TypeObject,
+					Properties: map[string]*genai.Schema{
+						"name":  {Type: genai.TypeString},
+						"phone": {Type: genai.TypeString},
+						"email": {Type: genai.TypeString},
+					},
+					Required: []string{"name"},
+				},
+				"isMutual": {
+					Type: genai.TypeBoolean,
+				},
+				"effectiveDate": {
+					Type:   genai.TypeString,
+					Format: "date-time",
+				},
+				"confidentialityTerm": {
+					Type: genai.TypeInteger,
+				},
+				"purpose": {
+					Type: genai.TypeString,
+				},
+
 			},
 		},
 	}
@@ -175,7 +207,7 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 // GenerateIntake sends a request with a prompt and expects a structured
 // JSON response. It then unmarshals the response into the desired Go struct.
 func (ai *AIInteraction) GenerateIntake(ctx context.Context, prompt string, language string) (*domain.Intake, error) {
-	fullPrompt := fmt.Sprintf("Extract the agreement details from the following text in %s language. Include an explicit field `agreement_type` with value 'sale', 'service', or 'loan' based on the text. Today is %s. Text: %s", language, prompt, time.Now().Format("2006-01-02"))
+	fullPrompt := fmt.Sprintf("Extract the agreement details from the following text in %s language. Include an explicit field `agreement_type` with value 'sale', 'service', 'loan', or 'nda' based on the text." + "Today is %s. Text: %s", language, time.Now().Format("2006-01-02"), prompt)
 	parts := []genai.Part{genai.Text(fullPrompt)}
 
 	// Send the request and get the response. The SDK handles all HTTP details.

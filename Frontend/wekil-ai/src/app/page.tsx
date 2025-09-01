@@ -101,15 +101,24 @@ export default function HomePage() {
     rememberMe: boolean
   ) => {
     try {
-      setShowAuthModal(false);
-      document.body.style.overflow = "unset";
-      await signIn("credentials", {
+      const result = await signIn("credentials", {
+        redirect: false,
         email,
         password,
-        rememberMe: rememberMe,
-        callbackUrl: "/dashboard",
+        rememberMe,
       });
-      toast.success("Login Successful!");
+      // console.log(email, "email");
+      // console.log(password, "password");
+      // console.log(rememberMe, "remember me");
+
+      if (result?.error) {
+        toast.error(result.error || "Login Failed!");
+      } else {
+        toast.success("Login Successful!");
+        setShowAuthModal(false);
+        document.body.style.overflow = "unset";
+        window.location.href = "/dashboard"; // Redirect manually
+      }
     } catch (err) {
       console.log(err);
       toast.error("Login Failed!");

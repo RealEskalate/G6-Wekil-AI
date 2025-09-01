@@ -1,37 +1,35 @@
 import NextAuth, { NextAuthOptions, Session, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
 import { JWT } from "next-auth/jwt";
 
 interface ExtendedJWT extends JWT {
-  id?: string;
-  rememberMe?: boolean;
   accessToken?: string;
   accessTokenExpires?: number;
   refreshToken?: string;
   error?: string;
 }
 
-// Refresh token function (can call backend API if needed)
+const API_URL = process.env.NEXT_PUBLIC_API_URL; 
+
 async function refreshBackendToken(token: ExtendedJWT): Promise<ExtendedJWT> {
   try {
-    const res = await fetch(`${process.env.API_URL}/auth/refresh-token`, {
+    const res = await fetch(`${API_URL}/api/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken: token.refreshToken }),
+      credentials: "include", 
     });
 
-    const data = await res.json();
-    if (!res.ok) throw data;
+    if (!res.ok) throw new Error("Failed to refresh token");
+
+    const accessToken = res.headers.get("Authorization")?.replace("Bearer ", "") || "";
 
     return {
       ...token,
-      accessToken: data.accessToken,
+      accessToken,
       accessTokenExpires: Date.now() + 60 * 60 * 1000, // 1 hour
-      refreshToken: data.refreshToken ?? token.refreshToken,
     };
   } catch (err) {
-    console.error("Error refreshing backend token", err);
+    console.error("Error refreshing token", err);
     return { ...token, error: "RefreshTokenError" };
   }
 }
@@ -41,17 +39,13 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "you@example.com" },
+        email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
-        rememberMe: { label: "Remember Me", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email and password are required");
-        }
+        if (!credentials?.email || !credentials?.password) return null;
 
-        // Call your backend API to authenticate user
-        const res = await fetch(`${process.env.API_URL}/auth/login`, {
+        const res = await fetch(`${API_URL}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -60,26 +54,20 @@ export const authOptions: NextAuthOptions = {
           }),
         });
 
-        const data = await res.json();
-
         if (!res.ok) {
-          throw new Error(data.message || "Invalid email or password");
+          const text = await res.text();
+          console.error("Login failed:", text);
+          throw new Error("Invalid credentials");
         }
 
-        // Return user object to NextAuth
+        const accessToken = res.headers.get("Authorization")?.replace("Bearer ", "");
+        if (!accessToken) throw new Error("No access token returned");
+
         return {
-          id: data.user.id,
-          name: data.user.name,
-          email: data.user.email,
-          rememberMe: Boolean(credentials.rememberMe),
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
-        };
+          name: credentials.email, 
+          accessToken,
+        } as User & { accessToken: string };
       },
-    }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
 
@@ -90,20 +78,18 @@ export const authOptions: NextAuthOptions = {
 
   session: {
     strategy: "jwt",
-    maxAge: 60 * 60 * 24, // 1 day
+    maxAge: 60 * 60 * 24,
   },
 
   callbacks: {
-    async jwt({ token, user }: { token: ExtendedJWT; user?: User & { rememberMe?: boolean; accessToken?: string; refreshToken?: string } }) {
+    async jwt({ token, user }: { token: ExtendedJWT; user?: User & { accessToken?: string } }) {
       if (user) {
-        token.id = user.id;
-        token.rememberMe = user.rememberMe;
         token.accessToken = user.accessToken;
-        token.refreshToken = user.refreshToken;
-        token.accessTokenExpires = Date.now() + 60 * 60 * 1000;
+        token.accessTokenExpires = Date.now() + 60 * 60 * 1000; // 1 hour
       }
 
-      if (token.accessTokenExpires && Date.now() > token.accessTokenExpires && token.refreshToken) {
+      // Refresh token if expired
+      if (token.accessTokenExpires && Date.now() > token.accessTokenExpires) {
         return refreshBackendToken(token);
       }
 
@@ -115,10 +101,7 @@ export const authOptions: NextAuthOptions = {
         ...session,
         user: {
           ...session.user,
-          id: token.id,
-          rememberMe: token.rememberMe,
           accessToken: token.accessToken,
-          refreshToken: token.refreshToken,
           error: token.error,
         },
       };

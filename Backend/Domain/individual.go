@@ -18,9 +18,9 @@ type Individual struct {
 	ID                 primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Email              string             `json:"email" bson:"email"`
 	PasswordHash       string             `json:"-" bson:"password"` // Hidden from JSON
-	FirstName          string             `json:"first_name" bson:"first_name"`
-	LastName           string             `json:"last_name" bson:"last_name"`
-	MiddleName         string             `json:"middle_name,omitempty" bson:"middle_name,omitempty"`
+	first_name          string             `json:"first_name" bson:"first_name"`
+	last_name           string             `json:"last_name" bson:"last_name"`
+	middle_name         string             `json:"middle_name,omitempty" bson:"middle_name,omitempty"`
 	Telephone          string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
 	Address            string             `json:"address,omitempty" bson:"address,omitempty"`
 	AccountType        string             `json:"account_type" bson:"account_type"`
@@ -37,9 +37,9 @@ type Individual struct {
 // UpdateIndividualDTO now uses pointers and has no BSON tags.
 // the string being a pointer helps to use omitempty when editing a user's profile, meaning empty strings won't be saved as a name.
 type UpdateIndividualDTO struct {
-	FirstName    *string `json:"first_name,omitempty"`
-	LastName     *string `json:"last_name,omitempty"`
-	MiddleName   *string `json:"middle_name,omitempty"`
+	first_name    *string `json:"first_name,omitempty"`
+	last_name     *string `json:"last_name,omitempty"`
+	middle_name   *string `json:"middle_name,omitempty"`
 	Address      *string `json:"address,omitempty"`
 	Signature    *string `json:"signature,omitempty"`
 	ProfileImage *string `json:"profileImage,omitempty"`
@@ -57,9 +57,9 @@ type UnverifiedUserDTO struct {
 	ID                 primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Email              string             `json:"email" bson:"email"`
 	Password           string             `json:"password" bson:"password"` // Hidden from JSON
-	FirstName          string             `json:"firstName" bson:"first_name"`
-	LastName           string             `json:"lastName" bson:"last_name"`
-	MiddleName         string             `json:"middleName,omitempty" bson:"middle_name,omitempty"`
+	first_name          string             `json:"first_name" bson:"first_name"`
+	last_name           string             `json:"last_name" bson:"last_name"`
+	middle_name         string             `json:"middle_name,omitempty" bson:"middle_name,omitempty"`
 	Telephone          string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
 	AccountType        string             `json:"accountType" bson:"account_type"`
 	OTP                string             `json:"otp,omitempty" bson:"otp,omitempty"`
@@ -86,9 +86,9 @@ type ResetPasswordRequestDTO struct {
 }
 
 type UpdateProfileRequestDTO struct {
-	FirstName    *string `json:"first_name,omitempty" binding:"omitempty,min=1,max=50"`
-	LastName     *string `json:"last_name,omitempty" binding:"omitempty,min=1,max=50"`
-	MiddleName   *string `json:"middle_name,omitempty" binding:"omitempty,min=1,max=50"`
+	first_name    *string `json:"first_name,omitempty" binding:"omitempty,min=1,max=50"`
+	last_name     *string `json:"last_name,omitempty" binding:"omitempty,min=1,max=50"`
+	middle_name   *string `json:"middle_name,omitempty" binding:"omitempty,min=1,max=50"`
 	Address      *string `json:"address,omitempty" binding:"omitempty,min=1,max=100"`
 	Telephone    *string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
 	Signature    *string `json:"signature,omitempty" binding:"omitempty"`

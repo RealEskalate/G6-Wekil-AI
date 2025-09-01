@@ -107,9 +107,6 @@ export default function HomePage() {
         password,
         rememberMe,
       });
-      // console.log(email, "email");
-      // console.log(password, "password");
-      // console.log(rememberMe, "remember me");
 
       if (result?.error) {
         toast.error(result.error || "Login Failed!");

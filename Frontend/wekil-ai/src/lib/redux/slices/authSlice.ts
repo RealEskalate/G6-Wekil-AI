@@ -73,7 +73,7 @@ export const registerUser = createAsyncThunk<
   }
 });
 
-
+// Login
 export const loginUser = createAsyncThunk<
   { data: User & { message: string }; success: boolean }, // Updated return type
   { email: string; password: string; rememberMe?: boolean },
@@ -124,7 +124,7 @@ export const logoutUser = createAsyncThunk<void, void, { rejectValue: string }>(
     }
   }
 );
-
+// forgot Password
 export const forgotPassword = createAsyncThunk<
   { data: { message: string }; success: boolean },
   { email: string },
@@ -151,7 +151,7 @@ export const forgotPassword = createAsyncThunk<
   }
 });
 
-// Reset Password - Updated to match backend response pattern
+// reset Password
 export const resetPassword = createAsyncThunk<
   { data: { message: string }; success: boolean },
   { email: string; otp: string; new_password: string },
@@ -178,7 +178,6 @@ export const resetPassword = createAsyncThunk<
   }
 });
 
-// Verify OTP - Updated to match backend response pattern
 export const verifyOtp = createAsyncThunk<
   { data: { message?: string; error?: string }; success: boolean },
   { email: string; otp: string },
@@ -205,7 +204,6 @@ export const verifyOtp = createAsyncThunk<
   }
 });
 
-// Refresh Token - Updated to match backend response pattern
 export const refreshToken = createAsyncThunk<
   { data: { accessToken: string; refreshToken: string }; success: boolean },
   void,

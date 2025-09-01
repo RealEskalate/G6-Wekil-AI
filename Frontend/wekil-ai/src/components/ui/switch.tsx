@@ -1,38 +1,50 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "./utils";
+import * as SwitchPrimitive from "@radix-ui/react-switch";
+import { cn } from "@/lib/utils";
 
-interface SwitchProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface SwitchProps
+  extends Omit<
+    React.ComponentProps<typeof SwitchPrimitive.Root>,
+    "onCheckedChange" | "onChange"
+  > {
   checked?: boolean;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
-  ({ className, checked, ...props }, ref) => {
-    return (
-      <label
+const Switch = React.forwardRef<
+  React.ElementRef<typeof SwitchPrimitive.Root>,
+  SwitchProps
+>(({ className, checked, onChange, ...props }, ref) => {
+  return (
+    <SwitchPrimitive.Root
+      ref={ref}
+      checked={checked}
+      onCheckedChange={(checked) => {
+        if (onChange) {
+          const syntheticEvent = {
+            target: { checked } as HTMLInputElement,
+          } as React.ChangeEvent<HTMLInputElement>;
+          onChange(syntheticEvent);
+        }
+      }}
+      data-slot="switch"
+      className={cn(
+        "peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-gray-200 focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent shadow-xs transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
+      {...props}
+    >
+      <SwitchPrimitive.Thumb
+        data-slot="switch-thumb"
         className={cn(
-          "relative inline-flex items-center cursor-pointer",
-          className
+          "bg-background dark:data-[state=unchecked]:bg-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0"
         )}
-      >
-        <input
-          type="checkbox"
-          className="sr-only peer"
-          checked={checked}
-          ref={ref}
-          {...props}
-        />
-        <span
-          className={cn(
-            "w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 transition-colors",
-            "after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:after:translate-x-5"
-          )}
-        />
-      </label>
-    );
-  }
-);
+      />
+    </SwitchPrimitive.Root>
+  );
+});
 
 Switch.displayName = "Switch";
 

@@ -5,23 +5,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { User, Users } from "lucide-react";
-import { Language, ContractData } from "@/components/wizard/ContractWizard";
+import { Language } from "@/components/wizard/ContractWizard";
 
 const CONTRACT_TYPE_KEYS = ["service", "goods", "loan", "nda"] as const;
-type ContractType = typeof CONTRACT_TYPE_KEYS[number];
+type ContractType = (typeof CONTRACT_TYPE_KEYS)[number];
 
 interface PartiesInformationProps {
   currentLanguage: Language;
   contractType?: string;
   parties: { fullName: string; phone: string; email: string }[];
-  setParties: (parties: { fullName: string; phone: string; email: string }[]) => void;
+  setParties: (
+    parties: { fullName: string; phone: string; email: string }[]
+  ) => void;
 }
 
 function isContractType(key: string | undefined): key is ContractType {
   return CONTRACT_TYPE_KEYS.includes(key as ContractType);
 }
 
-export function PartiesInformation({ currentLanguage, contractType, parties, setParties }: PartiesInformationProps) {
+export function PartiesInformation({
+  currentLanguage,
+  contractType,
+  parties,
+  setParties,
+}: PartiesInformationProps) {
   const t = {
     en: {
       title: "Parties Information",
@@ -67,7 +74,9 @@ export function PartiesInformation({ currentLanguage, contractType, parties, set
         <CardHeader>
           <CardTitle>
             {isContractType(contractType)
-              ? t.partyTitles[contractType][0] + " & " + t.partyTitles[contractType][1]
+              ? t.partyTitles[contractType][0] +
+                " & " +
+                t.partyTitles[contractType][1]
               : t.title}
           </CardTitle>
           <p className="text-sm text-gray-600">{t.subtitle}</p>
@@ -79,7 +88,9 @@ export function PartiesInformation({ currentLanguage, contractType, parties, set
               <div className="flex items-center mb-4">
                 <User className="h-5 w-5 mr-2 text-gray-600" />
                 <h3 className="text-lg font-semibold">
-                  {isContractType(contractType) ? t.partyTitles[contractType][0] : t.firstParty}
+                  {isContractType(contractType)
+                    ? t.partyTitles[contractType][0]
+                    : t.firstParty}
                 </h3>
               </div>
               <div className="space-y-4">
@@ -119,7 +130,9 @@ export function PartiesInformation({ currentLanguage, contractType, parties, set
               <div className="flex items-center mb-4">
                 <Users className="h-5 w-5 mr-2 text-gray-600" />
                 <h3 className="text-lg font-semibold">
-                  {isContractType(contractType) ? t.partyTitles[contractType][1] : t.secondParty}
+                  {isContractType(contractType)
+                    ? t.partyTitles[contractType][1]
+                    : t.secondParty}
                 </h3>
               </div>
               <div className="space-y-4">

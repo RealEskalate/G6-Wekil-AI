@@ -5,21 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Calendar } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { CommonDetails, Language } from "@/components/wizard/ContractWizard";
-
+import { CommonDetail, Language } from "@/components/wizard/ContractWizard";
 
 interface CommonDetailsProps {
   currentLanguage: Language;
   contractType?: string;
-  commonDetails: CommonDetails;
-  setCommonDetails: (details: CommonDetails) => void;
+  commonDetails: CommonDetail;
+  setCommonDetails: (details: CommonDetail) => void;
 }
-
 
 export default function CommonDetails({
   currentLanguage,
-  contractType,
   commonDetails,
   setCommonDetails,
 }: CommonDetailsProps) {
@@ -44,14 +40,13 @@ export default function CommonDetails({
     },
   }[currentLanguage];
 
-  const updateCommonDetails = <K extends keyof CommonDetails>(
-  field: K,
-  value: CommonDetails[K]
-) => {
-  setCommonDetails({ ...commonDetails, [field]: value });
-};
+  const updateCommonDetails = <K extends keyof CommonDetail>(
+    field: K,
+    value: CommonDetail[K]
+  ) => {
+    setCommonDetails({ ...commonDetails, [field]: value });
+  };
 
-  
   return (
     <Card className="max-w-4xl mx-auto">
       <CardHeader>
@@ -77,19 +72,24 @@ export default function CommonDetails({
               type="number"
               placeholder={t.amount}
               value={commonDetails?.totalAmount || ""}
-              onChange={(e) => updateCommonDetails("totalAmount", Number(e.target.value))}
+              onChange={(e) =>
+                updateCommonDetails("totalAmount", Number(e.target.value))
+              }
               className="flex-1"
             />
             <div className="flex gap-2">
-            {(["ETB", "USD", "EUR"] as const).map((c) => (
-              <Button
-                key={c}
-                variant={commonDetails?.currency === c ? "default" : "outline"}
-                onClick={() => updateCommonDetails("currency", c)}
-              > {c}
-  </Button>
-))}
-
+              {(["ETB", "USD", "EUR"] as const).map((c) => (
+                <Button
+                  key={c}
+                  variant={
+                    commonDetails?.currency === c ? "default" : "outline"
+                  }
+                  onClick={() => updateCommonDetails("currency", c)}
+                >
+                  {" "}
+                  {c}
+                </Button>
+              ))}
             </div>
           </div>
         </div>
@@ -102,7 +102,9 @@ export default function CommonDetails({
               <Input
                 type="date"
                 value={commonDetails?.startDate || ""}
-                onChange={(e) => updateCommonDetails("startDate", e.target.value)}
+                onChange={(e) =>
+                  updateCommonDetails("startDate", e.target.value)
+                }
               />
               <Calendar className="text-gray-400 h-5 w-5" />
             </div>

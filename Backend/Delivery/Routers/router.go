@@ -5,13 +5,18 @@ import (
 	domain "wekil_ai/Domain/Interfaces"
 	infrastracture "wekil_ai/Infrastracture"
 	"wekil_ai/config"
-
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func Router(uc domain.IUserController, ai *controllers.AIController) {
 	mainRouter := gin.Default()
-
+		// Allow CORS from all origins
+	mainRouter.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Origin", "Content-Type", "Authorization"},
+	}))
 	auth := infrastracture.NewJWTAuthentication(config.SigningKey)
 	authMiddleware := infrastracture.NewAuthMiddleware(auth)
 	

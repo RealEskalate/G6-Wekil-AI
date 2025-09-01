@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
@@ -44,7 +45,7 @@ func (r *OTPRepository) GetByEmail(ctx context.Context, email string) (*domain.U
 	err := r.collection.FindOne(ctx, bson.M{"email": email}).Decode(&entry)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, nil
+			return nil, errors.New("user does not exist")
 		}
 		return nil, fmt.Errorf("could not find OTP entry: %w", err)
 	}

@@ -134,7 +134,12 @@ func (u *UserController) RefreshTokenHandler(ctx *gin.Context) {
 	}
 	// send the access token to the user and send accepted status
 	ctx.Header("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-	ctx.IndentedJSON(http.StatusOK, gin.H{"message": "Login successful. Tokens sent in header and cookie."})
+	ctx.IndentedJSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"message": "Refreshed successfully. Tokens sent in header and cookie.",
+		},
+	})
 
 }
 
@@ -143,12 +148,12 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 	var user *domain.LoginDTO
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{
-			"error": "Invalid request payload",
+			"error": "Invalid request payload","success": false,
 		})
 		return
 	}
 	if user.Email == "" || user.Password == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request payload"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request payload","success": false,})
 		return
 	}
 	accessToken,refreshToken, err := uc.userUseCase.Login(user.Email, user.Password)
@@ -172,34 +177,36 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 	ctx.Header("Authorization", "Bearer "+accessToken)
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "login successful",
-		"refresh": refreshToken,
-		"access":accessToken,
+		"success": true,
+		"data": gin.H{
+			"message": "login successful",
+		},
 	})
 }
 
 func (uc *UserController) UpdateProfile(ctx *gin.Context) {
 	var updateReq domain.UpdateProfileRequestDTO
+
 	if err := ctx.ShouldBindJSON(&updateReq); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input","success": false,})
 		return
 	}
 
-	userID := ctx.GetString("user_id")
-	err := uc.userUseCase.UpdateProfile(ctx, userID, &updateReq)
+	email := ctx.GetString("email")
+	err := uc.userUseCase.UpdateProfile(ctx, email, &updateReq)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile","success": false,})
 		return
 	}
-
 	ctx.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully","success": true,})
 }
 
 func (uc *UserController) GetProfile(ctx *gin.Context) {
-	userID := ctx.GetString("user_id")
-	profile, err := uc.userUseCase.GetProfile(ctx, userID)
+	email := ctx.GetString("email")
+	log.Println("id============---------:", email)
+	profile, err := uc.userUseCase.GetProfile(ctx, email)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve profile"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve profile!!","success": false,})
 		return
 	}
 
@@ -215,17 +222,22 @@ func (uc UserController) Logout(ctx *gin.Context) {
 
 		err := uc.userUseCase.Logout(ctx, userID)
 			if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "logout failed"})
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "logout failed*****","success": false,})
 			return
 		}
-		ctx.JSON(http.StatusOK, gin.H{"message": "logged out successfully"})
+		ctx.JSON(http.StatusOK, gin.H{
+			"success": true,
+		"data": gin.H{
+			"message": "logged out successfully",
+		},
+	})
 	}
 
 
 func (u *UserController) SendResetOTP(c *gin.Context) {
 	var req domain.ForgotPasswordRequestDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),"success": false,})
 		return
 	}
 
@@ -234,28 +246,38 @@ func (u *UserController) SendResetOTP(c *gin.Context) {
 	err := u.userUseCase.SendResetOTP(c, req.Email)
 	if err != nil {
 		log.Println("SendResetOTP error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send reset OTP"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send reset OTP","success": false,})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Reset OTP sent to your email address"})
+	c.JSON(http.StatusOK, gin.H{
+			"success": true,
+		"data": gin.H{
+			"message": "Reset OTP sent to your email address",
+		},
+	})
 }
 
 
 func (uc *UserController) ResetPassword(c *gin.Context) {
 	var req domain.ResetPasswordRequestDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input","success": false,})
 		return
 	}
 
 	err := uc.userUseCase.ResetPassword(c, req.Email, req.OTP, req.NewPassword)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),"success": false,})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"message": "Password reset successfully",
+		},
+		})
 }
 
 
@@ -323,6 +345,23 @@ func (uc *UserController) Success(c *gin.Context) {
   `))
 }
 
+func(uc *UserController) HandleNotification(ctx *gin.Context){
+	userId := ctx.GetString("user_id")
+
+	notify , err := uc.userUseCase.GetNotification(userId)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(),"success": false,})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    notify,
+	})
+
+
+}
 func NewUserController(userUseCase_ domainInterface.IUserUseCase,OAuthUsecase domainInterface.IOAuthUsecase) domainInterface.IUserController {
 	return &UserController{
 		userUseCase: userUseCase_,

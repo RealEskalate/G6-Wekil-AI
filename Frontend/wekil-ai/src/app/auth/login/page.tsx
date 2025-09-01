@@ -4,6 +4,8 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { FaGoogle, FaEnvelope, FaLock, FaRobot } from "react-icons/fa";
 import { signIn } from "next-auth/react";
+import { useLanguage } from "@/context/LanguageContext";
+import { authTranslations } from "@/lib/authTranslations";
 
 interface LoginPageProps {
   onLoginComplete: (
@@ -28,17 +30,20 @@ export default function LoginPage({
     general?: string;
   }>({});
 
+  const { lang } = useLanguage();
+  const t = authTranslations[lang];
+
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
     if (!email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = t.emailRequired;
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = t.invalidEmail;
     }
     if (!password) {
-      newErrors.password = "Password is required";
+      newErrors.password = t.passwordRequired;
     } else if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+      newErrors.password = t.passwordLengthError;
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -56,25 +61,27 @@ export default function LoginPage({
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       onLoginComplete(email, password, rememberMe);
+      toast.success(t.loginSuccess);
     } catch (err) {
+      console.log(err);
       setErrors({
-        general: `Invalid email or password. Please try again. ${err}`,
+        general: t.loginGeneralError,
       });
+      toast.error(t.loginFailed);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    // console.log("Google login clicked");
     try {
       await signIn("google", {
         callbackUrl: "/dashboard",
         keepAlive: rememberMe,
       });
-      toast.success("Login with email successful!");
+      toast.success(t.loginSuccess);
     } catch (err) {
-      toast.error(`Login Failed ${err}`);
+      toast.error(`${t.loginFailed}: ${err}`);
     }
   };
 
@@ -89,11 +96,9 @@ export default function LoginPage({
               <FaRobot className="text-xl" />
             </div>
             <h2 className="text-lg font-bold text-gray-800 mb-1">
-              Welcome Back
+              {t.welcomeBack}
             </h2>
-            <p className="text-sm text-gray-600">
-              Sign in to your Wekil AI account
-            </p>
+            <p className="text-sm text-gray-600">{t.signInAccount}</p>
           </div>
 
           {errors.general && (
@@ -108,7 +113,7 @@ export default function LoginPage({
                 htmlFor="email"
                 className="block text-xs font-medium text-gray-700 mb-1"
               >
-                Email Address
+                {t.emailLabel}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -136,7 +141,7 @@ export default function LoginPage({
                 htmlFor="password"
                 className="block text-xs font-medium text-gray-700 mb-1"
               >
-                Password
+                {t.passwordLabel}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -169,14 +174,14 @@ export default function LoginPage({
                   className="h-3 w-3 text-blue-600 focus:ring-1 focus:ring-blue-400 border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-1 text-gray-700">
-                  Remember me
+                  {t.rememberMe}
                 </label>
               </div>
               <a
                 href="/auth/forgot-password"
                 className="text-blue-600 cursor-pointer hover:text-blue-500"
               >
-                Forgot password?
+                {t.forgotPassword}
               </a>
             </div>
 
@@ -185,7 +190,7 @@ export default function LoginPage({
               disabled={isSubmitting}
               className="w-full bg-blue-600 cursor-pointer text-white py-2 text-sm rounded-md font-medium hover:bg-blue-700 disabled:bg-blue-400 transition-colors shadow-sm flex items-center justify-center focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
             >
-              {isSubmitting ? "Signing in..." : "Sign in"}
+              {isSubmitting ? t.signingIn : t.signIn}
             </button>
           </form>
 
@@ -193,7 +198,9 @@ export default function LoginPage({
           <div className="mt-4">
             <div className="relative flex items-center">
               <div className="w-full border-t border-gray-300"></div>
-              <span className="px-2 bg-white text-xs text-gray-500">Or</span>
+              <span className="px-2 bg-white text-xs text-gray-500">
+                {t.or}
+              </span>
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <button
@@ -206,12 +213,12 @@ export default function LoginPage({
 
           <div className="mt-4 text-center">
             <p className="text-xs text-gray-600">
-              Don’t have an account?{" "}
+              {t.dontHaveAccount}{" "}
               <button
                 onClick={onSwitchToSignup}
                 className="text-blue-600 cursor-pointer hover:text-blue-500 font-medium"
               >
-                Sign up
+                {t.signUp}
               </button>
             </p>
           </div>

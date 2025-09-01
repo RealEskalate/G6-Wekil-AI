@@ -22,11 +22,15 @@ import LoginPage from "./auth/login/page";
 import SignupPage from "./auth/signup/page";
 import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
+import { translations } from "@/lib/generalTranslations";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function HomePage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [activeSection, setActiveSection] = useState("hero");
+  const { lang } = useLanguage();
+  const t = translations[lang];
 
   const sectionRefs = {
     hero: useRef<HTMLElement>(null),
@@ -145,25 +149,25 @@ export default function HomePage() {
         <div className="container mx-auto flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 mb-10 md:mb-0">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-800 mb-6 leading-tight animate-fade-in-up">
-              Create <span className="text-blue-600">Informal Agreements</span>{" "}
-              in Seconds
+              {t.heroTitle.split(t.heroTitleHighlight)[0]}
+              <span className="text-blue-600">{t.heroTitleHighlight}</span>
+              {t.heroTitle.split(t.heroTitleHighlight)[1]}
             </h1>
             <p className="text-xl text-gray-600 mb-8 animate-fade-in-up delay-100">
-              Wekil AI helps Ethiopian freelancers and small business owners
-              generate clear, simple agreements using artificial intelligence.
+              {t.heroDesc}
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 animate-fade-in-up delay-200">
               <button
                 onClick={handleSignupClick}
                 className="bg-blue-600 text-white px-8 cursor-pointer py-4 rounded-lg font-medium hover:bg-blue-700 transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-xl flex items-center justify-center"
               >
-                Get Started Free <FaArrowRight className="ml-2" />
+                {t.getStarted} <FaArrowRight className="ml-2" />
               </button>
               <button
                 onClick={handleLoginClick}
                 className="border border-blue-600 cursor-pointer text-blue-600 px-8 py-4 rounded-lg font-medium hover:bg-blue-50 transition-all transform hover:-translate-y-1 flex items-center justify-center"
               >
-                Existing Account
+                {t.existingAccount}
               </button>
             </div>
           </div>
@@ -184,14 +188,15 @@ export default function HomePage() {
                 </div>
                 <div className="bg-green-100 p-4 rounded-lg mt-4">
                   <h3 className="font-semibold text-gray-800">
-                    Generated Agreement Includes:
+                    {t.generatedAgreementIncludes ||
+                      "Generated Agreement Includes:"}
                   </h3>
                   <ul className="list-disc list-inside text-sm text-gray-700 mt-2">
-                    <li>Parties involved</li>
-                    <li>Service description</li>
-                    <li>Payment amount (15,000 ETB)</li>
-                    <li>Timeline (2 weeks)</li>
-                    <li>Disclaimer clause</li>
+                    <li>{t.partiesInvolved || "Parties involved"}</li>
+                    <li>{t.serviceDescription || "Service description"}</li>
+                    <li>{t.paymentAmount || "Payment amount (15,000 ETB)"}</li>
+                    <li>{t.timeline || "Timeline (2 weeks)"}</li>
+                    <li>{t.disclaimerClause || "Disclaimer clause"}</li>
                   </ul>
                 </div>
               </div>
@@ -216,11 +221,10 @@ export default function HomePage() {
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-800 mb-4 animate-on-scroll opacity-0 translate-y-10 transition-all duration-700">
-              Powerful Features
+              {t.powerfulFeatures}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-on-scroll opacity-0 translate-y-10 transition-all duration-700 delay-100">
-              Wekil AI is designed specifically for the Ethiopian market with
-              features that make agreement creation simple and secure.
+              {t.featuresDesc}
             </p>
           </div>
 
@@ -228,38 +232,38 @@ export default function HomePage() {
             {[
               {
                 icon: FaFileContract,
-                title: "AI-Powered Generation",
-                desc: "Our advanced AI understands Amharic and English to create clear agreements from simple descriptions.",
+                title: t.feature1Title,
+                desc: t.feature1Desc,
                 color: "blue",
               },
               {
                 icon: FaLock,
-                title: "Secure Signing",
-                desc: "Digital signatures and secure storage ensure your agreements are protected and easily accessible.",
+                title: t.feature2Title,
+                desc: t.feature2Desc,
                 color: "green",
               },
               {
                 icon: FaShieldAlt,
-                title: "Legal Disclaimer",
-                desc: "Every agreement includes appropriate disclaimers to ensure users understand the informal nature.",
+                title: t.feature3Title,
+                desc: t.feature3Desc,
                 color: "purple",
               },
               {
                 icon: FaSync,
-                title: "Easy Editing",
-                desc: "Modify generated agreements before signing to ensure they perfectly match your needs.",
+                title: t.feature4Title,
+                desc: t.feature4Desc,
                 color: "orange",
               },
               {
                 icon: FaUser,
-                title: "Dual Account Types",
-                desc: "Support for both individual freelancers and organizations with appropriate verification.",
+                title: t.feature5Title,
+                desc: t.feature5Desc,
                 color: "red",
               },
               {
                 icon: FaBuilding,
-                title: "Export & Share",
-                desc: "Download agreements as PDF or DOCX files, or share them directly via email.",
+                title: t.feature6Title,
+                desc: t.feature6Desc,
                 color: "indigo",
               },
             ].map((feature, index) => (
@@ -293,41 +297,37 @@ export default function HomePage() {
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-800 mb-4 animate-on-scroll opacity-0 translate-y-10 transition-all duration-700">
-              How Wekil AI Works
+              {t.howItWorksTitle}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-on-scroll opacity-0 translate-y-10 transition-all duration-700 delay-100">
-              Creating an agreement has never been easier. Just follow these
-              simple steps.
+              {t.howItWorksDesc}
             </p>
           </div>
 
           <div className="flex flex-col md:flex-row space-y-8 md:space-y-0 md:space-x-8 items-center">
             <div className="flex-1">
               <div className="relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-full w-1 bg-blue-200"></div>
-                </div>
                 <ul className="relative space-y-12">
                   {[
                     {
                       step: "1",
-                      title: "Describe Your Agreement",
-                      desc: "Simply type or say what you're agreeing to in plain English or Amharic.",
+                      title: t.step1Title,
+                      desc: t.step1Desc,
                     },
                     {
                       step: "2",
-                      title: "AI Generates Document",
-                      desc: "Our AI processes your input and creates a structured agreement.",
+                      title: t.step2Title,
+                      desc: t.step2Desc,
                     },
                     {
                       step: "3",
-                      title: "Review & Customize",
-                      desc: "Check the generated agreement and make any necessary changes.",
+                      title: t.step3Title,
+                      desc: t.step3Desc,
                     },
                     {
                       step: "4",
-                      title: "Sign & Share",
-                      desc: "Both parties sign digitally and download or share the final agreement.",
+                      title: t.step4Title,
+                      desc: t.step4Desc,
                     },
                   ].map((item, index) => (
                     <li
@@ -349,16 +349,14 @@ export default function HomePage() {
                 </ul>
               </div>
             </div>
+
             <div className="flex-1 animate-on-scroll opacity-0 translate-x-10 transition-all duration-700 delay-300">
               <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-500">
                 <div className="mb-6">
                   <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                    See It In Action
+                    {t.demoTitle}
                   </h3>
-                  <p className="text-gray-600">
-                    Watch how Wekil AI transforms simple descriptions into clear
-                    agreements.
-                  </p>
+                  <p className="text-gray-600">{t.demoDesc}</p>
                 </div>
                 <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 opacity-70"></div>
@@ -370,17 +368,17 @@ export default function HomePage() {
                       Agreement Generation Demo
                     </p>
                     <button className="mt-4 bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors">
-                      Watch Video
+                      {t.demoButton}
                     </button>
                   </div>
                 </div>
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <p className="text-sm text-gray-700">
-                    See real examples of agreements created with Wekil AI in our{" "}
+                    {t.demoGallery.split("{link}")[0]}
                     <a href="#" className="text-blue-600 hover:underline">
                       demo gallery
                     </a>
-                    .
+                    {t.demoGallery.split("{link}")[1]}
                   </p>
                 </div>
               </div>
@@ -397,35 +395,31 @@ export default function HomePage() {
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-800 mb-4 animate-on-scroll opacity-0 translate-y-10 transition-all duration-700">
-              What Our Users Say
+              {t.testimonialsTitle}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-on-scroll opacity-0 translate-y-10 transition-all duration-700 delay-100">
-              Join thousands of Ethiopian freelancers and businesses who trust
-              Wekil AI.
+              {t.testimonialsDesc}
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                name: "Selam T.",
-                role: "Freelance Designer",
-                content:
-                  "Wekil AI has saved me so much time. I used to spend hours drafting agreements, now it takes minutes!",
+                name: t.testimonial1Name,
+                role: t.testimonial1Role,
+                content: t.testimonial1Content,
                 delay: 0,
               },
               {
-                name: "Michael K.",
-                role: "Small Business Owner",
-                content:
-                  "The Amharic support is a game-changer. Finally, a tool that understands our local context.",
+                name: t.testimonial2Name,
+                role: t.testimonial2Role,
+                content: t.testimonial2Content,
                 delay: 100,
               },
               {
-                name: "Amina J.",
-                role: "Software Developer",
-                content:
-                  "The peace of mind from having clear agreements is priceless. My client relationships have improved significantly.",
+                name: t.testimonial3Name,
+                role: t.testimonial3Role,
+                content: t.testimonial3Content,
                 delay: 200,
               },
             ].map((testimonial, index) => (
@@ -454,20 +448,20 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 bg-blue-600 text-white">
+      <section className="py-16 bg-[#1e2b4d] text-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
               {
                 number: "10,000+",
-                label: "Agreements Created",
+                label: t.stats1Label,
                 icon: FaFileContract,
               },
-              { number: "95%", label: "User Satisfaction", icon: FaChartLine },
-              { number: "2,500+", label: "Active Users", icon: FaUsers },
+              { number: "95%", label: t.stats2Label, icon: FaChartLine },
+              { number: "2,500+", label: t.stats3Label, icon: FaUsers },
               {
                 number: "5min",
-                label: "Average Time Saved",
+                label: t.stats4Label,
                 icon: FaLightbulb,
               },
             ].map((stat, index) => (
@@ -485,20 +479,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+      <section className="py-20 bg-gradient-to-r from-[#02425f] to-[#39d9f1] text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-6 animate-on-scroll opacity-0 translate-y-10 transition-all duration-700">
-            Ready to Simplify Your Agreements?
+            {t.ctaTitle}
           </h2>
           <p className="text-xl mb-10 max-w-3xl mx-auto animate-on-scroll opacity-0 translate-y-10 transition-all duration-700 delay-100">
-            Join thousands of Ethiopian freelancers and small business owners
-            using Wekil AI to create clear, informal agreements.
+            {t.ctaDesc}
           </p>
           <button
             onClick={handleSignupClick}
             className="bg-white text-blue-600 px-8 py-4 rounded-lg mt-6 cursor-pointer font-semibold hover:bg-blue-50 transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-xl animate-pulse"
           >
-            Create Your Free Account
+            {t.ctaButton}
           </button>
         </div>
       </section>

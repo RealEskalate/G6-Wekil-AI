@@ -41,3 +41,7 @@ type IUserValidation interface {
 	ComparePassword(userPassword, password string) error
 }
 
+type INotification interface{
+	FindByID(ctx context.Context,individualID string) (*domain.Notification, error)
+	CreateIndividual(ctx context.Context, notification *domain.Notification) (*domain.Notification, error)
+}

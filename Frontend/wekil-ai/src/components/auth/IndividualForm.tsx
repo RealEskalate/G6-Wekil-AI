@@ -1,9 +1,13 @@
+"use client";
+
 import { MdDriveFileRenameOutline } from "react-icons/md";
 import { FaEnvelope, FaPhone, FaLock } from "react-icons/fa";
-import { IndividualFormData, FormErrors } from "@/types/auth";
+import { SignupFormData, FormErrors } from "@/types/auth";
+import { useLanguage } from "@/context/LanguageContext";
+import { authTranslations } from "@/lib/authTranslations";
 
 interface IndividualFormProps {
-  formData: IndividualFormData;
+  formData: SignupFormData;
   errors: FormErrors;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -13,6 +17,9 @@ export default function IndividualForm({
   errors,
   onInputChange,
 }: IndividualFormProps) {
+  const { lang } = useLanguage();
+  const t = authTranslations[lang];
+
   const inputClass =
     "w-full pl-8 py-1.5 text-xs border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500";
 
@@ -21,7 +28,7 @@ export default function IndividualForm({
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            First Name *
+            {t.firstName} *
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -30,7 +37,7 @@ export default function IndividualForm({
             <input
               type="text"
               name="firstName"
-              placeholder="First name"
+              placeholder={t.firstName}
               className={`${inputClass} ${
                 errors.firstName ? "border-red-500" : "border-gray-300"
               }`}
@@ -44,7 +51,7 @@ export default function IndividualForm({
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Middle Name *
+            {t.middleName} *
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -53,7 +60,7 @@ export default function IndividualForm({
             <input
               type="text"
               name="middleName"
-              placeholder="Middle name"
+              placeholder={t.middleName}
               className={`${inputClass} ${
                 errors.middleName ? "border-red-500" : "border-gray-300"
               }`}
@@ -69,7 +76,7 @@ export default function IndividualForm({
 
       <div className="mb-3">
         <label className="block text-xs font-medium text-gray-700 mb-1">
-          Last Name *
+          {t.lastName} *
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -78,7 +85,7 @@ export default function IndividualForm({
           <input
             type="text"
             name="lastName"
-            placeholder="Last name"
+            placeholder={t.lastName}
             className={`${inputClass} ${
               errors.lastName ? "border-red-500" : "border-gray-300"
             }`}
@@ -93,7 +100,7 @@ export default function IndividualForm({
 
       <div className="mb-3">
         <label className="block text-xs font-medium text-gray-700 mb-1">
-          Email *
+          {t.email} *
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -102,7 +109,7 @@ export default function IndividualForm({
           <input
             type="email"
             name="email"
-            placeholder="Enter your email"
+            placeholder={t.email}
             className={`${inputClass} ${
               errors.email ? "border-red-500" : "border-gray-300"
             }`}
@@ -117,7 +124,7 @@ export default function IndividualForm({
 
       <div className="mb-3">
         <label className="block text-xs font-medium text-gray-700 mb-1">
-          Phone Number *
+          {t.telephone} *
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -142,7 +149,7 @@ export default function IndividualForm({
       <div className="mb-3 grid grid-cols-2 gap-2">
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Password *
+            {t.password} *
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -151,7 +158,7 @@ export default function IndividualForm({
             <input
               type="password"
               name="password"
-              placeholder="Password"
+              placeholder={t.password}
               className={`${inputClass} ${
                 errors.password ? "border-red-500" : "border-gray-300"
               }`}
@@ -165,7 +172,7 @@ export default function IndividualForm({
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Confirm Password *
+            {t.confirmPassword} *
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -174,7 +181,7 @@ export default function IndividualForm({
             <input
               type="password"
               name="confirmPassword"
-              placeholder="Confirm"
+              placeholder={t.confirmPassword}
               className={`${inputClass} ${
                 errors.confirmPassword ? "border-red-500" : "border-gray-300"
               }`}

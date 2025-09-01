@@ -22,7 +22,7 @@ import LoginPage from "./auth/login/page";
 import SignupPage from "./auth/signup/page";
 import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
-import { translations } from "@/lib/translations";
+import { translations } from "@/lib/generalTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function HomePage() {
@@ -307,9 +307,6 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row space-y-8 md:space-y-0 md:space-x-8 items-center">
             <div className="flex-1">
               <div className="relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-full w-1 bg-blue-200"></div>
-                </div>
                 <ul className="relative space-y-12">
                   {[
                     {
@@ -451,7 +448,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 bg-blue-600 text-white">
+      <section className="py-16 bg-[#1e2b4d] text-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
@@ -482,7 +479,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+      <section className="py-20 bg-gradient-to-r from-[#02425f] to-[#39d9f1] text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-6 animate-on-scroll opacity-0 translate-y-10 transition-all duration-700">
             {t.ctaTitle}

@@ -94,3 +94,11 @@ type UpdateProfileRequestDTO struct {
 	Signature    *string `json:"signature,omitempty" binding:"omitempty"`
 	ProfileImage *string `json:"profile_image,omitempty" binding:"omitempty,url"`
 }
+
+type Notification struct {
+    UserID      primitive.ObjectID `json:"user_id,omitempty" bson:"user_id,omitempty"`
+    Title       string    `json:"title" bson:"title"`       // e.g., "New Document Request"
+    Message     string    `json:"message" bson:"message"`     // e.g., "You have a request in your email"
+	ArgumentID	primitive.ObjectID `json:"argumentid" bson:"argumentid"`
+
+    }

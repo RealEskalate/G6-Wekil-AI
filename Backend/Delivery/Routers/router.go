@@ -26,7 +26,7 @@ func Router(uc domain.IUserController, ai *controllers.AIController) {
 
 	mainRouter.PUT("/api/users/profile",authMiddleware.JWTAuthMiddleware(),uc.UpdateProfile)
 	mainRouter.GET("/api/users/profile",authMiddleware.JWTAuthMiddleware(),uc.GetProfile)
-
+	mainRouter.GET("/api/users/notification",authMiddleware.JWTAuthMiddleware(),uc.HandleNotification)
   	mainRouter.GET("/auth/:provider",uc.SignInWithProvider )
 	mainRouter.GET("/auth/:provider/callback",uc.CallbackHandler )
 	mainRouter.GET("/success", uc.Success)

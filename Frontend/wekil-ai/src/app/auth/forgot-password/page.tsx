@@ -7,6 +7,9 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import { authTranslations } from "@/lib/authTranslations";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/redux/store";
+import { forgotPassword } from "@/lib/redux/slices/authSlice";
 
 function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -14,16 +17,23 @@ function ForgotPasswordForm() {
   const router = useRouter();
   const { lang } = useLanguage();
   const t = authTranslations[lang];
-
-  console.log(lang);
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleResendOTP = async (targetEmail?: string) => {
     const finalEmail = targetEmail || email;
     if (!finalEmail) return;
     setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success(`${t.otpSentSuccess} ${finalEmail}`);
+      const res = await dispatch(
+        forgotPassword({ email: finalEmail })
+      ).unwrap();
+
+      if (res.success) {
+        toast.success(t.otpSentSuccess + " " + finalEmail);
+        router.push(`/auth/change-password?email=${encodeURIComponent(email)}`);
+      } else {
+        toast.error(res.data.message || t.otpSentFailed);
+      }
     } catch (error) {
       console.error(error);
       toast.error(t.otpSentFailed);
@@ -38,7 +48,6 @@ function ForgotPasswordForm() {
 
     try {
       await handleResendOTP();
-      router.push(`/auth/change-password?email=${encodeURIComponent(email)}`);
     } catch (error) {
       console.error(error);
     } finally {

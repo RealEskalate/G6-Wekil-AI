@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
@@ -94,8 +93,8 @@ func (o *JWTAuthentication) OAuthLogin(req *http.Request, res http.ResponseWrite
 
 	return &domain.Individual{
 		Email: user.Email,
-		first_name: user.first_name,
-		last_name: user.last_name,
+		FirstName: user.FirstName,
+		LastName: user.LastName,
 
 	}, nil
 }

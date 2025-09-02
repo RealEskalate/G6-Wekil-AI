@@ -52,16 +52,18 @@ type Intake struct {
 	Goods         []Goods `json:"goods,omitempty" bson:"goods,omitempty"`
 	DeliveryTerms string  `json:"delivery_terms,omitempty" bson:"delivery_terms,omitempty"`
 
-	// Loan-specific fields
-	Principal      float64       `json:"principal,omitempty" bson:"principal,omitempty"`
-	Installments   []Installment `json:"installments,omitempty" bson:"installments,omitempty"`
-	LateFeePercent float64       `json:"late_fee_percent,omitempty" bson:"late_fee_percent,omitempty"`
-
-	// NDA fields
-	IsMutual            bool      `json:"is_mutual" bson:"is_mutual"`                        // If true, everyone's sharing secrets.
-	EffectiveDate       time.Time `json:"effective_date" bson:"effective_date"`              // When the promise to be quiet officially starts.
-	ConfidentialityTerm int       `json:"confidentiality_term" bson:"confidentiality_term"` // How many years the secrets must be kept.
-	Purpose             string    `json:"purpose" bson:"purpose"`                           // Why are we sharing secrets? e.g., "To see if we can work together".
+  // Loan-specific fields
+  Principal      float64       `json:"principal,omitempty"`
+  Installments   []Installment `json:"installments,omitempty"`
+  LateFeePercent float64       `json:"late_fee_percent,omitempty"`
+  
+  // NDA fields
+  DisclosingParty     *Party     `json:"disclosingParty,omitempty"`     // The one spilling the beans.
+  ReceivingParty      *Party     `json:"receivingParty,omitempty"`      // The one promising to keep quiet.
+  IsMutual            bool      `json:"isMutual"`            // If true, everyone's sharing secrets.
+  EffectiveDate       time.Time `json:"effectiveDate"`       // When the promise to be quiet officially starts.
+  ConfidentialityTerm int       `json:"confidentialityTerm"` // How many years the secrets must be kept.
+  Purpose             string    `json:"purpose"`             // Why are we sharing secrets? e.g., "To see if we can work together".
 }
 
 // Party represents a party involved in the agreement.

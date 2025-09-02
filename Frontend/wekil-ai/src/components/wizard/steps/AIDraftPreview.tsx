@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
-import { Badge } from "@/components/ui/Badge";
 import { Loader2, Bot, Edit3, Send, Eye } from "lucide-react";
 import { ContractData, Language } from "@/components/wizard/ContractWizard";
 import { toast } from "sonner";
@@ -187,7 +186,7 @@ export function AIDraftPreview({
 
   useEffect(() => {
     generateDraft();
-  }, []);
+  });
 
   if (isGeneratingDraft) {
     return (

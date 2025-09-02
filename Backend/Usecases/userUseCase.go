@@ -116,15 +116,15 @@ func (u *UserUseCase) ResetPassword(ctx context.Context, email, otp, newPassword
 
 
 
-func (a *UserUseCase) Login(email, password string) (string,string, error) {
+func (a *UserUseCase) Login(email, password string) (string,string, string,error) {
 	user, err := a.userCollection.FindByEmail(context.Background(),email)
 	if err != nil {
-		return "", "", errors.New("user not found")
+		return "", "","", errors.New("user not found")
 	}
 
 	err = a.userValidation.ComparePassword(user.PasswordHash, password)
 	if err != nil {
-		return "", "", errors.New("invalid password")
+		return "", "","", errors.New("invalid password")
 	}
 	accessClaims := &domain.UserClaims{
 		UserID: user.ID.String(),
@@ -157,10 +157,10 @@ func (a *UserUseCase) Login(email, password string) (string,string, error) {
 	user.RefreshToken = refreshToken
 	err = a.userCollection.UpdateIndividual(context.Background(),user.ID,updateUser)
 	if err != nil {
-		return "", "", err
+		return "", "","", err
 	}
 	
-	return accessToken,refreshToken, nil
+	return accessToken,refreshToken, user.AccountType,nil
 }
 
 func (uuc *UserUseCase) Logout(ctx context.Context, userID string) error {
@@ -181,14 +181,14 @@ func (u *UserUseCase) GetProfile(ctx context.Context, email string) (*domain.Ind
 func (u *UserUseCase) UpdateProfile(ctx context.Context, email string, updateReq *domain.UpdateProfileRequestDTO) error {
 	updateData := bson.M{}
 
-	if updateReq.first_name != nil && *updateReq.first_name != "" {
-		updateData["first_name"] = *updateReq.first_name
+	if updateReq.FirstName != nil && *updateReq.FirstName != "" {
+		updateData["first_name"] = *updateReq.FirstName
 	}
-	if updateReq.last_name != nil && *updateReq.last_name != "" {
-		updateData["last_name"] = *updateReq.last_name
+	if updateReq.LastName != nil && *updateReq.LastName != "" {
+		updateData["last_name"] = *updateReq.LastName
 	}
-	if updateReq.middle_name != nil && *updateReq.middle_name != "" {
-		updateData["middle_name"] = *updateReq.middle_name
+	if updateReq.MiddleName != nil && *updateReq.MiddleName != "" {
+		updateData["middle_name"] = *updateReq.MiddleName
 	}
 	if updateReq.Address != nil && *updateReq.Address != "" {
 		updateData["address"] = *updateReq.Address

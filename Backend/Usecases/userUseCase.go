@@ -116,15 +116,15 @@ func (u *UserUseCase) ResetPassword(ctx context.Context, email, otp, newPassword
 
 
 
-func (a *UserUseCase) Login(email, password string) (string,string, error) {
+func (a *UserUseCase) Login(email, password string) (string,string, string,error) {
 	user, err := a.userCollection.FindByEmail(context.Background(),email)
 	if err != nil {
-		return "", "", errors.New("user not found")
+		return "", "","", errors.New("user not found")
 	}
 
 	err = a.userValidation.ComparePassword(user.PasswordHash, password)
 	if err != nil {
-		return "", "", errors.New("invalid password")
+		return "", "","", errors.New("invalid password")
 	}
 	accessClaims := &domain.UserClaims{
 		UserID: user.ID.String(),
@@ -157,10 +157,10 @@ func (a *UserUseCase) Login(email, password string) (string,string, error) {
 	user.RefreshToken = refreshToken
 	err = a.userCollection.UpdateIndividual(context.Background(),user.ID,updateUser)
 	if err != nil {
-		return "", "", err
+		return "", "","", err
 	}
 	
-	return accessToken,refreshToken, nil
+	return accessToken,refreshToken, user.AccountType,nil
 }
 
 func (uuc *UserUseCase) Logout(ctx context.Context, userID string) error {

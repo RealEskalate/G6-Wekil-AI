@@ -155,7 +155,7 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request payload","success": false,})
 		return
 	}
-	accessToken,refreshToken, err := uc.userUseCase.Login(user.Email, user.Password)
+	accessToken,refreshToken,accountType, err := uc.userUseCase.Login(user.Email, user.Password)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -179,6 +179,7 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 		"success": true,
 		"data": gin.H{
 			"message": "login successful",
+			"account_ type":accountType,
 		},
 	})
 }

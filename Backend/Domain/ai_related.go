@@ -51,8 +51,8 @@ type Intake struct {
   LateFeePercent float64       `json:"late_fee_percent,omitempty"`
   
   // NDA fields
-  DisclosingParty     Party     `json:"disclosingParty"`     // The one spilling the beans.
-  ReceivingParty      Party     `json:"receivingParty"`      // The one promising to keep quiet.
+  DisclosingParty     *Party     `json:"disclosingParty,omitempty"`     // The one spilling the beans.
+  ReceivingParty      *Party     `json:"receivingParty,omitempty"`      // The one promising to keep quiet.
   IsMutual            bool      `json:"isMutual"`            // If true, everyone's sharing secrets.
   EffectiveDate       time.Time `json:"effectiveDate"`       // When the promise to be quiet officially starts.
   ConfidentialityTerm int       `json:"confidentialityTerm"` // How many years the secrets must be kept.

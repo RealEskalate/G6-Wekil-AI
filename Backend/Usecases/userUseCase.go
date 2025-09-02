@@ -210,15 +210,19 @@ func (u *UserUseCase) UpdateProfile(ctx context.Context, email string, updateReq
 	return u.userCollection.UpdateProfile(ctx, email, updateData)
 }
 
-func (u *UserUseCase) GetNotification(userID string)( *domain.Notification,error){
-	
-	fmt.Print("!#$%$$$$$$$$$$$$$$$$$$$", userID)
-	notify, err := u.NotificationCollection.FindByID(context.Background(),userID)
+func (u *UserUseCase) GetNotifications(userID string, page, limit int64) ([]domain.Notification, error) {
+	notify, err := u.NotificationCollection.FindByReceiverID(context.Background(), userID, page, limit)
 	if err != nil {
-		return nil , err
+		return nil, err
+	}
+	if len(notify) == 0 {
+		return nil, errors.New("no notifications found")
 	}
 	return notify, nil
 }
+
+
+
 func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository, notify domainInterface.INotification) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
 	return &UserUseCase{
 		auth: AUTH,

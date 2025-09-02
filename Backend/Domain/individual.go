@@ -93,8 +93,9 @@ type UpdateProfileRequestDTO struct {
 }
 
 type Notification struct {
-	UserID     primitive.ObjectID `json:"user_id,omitempty" bson:"user_id,omitempty"`
-	Title      string             `json:"title" bson:"title"`     // e.g., "New Document Request"
-	Message    string             `json:"message" bson:"message"` // e.g., "You have a request in your email"
-	ArgumentID primitive.ObjectID `json:"argument_id" bson:"argument_id"`
+	SenderID     primitive.ObjectID `json:"sender_id,omitempty" bson:"sender_id,omitempty"`
+	ReceiverID   primitive.ObjectID `json:"receiver_id,omitempty" bson:"receiver_id,omitempty"`
+	Title        string             `json:"title" bson:"title"`     // e.g., "New Document Request"
+	Message      string             `json:"message" bson:"message"` // e.g., "You have a request in your email"
+	AgreementID  primitive.ObjectID `json:"agreement_id" bson:"agreement_id"`
 }

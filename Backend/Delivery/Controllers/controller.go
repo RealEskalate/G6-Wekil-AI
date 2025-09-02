@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
@@ -362,23 +363,35 @@ func (uc *UserController) Success(c *gin.Context) {
   `))
 }
 
-func(uc *UserController) HandleNotification(ctx *gin.Context){
+func (uc *UserController) HandleNotifications(ctx *gin.Context) {
 	userId := ctx.GetString("user_id")
 
-	notify , err := uc.userUseCase.GetNotification(userId)
+	// Read query params for pagination
+	pageStr := ctx.DefaultQuery("page", "1")
+	limitStr := ctx.DefaultQuery("limit", "10")
 
+	page, _ := strconv.ParseInt(pageStr, 10, 64)
+	limit, _ := strconv.ParseInt(limitStr, 10, 64)
+
+	notify, err := uc.userUseCase.GetNotifications(userId, page, limit)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(),"success": false,})
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"success": false,
+		})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"success": true,
+		"page":    page,
+		"limit":   limit,
 		"data":    notify,
 	})
-
-
 }
+
+
+
 func NewUserController(userUseCase_ domainInterface.IUserUseCase,OAuthUsecase domainInterface.IOAuthUsecase) domainInterface.IUserController {
 	return &UserController{
 		userUseCase: userUseCase_,

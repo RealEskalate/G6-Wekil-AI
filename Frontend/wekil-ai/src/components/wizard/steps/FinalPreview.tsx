@@ -9,7 +9,7 @@ import {
   CardDescription,
 } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
+// import { Badge } from "@/components/ui/Badge";
 import { Globe, Download, Send, FileText, AlertTriangle } from "lucide-react";
 import { ContractData, Language } from "@/components/wizard/ContractWizard";
 import { toast } from "sonner";

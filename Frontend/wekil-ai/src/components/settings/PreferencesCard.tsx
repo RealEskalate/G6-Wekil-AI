@@ -9,7 +9,7 @@ import {
   CardDescription,
 } from "../ui/Card";
 import { Label } from "../ui/Label";
-import { Switch } from "../ui/Switch";
+import { Switch } from "../ui/Switchs";
 import { settingTranslations } from "@/lib/settingTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 import { Globe, FileText, Save } from "lucide-react";

@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
-import { Badge } from "@/components/ui/Badge";
 import { Loader2, Bot, Edit3, Send, Eye } from "lucide-react";
 import { ContractData, Language } from "@/components/wizard/ContractWizard";
 import { toast } from "sonner";
@@ -71,13 +70,11 @@ export function AIDraftPreview({
 
   const t = texts[currentLanguage];
 
-  // Mock API call to generate AI draft
-  const generateDraft = async () => {
+  // Memoized function to generate AI draft
+  const generateDraft = useCallback(async () => {
     setIsGeneratingDraft(true);
-    // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    // Generate draft in the selected language
     const mockDraft: Draft = {
       title: getContractTitle(),
       sections: [
@@ -104,7 +101,7 @@ export function AIDraftPreview({
 
     setAiDraft(mockDraft);
     setIsGeneratingDraft(false);
-  };
+  }, [contractData, currentLanguage]);
 
   const getContractTitle = () => {
     if (currentLanguage === "en") {
@@ -143,7 +140,7 @@ export function AIDraftPreview({
         parties[0]?.fullName || "Party A"
       } and ${parties[1]?.fullName || "Party B"}.`;
     } else {
-      return `ይህ ስምምነት በ${parties[0]?.fullName || "የመጀመሪያ ወገን"} እና በ${
+      return `ይህ ስምምነት በ${parties[0]?.fullName || "የመጀመሪያ ወገን"} እና ${
         parties[1]?.fullName || "ሁለተኛ ወገን"
       } መካከል ነው።`;
     }
@@ -160,7 +157,6 @@ export function AIDraftPreview({
     }
   };
 
-  // Mock API call to update draft with reprompt
   const updateDraftWithPrompt = async () => {
     setIsReprompting(true);
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -187,7 +183,7 @@ export function AIDraftPreview({
 
   useEffect(() => {
     generateDraft();
-  }, []);
+  });
 
   if (isGeneratingDraft) {
     return (

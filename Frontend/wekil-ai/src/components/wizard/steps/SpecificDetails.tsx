@@ -11,7 +11,9 @@ interface SpecificDetailsProps {
   currentLanguage: Language;
   contractType?: string;
   specificDetails: NonNullable<ContractData["specificDetails"]>;
-  setSpecificDetails: (details: NonNullable<ContractData["specificDetails"]>) => void;
+  setSpecificDetails: (
+    details: NonNullable<ContractData["specificDetails"]>
+  ) => void;
 }
 
 export default function SpecificDetails({
@@ -50,18 +52,19 @@ export default function SpecificDetails({
   }[currentLanguage];
 
   const updateSpecificDetails = <
-  K extends keyof NonNullable<ContractData["specificDetails"]>
->(
-  field: K,
-  value: NonNullable<ContractData["specificDetails"]>[K]
-) => {
-  setSpecificDetails({ ...specificDetails, [field]: value });
-};
-
-
+    K extends keyof NonNullable<ContractData["specificDetails"]>
+  >(
+    field: K,
+    value: NonNullable<ContractData["specificDetails"]>[K]
+  ) => {
+    setSpecificDetails({ ...specificDetails, [field]: value });
+  };
 
   const addItem = () => {
-    const newItems = [...(specificDetails.items || []), { description: "", quantity: 1, unitPrice: 0 }];
+    const newItems = [
+      ...(specificDetails.items || []),
+      { description: "", quantity: 1, unitPrice: 0 },
+    ];
     setSpecificDetails({ ...specificDetails, items: newItems });
   };
 
@@ -73,7 +76,9 @@ export default function SpecificDetails({
             <label className="block mb-2 font-medium">{t.services}</label>
             <Textarea
               value={specificDetails.servicesDescription || ""}
-              onChange={(e) => updateSpecificDetails("servicesDescription", e.target.value)}
+              onChange={(e) =>
+                updateSpecificDetails("servicesDescription", e.target.value)
+              }
               placeholder={t.services}
               className="w-full"
             />
@@ -131,7 +136,9 @@ export default function SpecificDetails({
               type="number"
               placeholder={t.principal}
               value={specificDetails.principalAmount || ""}
-              onChange={(e) => updateSpecificDetails("principalAmount", Number(e.target.value))}
+              onChange={(e) =>
+                updateSpecificDetails("principalAmount", Number(e.target.value))
+              }
             />
           </div>
         );
@@ -150,7 +157,11 @@ export default function SpecificDetails({
         );
 
       default:
-        return <p className="text-gray-500">No specific fields for this contract type.</p>;
+        return (
+          <p className="text-gray-500">
+            No specific fields for this contract type.
+          </p>
+        );
     }
   };
 

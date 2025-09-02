@@ -35,7 +35,7 @@ func (uc *OAuthUsecase) HandleOAuthLogin(req *http.Request, res http.ResponseWri
 	}
 
 	// Signup
-	user,err := uc.userRepo.CreateIndividual(context.Background(),userData)
+	user,_ := uc.userRepo.CreateIndividual(context.Background(),userData)
 	accessclaims := &domain.UserClaims{
 		UserID: user.ID.Hex(),
 		Email: user.Email,

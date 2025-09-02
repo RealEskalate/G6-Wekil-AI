@@ -1,16 +1,4 @@
-"use client"
-
-<<<<<<< HEAD:Frontend/wekil-ai/src/components/ui/switch.tsx
-import * as React from "react"
-import * as SwitchPrimitive from "@radix-ui/react-switch"
-
-import { cn } from "@/lib/utils"
-
-function Switch({
-  className,
-  ...props
-}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
-=======
+"use client";
 import * as React from "react";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
 
@@ -25,7 +13,6 @@ interface CustomSwitchProps
 }
 
 function Switch({ className, onCheckedChange, ...props }: CustomSwitchProps) {
->>>>>>> 777a9dc5cbaf9a5f85fa23c8fc6ba77d31ff4968:Frontend/wekil-ai/src/components/ui/Switchs.tsx
   return (
     <SwitchPrimitive.Root
       data-slot="switch"
@@ -43,14 +30,7 @@ function Switch({ className, onCheckedChange, ...props }: CustomSwitchProps) {
         )}
       />
     </SwitchPrimitive.Root>
-<<<<<<< HEAD:Frontend/wekil-ai/src/components/ui/switch.tsx
-  )
-}
-
-export { Switch }
-=======
   );
 }
 
 export { Switch };
->>>>>>> 777a9dc5cbaf9a5f85fa23c8fc6ba77d31ff4968:Frontend/wekil-ai/src/components/ui/Switchs.tsx

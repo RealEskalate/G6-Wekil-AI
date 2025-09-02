@@ -66,21 +66,21 @@ func (u *UserUseCase) ValidOTPRequest(emailOtp *domain.EmailOTP) (*domain.Unveri
 }
 
 // ReSendAccessToken implements domain.IUserUseCase.
-func (u *UserUseCase) ReSendAccessToken(jwtToken string) (string, error) {
+func (u *UserUseCase) ReSendAccessToken(jwtToken string) (string,string, error) {
 	userClaim, err := u.auth.ParseTokenToClaim(jwtToken)
 	if err != nil {
-		return "", err
+		return "", "",err
 	}
 	// if the tokentype isn't refreshToken then it is invalid token type
 	if userClaim.TokenType != domainInterface.RefreshToken {
-		return "", fmt.Errorf("invalid token type")
+		return "","", fmt.Errorf("invalid token type")
 	}
 	//? Even thoug the current User claim has the tokenType == refreshToken inside genereateToken it will be changed
 	accessTokenString, err := u.auth.GenerateToken(userClaim, domainInterface.AccessToken)
 	if err != nil {
-		return "", err
+		return "","", err
 	}
-	return accessTokenString, nil
+	return accessTokenString,userClaim.AccountType, nil
 }
 
 

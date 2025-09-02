@@ -15,26 +15,44 @@ func NewAIUsecase(aiRepo domainInterface.IAIInteraction) *AIUsecase {
 	return &AIUsecase{aiRepo: aiRepo}
 }
 
-// private helper: replace placeholders like <<Party A>> and <<Party B>>
 func (u *AIUsecase) replacePartyPlaceholders(draft *domain.Draft, parties []domain.Party) {
-	if len(parties) < 2 {
-		return
-	}
-	partyAName := parties[0].Name
-	partyBName := parties[1].Name
+    if len(parties) < 2 {
+        return
+    }
 
-	for i := range draft.Sections {
-		draft.Sections[i].Text = strings.ReplaceAll(draft.Sections[i].Text, "<<Party A>>", partyAName)
-		draft.Sections[i].Text = strings.ReplaceAll(draft.Sections[i].Text, "<<Party B>>", partyBName)
-	}
+    var disclosingName, receivingName string
+    if len(parties) > 0 {
+        disclosingName = parties[0].Name
+    }
+    if len(parties) > 1 {
+        receivingName = parties[1].Name
+    }
 
-	draft.Signatures.PartyA = partyAName
-	draft.Signatures.PartyB = partyBName
+    for i := range draft.Sections {
+        draft.Sections[i].Text = strings.ReplaceAll(draft.Sections[i].Text, "<<Party A>>", disclosingName)
+        draft.Sections[i].Text = strings.ReplaceAll(draft.Sections[i].Text, "<<Party B>>", receivingName)
+    }
+
+    draft.Signatures.PartyA = disclosingName
+    draft.Signatures.PartyB = receivingName
 }
+
 
 // Extract key intake information
 func (u *AIUsecase) Extract(ctx context.Context, text, language string) (*domain.Intake, error) {
-	return u.aiRepo.GenerateIntake(ctx, text, language)
+	result, err := u.aiRepo.GenerateIntake(ctx, text, language)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(result.Parties) > 0 {
+		result.DisclosingParty = &result.Parties[0]
+	}
+	if len(result.Parties) > 1 {
+		result.ReceivingParty = &result.Parties[1]
+	}
+
+	return result, nil
 }
 
 // Classify deal type

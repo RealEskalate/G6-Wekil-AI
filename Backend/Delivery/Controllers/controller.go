@@ -183,7 +183,7 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 		"success": true,
 		"data": gin.H{
 			"message": "login successful",
-			"account_ type":accountType,
+			"account_type":accountType,
 		},
 	})
 }

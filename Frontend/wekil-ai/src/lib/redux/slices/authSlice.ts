@@ -101,29 +101,41 @@ export const loginUser = createAsyncThunk<
   }
 });
 
-// Logout
+// aLogout
 export const logoutUser = createAsyncThunk<void, void, { rejectValue: string }>(
   "auth/logout",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
+      const state = getState() as { auth: AuthState };
+      const token = state.auth.user?.accessToken;
+
+      if (!token) {
+        console.warn("No access token found, skipping backend logout");
+        return;
+      }
+
       const response = await fetch(`${API_URL}/api/auth/logout`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({}),
-        credentials: 'include',
+        credentials: "include",
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
+
     } catch (error: unknown) {
       return rejectWithValue(getErrorMessage(error));
     }
   }
 );
+
+
+
 // forgot Password
 export const forgotPassword = createAsyncThunk<
   { data: { message: string }; success: boolean },

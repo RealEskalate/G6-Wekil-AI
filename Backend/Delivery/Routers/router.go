@@ -38,6 +38,7 @@ func Router(uc domain.IUserController, ai *controllers.AIController) {
 		
 
 	aiRoutes := mainRouter.Group("/ai")
+	// aiRoutes.Use(authMiddleware.JWTAuthMiddleware())
 	{
 		aiRoutes.POST("/classify", ai.Classify)
 		aiRoutes.POST("/extract", ai.Extract)

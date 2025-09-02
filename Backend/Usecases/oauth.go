@@ -35,7 +35,7 @@ func (uc *OAuthUsecase) HandleOAuthLogin(req *http.Request, res http.ResponseWri
 	if existingUser != nil {
 		return existingUser, "","",nil // Login
 	}
-
+	userData.IsVerified= true
 	// Signup
 	user,err:= uc.userRepo.CreateIndividual(context.Background(),userData)
 	if err != nil {

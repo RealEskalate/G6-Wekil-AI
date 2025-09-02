@@ -53,6 +53,7 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 	unverifiedUser.Password = infrastracture.NewPasswordService().Hashpassword(unverifiedUser.Password)
 	otp:= infrastracture.GenerateOTP()
 	unverifiedUser.OTP=otp
+	unverifiedUser.AccountType = domain.User
 	infrastracture.SendOTP(unverifiedUser.Email,otp)
 	log.Print("=========",unverifiedUser)
 	err := u.userUseCase.StoreUserInOTPColl(&unverifiedUser)

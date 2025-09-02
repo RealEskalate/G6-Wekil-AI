@@ -2,6 +2,7 @@ package infrastracture
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 	domain "wekil_ai/Domain"
@@ -84,11 +85,12 @@ func (j *JWTAuthentication) ParseTokenToClaim(tokenString string) (*domain.UserC
 
 func (o *JWTAuthentication) OAuthLogin(req *http.Request, res http.ResponseWriter) (*domain.Individual, error) {
 	user, err := gothic.CompleteUserAuth(res, req)
-	fmt.Print("+++++++", req, "+++++++", err, "------")
+	log.Print("+++++++_______++++++++++", user)
 	if err != nil {
 		return nil, err
 	}
-
+	// name := user.Name
+	// firstname , middlename := strings.Split(name, "")
 	return &domain.Individual{
 		Email: user.Email,
 		FirstName: user.FirstName,

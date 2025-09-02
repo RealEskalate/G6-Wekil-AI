@@ -302,18 +302,32 @@ func (uc *UserController) CallbackHandler(c *gin.Context) {
 	// fmt.Println("^^^^^",provider)
 	// req = req.WithContext(context.WithValue(c.Request.Context(), "provider", provider))
 
-	user, err := uc.OAuthUseCase.HandleOAuthLogin(c.Request, c.Writer)
+	user,accessToken,refreshToken, err := uc.OAuthUseCase.HandleOAuthLogin(c.Request, c.Writer)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-	//   _, err := gothic.CompleteUserAuth(c.Writer, c.Request)
-	// if err != nil {
-	// 	c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-	// 	return
-	// }
+	c.SetCookie(
+		"WEKIL-API-REFRESH-TOKEN",
+		refreshToken,
+		60*60*24*7,      // 7 days in seconds
+		"/",      // cookie path
+		"",              // domain ("" means current domain)
+		true,            // secure
+		true,            // httpOnly
+	)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Logged in", "user": user})
+	c.Header("Authorization", "Bearer "+accessToken)
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"message": "login successful",
+			"user": user,
+		},
+	})
+
+	// c.JSON(http.StatusOK, gin.H{"message": "Logged in", "user": user})
 
 	// user, err := gothic.CompleteUserAuth(c.Writer, c.Request)
 

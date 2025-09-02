@@ -23,7 +23,7 @@ type IIndividualRepository interface {
 	UpdateProfile(ctx context.Context, email string, updateData map[string]interface{}) error
 }
 type IOAuthUsecase interface {
-	HandleOAuthLogin(req *http.Request, res http.ResponseWriter) (*domain.Individual, error)
+	HandleOAuthLogin(req *http.Request, res http.ResponseWriter) (*domain.Individual,string,string, error)
 }
 
 

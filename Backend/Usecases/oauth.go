@@ -20,21 +20,43 @@ func NewOAuthUsecase(ur domainInterface.IIndividualRepository, as domainInterfac
 	}
 }
 
-func (uc *OAuthUsecase) HandleOAuthLogin(req *http.Request, res http.ResponseWriter) (*domain.Individual, error) {
+func (uc *OAuthUsecase) HandleOAuthLogin(req *http.Request, res http.ResponseWriter) (*domain.Individual,string,string, error) {
 	userData, err := uc.authService.OAuthLogin(req, res)
 	if err != nil {
-		return nil, err
+		return nil, "","",err
 	}
 
 	existingUser, _ := uc.userRepo.FindByEmail(context.Background(),userData.Email)
 	if existingUser != nil {
-		return existingUser, nil // Login
+		return existingUser, "","",nil // Login
 	}
 
 	// Signup
-	_,err = uc.userRepo.CreateIndividual(context.Background(),userData)
-	if err != nil {
-		return nil, err
+	user,err := uc.userRepo.CreateIndividual(context.Background(),userData)
+	accessclaims := &domain.UserClaims{
+		UserID: user.ID.Hex(),
+		Email: user.Email,
+		IsVerified: true,
+		AccountType: domain.User,
+		TokenType: domainInterface.AccessToken,
 	}
-	return userData, nil
+
+	accessToken,err := uc.authService.GenerateToken(accessclaims,domainInterface.AccessToken)
+	if err != nil{
+		return nil,"","",err
+	}
+
+	refreshclaims := &domain.UserClaims{
+		UserID: user.ID.Hex(),
+		Email: user.Email,
+		IsVerified: true,
+		AccountType: domain.User,
+		TokenType: domainInterface.RefreshToken,
+	}
+	refreshToken ,err := uc.authService.GenerateToken(refreshclaims,domainInterface.RefreshToken)
+	if err != nil{
+		return nil ,"","",err
+	}
+	
+	return userData,accessToken,refreshToken, nil
 }

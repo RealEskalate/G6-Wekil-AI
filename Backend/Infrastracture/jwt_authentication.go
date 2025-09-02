@@ -2,6 +2,7 @@ package infrastracture
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 	domain "wekil_ai/Domain"
@@ -84,8 +85,9 @@ func (j *JWTAuthentication) ParseTokenToClaim(tokenString string) (*domain.UserC
 
 func (o *JWTAuthentication) OAuthLogin(req *http.Request, res http.ResponseWriter) (*domain.Individual, error) {
 	user, err := gothic.CompleteUserAuth(res, req)
-	fmt.Print("+++++++", req, "+++++++", err, "------")
+	log.Print("+++++++_______++++++++++", user)
 	if err != nil {
+		log.Printf("❌ OAuth login failed: %v", err)
 		return nil, err
 	}
 
@@ -93,8 +95,10 @@ func (o *JWTAuthentication) OAuthLogin(req *http.Request, res http.ResponseWrite
 		Email: user.Email,
 		FirstName: user.FirstName,
 		LastName: user.LastName,
+
 	}, nil
 }
+
 
 // NewJWTAuthentication creates a new JWT authentication service instance.
 // The signing key should be a strong, secret key.

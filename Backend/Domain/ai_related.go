@@ -58,9 +58,9 @@ type Intake struct {
 	LateFeePercent float64       `json:"late_fee_percent,omitempty" bson:"late_fee_percent,omitempty"`
 
 	// NDA fields
-	IsMutual            bool      `json:"isMutual" bson:"is_mutual"`                        // If true, everyone's sharing secrets.
-	EffectiveDate       time.Time `json:"effectiveDate" bson:"effective_date"`              // When the promise to be quiet officially starts.
-	ConfidentialityTerm int       `json:"confidentialityTerm" bson:"confidentiality_term"` // How many years the secrets must be kept.
+	IsMutual            bool      `json:"is_mutual" bson:"is_mutual"`                        // If true, everyone's sharing secrets.
+	EffectiveDate       time.Time `json:"effective_date" bson:"effective_date"`              // When the promise to be quiet officially starts.
+	ConfidentialityTerm int       `json:"confidentiality_term" bson:"confidentiality_term"` // How many years the secrets must be kept.
 	Purpose             string    `json:"purpose" bson:"purpose"`                           // Why are we sharing secrets? e.g., "To see if we can work together".
 }
 
@@ -109,8 +109,8 @@ type Section struct {
 
 // Signatures represents the signature block of the draft document.
 type Signatures struct {
-	PartyA string `json:"partyA" bson:"party_a"` // signiture svg url
-	PartyB string `json:"partyB" bson:"party_b"` // signiture svg url
+	PartyA string `json:"party_a" bson:"party_a"` // signiture svg url
+	PartyB string `json:"party_b" bson:"party_b"` // signiture svg url
 	Place  string `json:"place" bson:"place"`
 	Date   string `json:"date" bson:"date"`
 }

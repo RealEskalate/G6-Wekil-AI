@@ -1,7 +1,7 @@
 export interface SignupFormData {
-  firstName: string;
-  middleName: string;
-  lastName: string;
+  first_name: string;
+  middle_name: string;
+  last_name: string;
   email: string;
   telephone: string;
   password: string;
@@ -11,9 +11,9 @@ export interface SignupFormData {
 export interface FormData {
   profilePicture: string;
   signatureImage: string;
-  firstName: string;
-  middleName: string;
-  lastName: string;
+  first_name: string;
+  middle_name: string;
+  last_name: string;
   email: string;
   telephone: string;
   password: string;
@@ -21,9 +21,9 @@ export interface FormData {
 }
 
 export interface FormErrors {
-  firstName?: string;
-  lastName?: string;
-  middleName?: string;
+  first_name?: string;
+  last_name?: string;
+  middle_name?: string;
   email?: string;
   telephone?: string;
   password?: string;

@@ -9,7 +9,7 @@ import {
   CardDescription,
 } from "../ui/Card";
 import { Label } from "../ui/Label";
-import { Switch } from "../ui/switch";
+import { Switch } from "../ui/Switchs";
 import { settingTranslations } from "@/lib/settingTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 import { Globe, FileText, Save } from "lucide-react";
@@ -185,8 +185,8 @@ export default function PreferencesCard() {
           </div>
           <Switch
             checked={settings.contractTemplates}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              updateSetting("contractTemplates", e.target.checked)
+            onCheckedChange={(checked: boolean) =>
+              updateSetting("contractTemplates", checked)
             }
           />
         </div>

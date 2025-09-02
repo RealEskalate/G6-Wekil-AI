@@ -28,7 +28,7 @@ export default function IndividualForm({
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            {t.firstName} *
+            {t.first_name} *
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -36,22 +36,22 @@ export default function IndividualForm({
             </div>
             <input
               type="text"
-              name="firstName"
-              placeholder={t.firstName}
+              name="first_name"
+              placeholder={t.first_name}
               className={`${inputClass} ${
-                errors.firstName ? "border-red-500" : "border-gray-300"
+                errors.first_name ? "border-red-500" : "border-gray-300"
               }`}
-              value={formData.firstName}
+              value={formData.first_name}
               onChange={onInputChange}
             />
           </div>
-          {errors.firstName && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.firstName}</p>
+          {errors.first_name && (
+            <p className="mt-0.5 text-xs text-red-600">{errors.first_name}</p>
           )}
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            {t.middleName} *
+            {t.middle_name} *
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -59,24 +59,24 @@ export default function IndividualForm({
             </div>
             <input
               type="text"
-              name="middleName"
-              placeholder={t.middleName}
+              name="middle_name"
+              placeholder={t.middle_name}
               className={`${inputClass} ${
-                errors.middleName ? "border-red-500" : "border-gray-300"
+                errors.middle_name ? "border-red-500" : "border-gray-300"
               }`}
-              value={formData.middleName}
+              value={formData.middle_name}
               onChange={onInputChange}
             />
           </div>
-          {errors.middleName && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.middleName}</p>
+          {errors.middle_name && (
+            <p className="mt-0.5 text-xs text-red-600">{errors.middle_name}</p>
           )}
         </div>
       </div>
 
       <div className="mb-3">
         <label className="block text-xs font-medium text-gray-700 mb-1">
-          {t.lastName} *
+          {t.last_name} *
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -84,17 +84,17 @@ export default function IndividualForm({
           </div>
           <input
             type="text"
-            name="lastName"
-            placeholder={t.lastName}
+            name="last_name"
+            placeholder={t.last_name}
             className={`${inputClass} ${
-              errors.lastName ? "border-red-500" : "border-gray-300"
+              errors.last_name ? "border-red-500" : "border-gray-300"
             }`}
-            value={formData.lastName}
+            value={formData.last_name}
             onChange={onInputChange}
           />
         </div>
-        {errors.lastName && (
-          <p className="mt-0.5 text-xs text-red-600">{errors.lastName}</p>
+        {errors.last_name && (
+          <p className="mt-0.5 text-xs text-red-600">{errors.last_name}</p>
         )}
       </div>
 

@@ -20,7 +20,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import LoginPage from "./auth/login/page";
 import SignupPage from "./auth/signup/page";
-import { signIn } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 import { translations } from "@/lib/generalTranslations";
 import { useLanguage } from "@/context/LanguageContext";
@@ -31,6 +31,7 @@ export default function HomePage() {
   const [activeSection, setActiveSection] = useState("hero");
   const { lang } = useLanguage();
   const t = translations[lang];
+  const { data: session, status } = useSession();
 
   const sectionRefs = {
     hero: useRef<HTMLElement>(null),
@@ -95,21 +96,35 @@ export default function HomePage() {
     document.body.style.overflow = "hidden";
   };
 
+  useEffect(() => {
+    if (session && status === "authenticated") {
+      setShowAuthModal(false);
+      document.body.style.overflow = "unset";
+      window.location.href = "/dashboard";
+    }
+  }, [status, session]);
+
   const handleAuthComplete = async (
     email: string,
     password: string,
     rememberMe: boolean
   ) => {
     try {
-      setShowAuthModal(false);
-      document.body.style.overflow = "unset";
-      await signIn("credentials", {
+      const result = await signIn("credentials", {
+        redirect: false,
         email,
         password,
-        rememberMe: rememberMe,
-        callbackUrl: "/dashboard",
+        rememberMe,
       });
-      toast.success("Login Successful!");
+
+      if (result?.error) {
+        toast.error(result.error || "Login Failed!");
+      } else {
+        toast.success("Login Successful!");
+        setShowAuthModal(false);
+        document.body.style.overflow = "unset";
+        window.location.href = "/dashboard"; // Redirect manually
+      }
     } catch (err) {
       console.log(err);
       toast.error("Login Failed!");

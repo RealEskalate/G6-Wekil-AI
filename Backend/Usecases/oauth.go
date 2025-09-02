@@ -6,6 +6,8 @@ import (
 	"net/http"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // usecases/user_usecase.go
@@ -35,7 +37,10 @@ func (uc *OAuthUsecase) HandleOAuthLogin(req *http.Request, res http.ResponseWri
 	}
 
 	// Signup
-	user,_ := uc.userRepo.CreateIndividual(context.Background(),userData)
+	user,err:= uc.userRepo.CreateIndividual(context.Background(),userData)
+	if err != nil {
+		return nil, "","",err
+	}
 	accessclaims := &domain.UserClaims{
 		UserID: user.ID.Hex(),
 		Email: user.Email,
@@ -60,6 +65,13 @@ func (uc *OAuthUsecase) HandleOAuthLogin(req *http.Request, res http.ResponseWri
 	if err != nil{
 		return nil ,"","",err
 	}
-	
-	return userData,accessToken,refreshToken, nil
+	updateUser := bson.M{
+    "refresh_token": refreshToken,
+	}
+	user.RefreshToken = refreshToken
+	err = uc.userRepo.UpdateIndividual(context.Background(),user.ID,updateUser)
+	if err != nil{
+		return nil ,"","",err
+	}
+	return user,accessToken,refreshToken, nil
 }

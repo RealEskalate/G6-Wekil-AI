@@ -97,10 +97,14 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    if (session && status === "authenticated") {
+    if (session?.user.account_type === "user" && status === "authenticated") {
       setShowAuthModal(false);
       document.body.style.overflow = "unset";
       window.location.href = "/dashboard";
+    }
+
+    if (session?.user.account_type === "admin" && status === "authenticated") {
+      window.location.href = "/dashboard/admin";
     }
   }, [status, session]);
 

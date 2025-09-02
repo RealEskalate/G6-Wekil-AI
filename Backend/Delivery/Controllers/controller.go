@@ -126,16 +126,18 @@ func (u *UserController) RefreshTokenHandler(ctx *gin.Context) {
 		return
 	}
 	// validate refresh token and if the refresh token is valid then
-	accessToken, err := u.userUseCase.ReSendAccessToken(refreshToken)
+	accessToken,AccountType, err := u.userUseCase.ReSendAccessToken(refreshToken)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
+
 	// send the access token to the user and send accepted status
 	ctx.Header("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 	ctx.IndentedJSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
+			"account_type":AccountType,
 			"message": "Refreshed successfully. Tokens sent in header and cookie.",
 		},
 	})

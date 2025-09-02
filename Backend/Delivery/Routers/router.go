@@ -42,6 +42,8 @@ func Router(uc domain.IUserController, ai *controllers.AIController) {
 		aiRoutes.POST("/classify", ai.Classify)
 		aiRoutes.POST("/extract", ai.Extract)
 		aiRoutes.POST("/draft", ai.Draft)
+		aiRoutes.POST("/draft-from-prompt", ai.DraftFromPrompt)
+		aiRoutes.POST("/final-preview", ai.FinalPreview)
 	}
 	mainRouter.Run()
 }

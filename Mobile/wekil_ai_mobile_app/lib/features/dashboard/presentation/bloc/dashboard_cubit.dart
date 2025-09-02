@@ -16,6 +16,7 @@ class DashboardCubit extends Cubit<DashboardState> {
           status: DashboardStatus.loaded,
           summary: result.summary,
           recent: result.recent,
+          user: result.user,
         ),
       );
     } catch (e) {

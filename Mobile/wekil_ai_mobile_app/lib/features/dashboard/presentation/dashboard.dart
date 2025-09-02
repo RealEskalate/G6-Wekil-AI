@@ -13,6 +13,8 @@ import '../data/datasources/dashboard_remote_data_source.dart' as ds;
 // Import entity types for easier references
 import '../domain/entities/dashboard_summary.dart';
 import '../domain/entities/agreement.dart';
+import '../domain/entities/individual.dart';
+import '../domain/entities/app_notification.dart';
 
 class DashboardPage extends StatelessWidget {
   final VoidCallback? onCreate;
@@ -64,9 +66,14 @@ class DashboardPage extends StatelessWidget {
   static Widget withMockData({
     required DashboardSummary summary,
     required List<Agreement> recent,
+    Individual? user,
     VoidCallback? onCreate,
   }) {
-    final repo = _FakeDashboardRepository(summary: summary, recent: recent);
+    final repo = _FakeDashboardRepository(
+      summary: summary,
+      recent: recent,
+      user: user,
+    );
     final uc = u.GetDashboardData(repo);
     return BlocProvider(
       create: (_) => DashboardCubit(uc)..load(),
@@ -81,17 +88,37 @@ class DashboardPage extends StatelessWidget {
       body: SafeArea(
         child: BlocBuilder<DashboardCubit, DashboardState>(
           builder: (context, state) {
+            final user = state.user;
+            final first = (user?.firstName ?? '').trim();
+            final name = first.isNotEmpty ? first : 'there';
+            final verified = user?.isVerified == true;
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 8),
-                  Text(
-                    'Welcome back, John!',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Welcome back, $name!',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (verified)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 8.0),
+                          child: Icon(
+                            Icons.verified_rounded,
+                            color: Color(0xFF10B981),
+                            size: 22,
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -140,12 +167,31 @@ class DashboardPage extends StatelessWidget {
 class _FakeDashboardRepository implements d.DashboardRepository {
   final DashboardSummary summary;
   final List<Agreement> recent;
-  _FakeDashboardRepository({required this.summary, required this.recent});
+  final Individual? user;
+  _FakeDashboardRepository({
+    required this.summary,
+    required this.recent,
+    this.user,
+  });
   @override
   Future<DashboardSummary> getSummary() async => summary;
   @override
   Future<List<Agreement>> getTopAgreements({int limit = 3}) async =>
       recent.take(limit).toList();
+  @override
+  Future<Individual> getProfile() async =>
+      user ??
+      Individual(
+        id: '0',
+        email: 'user@example.com',
+        firstName: 'John',
+        lastName: 'Doe',
+        accountType: 'user',
+        isVerified: true,
+        createdAt: DateTime.now(),
+      );
+  @override
+  Future<AppNotification?> getNotification() async => null;
 }
 
 class _OverviewRow extends StatelessWidget {

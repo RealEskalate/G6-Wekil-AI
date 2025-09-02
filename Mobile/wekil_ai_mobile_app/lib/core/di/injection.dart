@@ -8,23 +8,29 @@ import '../../features/dashboard/presentation/bloc/dashboard_cubit.dart';
 
 final getIt = GetIt.instance;
 
-Future<void> setupDependencies() async {
-  // Data sources
+Future<void> setupDependencies({
+  String baseUrl = 'https://g6-wekil-ai-1.onrender.com',
+  Future<String?> Function()? tokenProvider,
+}) async {
+  // Data source
   getIt.registerLazySingleton<DashboardRemoteDataSource>(
-    () => DashboardRemoteDataSource(),
+    () => DashboardRemoteDataSource(
+      baseUrl: baseUrl,
+      tokenProvider: tokenProvider,
+    ),
   );
 
-  // Repositories
+  // Repository
   getIt.registerLazySingleton<DashboardRepository>(
     () => DashboardRepositoryImpl(remote: getIt<DashboardRemoteDataSource>()),
   );
 
-  // Use cases
+  // Use case
   getIt.registerFactory<GetDashboardData>(
     () => GetDashboardData(getIt<DashboardRepository>()),
   );
 
-  // Cubits
+  // Cubit
   getIt.registerFactory<DashboardCubit>(
     () => DashboardCubit(getIt<GetDashboardData>()),
   );

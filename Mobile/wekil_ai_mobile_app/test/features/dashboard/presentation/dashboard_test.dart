@@ -5,19 +5,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wekil_ai_mobile_app/features/dashboard/presentation/bloc/dashboard_cubit.dart';
 import 'package:wekil_ai_mobile_app/features/dashboard/presentation/bloc/dashboard_state.dart';
 import 'package:wekil_ai_mobile_app/features/dashboard/presentation/dashboard.dart';
-import 'package:wekil_ai_mobile_app/features/dashboard/domain/entities/contract.dart';
+import 'package:wekil_ai_mobile_app/features/dashboard/domain/entities/agreement.dart';
 import 'package:wekil_ai_mobile_app/features/dashboard/domain/entities/dashboard_summary.dart';
 import 'package:wekil_ai_mobile_app/features/dashboard/domain/usecases/get_dashboard_data.dart';
 import 'package:wekil_ai_mobile_app/features/dashboard/domain/repositories/dashboard_repository.dart';
 
 class _DummyRepo implements DashboardRepository {
-  _DummyRepo({this.summary, this.contracts = const []});
+  _DummyRepo({this.summary, this.agreements = const []});
   final DashboardSummary? summary;
-  final List<Contract> contracts;
+  final List<Agreement> agreements;
 
   @override
-  Future<List<Contract>> getRecentContracts({int limit = 5}) async {
-    return contracts.take(limit).toList();
+  Future<List<Agreement>> getTopAgreements({int limit = 3}) async {
+    return agreements.take(limit).toList();
   }
 
   @override
@@ -37,7 +37,7 @@ void main() {
           exportedCount: 0,
           allCount: 0,
         ),
-        contracts: const [],
+        agreements: const [],
       );
       final cubit = DashboardCubit(GetDashboardData(repo));
 
@@ -86,62 +86,48 @@ void main() {
           exportedCount: 1,
           allCount: 3,
         ),
-        contracts: [
-          Contract(
+        agreements: [
+          const Agreement(
             id: '1',
             title: 'Employment Agreement',
-            type: 'Service Agreement',
-            party: 'Acme',
-            createdAt: DateTime(2023, 12, 31),
-            amount: 5000,
             currency: 'ETB',
-            status: ContractStatus.draft,
+            totalAmount: 5000,
           ),
-          Contract(
+          const Agreement(
             id: '2',
             title: 'NDA - Vendor X',
-            type: 'NDA',
-            party: 'Vendor X',
-            createdAt: DateTime(2023, 12, 30),
-            amount: 10000,
             currency: 'ETB',
-            status: ContractStatus.exported,
+            totalAmount: 10000,
           ),
         ],
       );
       final cubit = DashboardCubit(GetDashboardData(repo));
       cubit.emit(
-        DashboardState(
+        const DashboardState(
           status: DashboardStatus.loaded,
-          summary: const DashboardSummary(
+          summary: DashboardSummary(
             draftCount: 2,
             exportedCount: 1,
             allCount: 3,
           ),
           recent: [
-            Contract(
+            Agreement(
               id: '1',
               title: 'Employment Agreement',
-              type: 'Service Agreement',
-              party: 'Acme',
-              createdAt: DateTime(2023, 12, 31),
-              amount: 5000,
               currency: 'ETB',
-              status: ContractStatus.draft,
+              totalAmount: 5000,
             ),
-            Contract(
+            Agreement(
               id: '2',
               title: 'NDA - Vendor X',
-              type: 'NDA',
-              party: 'Vendor X',
-              createdAt: DateTime(2023, 12, 30),
-              amount: 10000,
               currency: 'ETB',
-              status: ContractStatus.exported,
+              totalAmount: 10000,
             ),
           ],
         ),
       );
+
+      await tester.pumpWidget(const MaterialApp(home: SizedBox.shrink()));
 
       await tester.pumpWidget(
         MaterialApp(

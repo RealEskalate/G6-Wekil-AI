@@ -15,13 +15,33 @@ import { useRouter } from "next/navigation"; // ✅ App Router compatible
 import { sidebarTranslations } from "@/lib/sidebarTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/redux/store";
+import { logoutUser, setUser } from "@/lib/redux/slices/authSlice";
+import toast from "react-hot-toast";
+import { signOut } from "next-auth/react";
 
 export function Sidebar() {
   const router = useRouter();
   const { lang, setLang } = useLanguage();
   const t = sidebarTranslations[lang];
   const [open, setOpen] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+
+      dispatch(setUser(null));
+
+      await signOut({ callbackUrl: "/" });
+
+      toast.success("Logged out successfully");
+      router.push("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
   return (
     <div className="w-64 bg-white text-blue-950 flex flex-col shadow-xl border-gray-200">
       {/* Header (desktop view) */}
@@ -109,7 +129,7 @@ export function Sidebar() {
 
             <Button
               variant="ghost"
-              onClick={() => router.push("/")}
+              onClick={handleLogout}
               className="w-full cursor-pointer justify-start text-red-400 hover:text-red-300 hover:bg-slate-700"
             >
               <LogOut className="mr-3 h-4 w-4" />

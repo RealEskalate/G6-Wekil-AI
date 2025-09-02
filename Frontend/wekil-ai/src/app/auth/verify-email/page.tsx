@@ -5,39 +5,45 @@ import { FaEnvelope } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/context/LanguageContext";
 import { authTranslations } from "@/lib/authTranslations";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/lib/redux/store";
+import { verifyOtp } from "@/lib/redux/slices/authSlice";
 
 export default function VerifyEmail() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  const { user } = useSelector((state: RootState) => state.auth); // ✅ Correct selector
   const { lang } = useLanguage();
   const t = authTranslations[lang];
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
+    if (!user?.email) {
+      toast.error("No email found. Please register first.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      //   const res = await fetch("/api/auth/verify-email", {
-      //     method: "POST",
-      //     headers: { "Content-Type": "application/json" },
-      //     body: JSON.stringify({ otp }),
-      //   });
+      const res = await dispatch(
+        verifyOtp({ email: user.email, otp })
+      ).unwrap();
 
-      //   const data = await res.json();
-
-      //   if (res.ok) {
-      toast.success(t.emailVerifiedSuccess);
-      console.log("email verified");
-      // redirect after success
-      setTimeout(() => {
-        window.location.href = "/"; // or wherever you want
-      }, 1500);
-      //   } else {
-      //     setMessage(data.error || "❌ Invalid OTP, please try again.");
-      //   }
+      if (res.success) {
+        toast.success(t.emailVerifiedSuccess);
+        setTimeout(() => {
+          window.location.href = "/"; // redirect after success
+        }, 1500);
+      } else {
+        setMessage(res.data.error || "❌ Invalid OTP, please try again.");
+        toast.error(res.data.error || t.somethingWentWrong);
+      }
     } catch (err) {
       console.log(err);
       toast.error(t.somethingWentWrong);
@@ -78,7 +84,9 @@ export default function VerifyEmail() {
           </button>
         </form>
 
-        {message && <p className="text-center text-sm mt-4">{message}</p>}
+        {message && (
+          <p className="text-center text-sm mt-4 text-red-500">{message}</p>
+        )}
       </div>
     </div>
   );

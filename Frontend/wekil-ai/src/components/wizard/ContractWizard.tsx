@@ -2,25 +2,34 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Globe, FileText, Users, DollarSign, Settings, Bot, Eye } from "lucide-react";
+import {
+  ArrowLeft,
+  Globe,
+  FileText,
+  Users,
+  DollarSign,
+  Settings,
+  Bot,
+  Eye,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Loader2 } from "lucide-react";
 import { StepIndicator } from "@/components/wizard/StepIndicator";
 import ChooseContractType from "@/components/wizard/steps/ChooseContractType";
-import {LanguageAndDescription} from "@/components/wizard/steps/LanguageAndDescription";
+import { LanguageAndDescription } from "@/components/wizard/steps/LanguageAndDescription";
 import { PartiesInformation } from "@/components/wizard/steps/PartiesInformation";
 import CommonDetails from "@/components/wizard/steps/CommonDetails";
 import SpecificDetails from "@/components/wizard/steps/SpecificDetails";
-// import AIDraftPreview from "@/components/wizard/steps/AIDraftPreview"; TODO
-// import FinalPreview from "@/components/wizard/steps/FinalPreview"; TODO
+import { AIDraftPreview } from "@/components/wizard/steps/AIDraftPreview";
+import { FinalPreview } from "@/components/wizard/steps/FinalPreview";
 
 export interface Step {
   id: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
 }
-export interface CommonDetails {
+export interface CommonDetail {
   location: string;
   totalAmount: number;
   currency: "ETB" | "USD" | "EUR";
@@ -36,7 +45,7 @@ export interface ContractData {
   agreementLanguage?: Language;
   description?: string;
   parties?: { fullName: string; phone: string; email: string }[];
-  commonDetails: CommonDetails;
+  commonDetails: CommonDetail;
   specificDetails?: {
     servicesDescription?: string;
     milestones?: { description: string; date: string }[];
@@ -50,7 +59,7 @@ export interface ContractData {
     confidentialityPeriod?: number;
     purpose?: string;
   };
-  aiDraft?: any;
+  aiDraft?: Record<string, unknown>;
 }
 
 interface ContractWizardProps {
@@ -76,13 +85,17 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
 
   // Step-specific state
   const [contractType, setContractType] = useState<string>("");
-  const [parties, setParties] = useState<{ fullName: string; phone: string; email: string }[]>([
+  const [parties, setParties] = useState<
+    { fullName: string; phone: string; email: string }[]
+  >([
     { fullName: "", phone: "", email: "" },
     { fullName: "", phone: "", email: "" },
   ]);
   const [agreementLanguage, setAgreementLanguage] = useState<Language>("en");
   const [description, setDescription] = useState<string>("");
-  const [commonDetails, setCommonDetails] = useState<ContractData["commonDetails"]>({
+  const [commonDetails, setCommonDetails] = useState<
+    ContractData["commonDetails"]
+  >({
     location: "",
     totalAmount: 0,
     currency: "ETB",
@@ -90,17 +103,47 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
     endDate: "",
     dueDates: [],
   });
-  const [specificDetails, setSpecificDetails] =
-  useState<NonNullable<ContractData["specificDetails"]>>({});
+  const [specificDetails, setSpecificDetails] = useState<
+    NonNullable<ContractData["specificDetails"]>
+  >({});
 
   const steps: Step[] = [
-    { id: "type", label: currentLanguage === "en" ? "Contract Type" : "የውል አይነት", icon: FileText },
-    { id: "language", label: currentLanguage === "en" ? "Language & Description" : "ቋንቋ እና መግለጫ", icon: Globe },
-    { id: "parties", label: currentLanguage === "en" ? "Parties" : "ተዋዋዮች", icon: Users },
-    { id: "common", label: currentLanguage === "en" ? "Common Details" : "የጋራ ዝርዝሮች", icon: DollarSign },
-    { id: "specific", label: currentLanguage === "en" ? "Specific Details" : "የተወሰኑ ዝርዝሮች", icon: Settings },
-    { id: "aiDraft", label: currentLanguage === "en" ? "AI Draft Preview" : "AI ረቂቅ", icon: Bot },
-    { id: "final", label: currentLanguage === "en" ? "Final Preview" : "ፍጻሜ ቅድመ እይታ", icon: Eye },
+    {
+      id: "type",
+      label: currentLanguage === "en" ? "Contract Type" : "የውል አይነት",
+      icon: FileText,
+    },
+    {
+      id: "language",
+      label:
+        currentLanguage === "en" ? "Language & Description" : "ቋንቋ እና መግለጫ",
+      icon: Globe,
+    },
+    {
+      id: "parties",
+      label: currentLanguage === "en" ? "Parties" : "ተዋዋዮች",
+      icon: Users,
+    },
+    {
+      id: "common",
+      label: currentLanguage === "en" ? "Common Details" : "የጋራ ዝርዝሮች",
+      icon: DollarSign,
+    },
+    {
+      id: "specific",
+      label: currentLanguage === "en" ? "Specific Details" : "የተወሰኑ ዝርዝሮች",
+      icon: Settings,
+    },
+    {
+      id: "aiDraft",
+      label: currentLanguage === "en" ? "AI Draft Preview" : "AI ረቂቅ",
+      icon: Bot,
+    },
+    {
+      id: "final",
+      label: currentLanguage === "en" ? "Final Preview" : "ፍጻሜ ቅድመ እይታ",
+      icon: Eye,
+    },
   ];
 
   const t: Record<Language, Translations> = {
@@ -167,7 +210,11 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
         }
         return { agreementLanguage, description };
       case 2: // PartiesInformation
-        if (parties.some((party) => !party.fullName || !party.phone || !party.email)) {
+        if (
+          parties.some(
+            (party) => !party.fullName || !party.phone || !party.email
+          )
+        ) {
           toast.error(t[currentLanguage].error);
           return null;
         }
@@ -189,7 +236,10 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
         }
         return { commonDetails };
       case 4: // SpecificDetails
-        if (contractType === "service" && !specificDetails?.servicesDescription?.trim()) {
+        if (
+          contractType === "service" &&
+          !specificDetails?.servicesDescription?.trim()
+        ) {
           toast.error(t[currentLanguage].error);
           return null;
         }
@@ -223,7 +273,11 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
 
   if (isCheckingComplexity) {
     return (
-      <div className={`h-full flex flex-col bg-gray-100 ${currentLanguage === "am" ? "font-ethiopic" : ""}`}>
+      <div
+        className={`h-full flex flex-col bg-gray-100 ${
+          currentLanguage === "am" ? "font-ethiopic" : ""
+        }`}
+      >
         <div className="px-6 py-4 flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={handleBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -236,7 +290,9 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
             <CardContent className="p-6 flex flex-col items-center">
               <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
               <p className="mt-4 text-lg text-gray-700">
-                {currentLanguage === "en" ? "Checking complexity..." : "ውስብስብነት በመፈተሽ ላይ..."}
+                {currentLanguage === "en"
+                  ? "Checking complexity..."
+                  : "ውስብስብነት በመፈተሽ ላይ..."}
               </p>
             </CardContent>
           </Card>
@@ -246,7 +302,11 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   }
 
   return (
-    <div className={`h-full flex flex-col bg-gray-100 ${currentLanguage === "am" ? "font-ethiopic" : ""}`}>
+    <div
+      className={`h-full flex flex-col bg-gray-100 ${
+        currentLanguage === "am" ? "font-ethiopic" : ""
+      }`}
+    >
       {/* Header */}
       <div className="px-6 py-4 flex items-center justify-between">
         <Button variant="ghost" size="sm" onClick={handleBack}>
@@ -262,7 +322,7 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
 
       {/* Step indicator */}
       <div className="px-6 py-4">
-        <StepIndicator steps={steps} currentStep={currentStep} currentLanguage={currentLanguage} />
+        <StepIndicator steps={steps} currentStep={currentStep} />
       </div>
 
       {/* Step Content */}
@@ -307,7 +367,7 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
             setSpecificDetails={setSpecificDetails}
           />
         )}
-        {/* {currentStep === 5 && (   Todo to do
+        {currentStep === 5 && (
           <AIDraftPreview
             currentLanguage={currentLanguage}
             contractData={contractData}
@@ -318,7 +378,7 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
             currentLanguage={currentLanguage}
             contractData={contractData}
           />
-        )} */}
+        )}
       </div>
 
       {/* Footer navigation */}
@@ -328,11 +388,17 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
           {t[currentLanguage].back}
         </Button>
         {currentStep < steps.length - 1 ? (
-          <Button onClick={handleFooterNext} className="bg-gray-800 hover:bg-gray-700 text-white">
+          <Button
+            onClick={handleFooterNext}
+            className="bg-gray-800 hover:bg-gray-700 text-white"
+          >
             {t[currentLanguage].next}
           </Button>
         ) : (
-          <Button onClick={() => handleNext({})} className="bg-slate-800 hover:bg-slate-700 text-white">
+          <Button
+            onClick={() => handleNext({})}
+            className="bg-slate-800 hover:bg-slate-700 text-white"
+          >
             {t[currentLanguage].finish}
           </Button>
         )}

@@ -25,8 +25,8 @@ type Individual struct {
 	Address            string             `json:"address,omitempty" bson:"address,omitempty"`
 	AccountType        string             `json:"account_type" bson:"account_type"`
 	IsVerified         bool               `json:"is_verified" bson:"is_verified"`
-	ProfileImage       string             `json:"profile_image,omitempty" bson:"profile_image,omitempty"`
-	Signature          string             `json:"signature,omitempty" bson:"signature,omitempty"`
+	ProfileImage       string             `json:"profile_image" bson:"profile_image"`
+	Signature          string             `json:"signature" bson:"signature"`
 	CreatedAt          time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt          time.Time          `json:"updated_at" bson:"updated_at"`
 	RefreshToken	   string			  `json:"refresh_token" bson:"refresh_token"`
@@ -57,9 +57,9 @@ type UnverifiedUserDTO struct {
 	ID                 primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Email              string             `json:"email" bson:"email"`
 	Password           string             `json:"password" bson:"password"` // Hidden from JSON
-	FirstName          string             `json:"firstName" bson:"first_name"`
-	LastName           string             `json:"lastName" bson:"last_name"`
-	MiddleName         string             `json:"middleName,omitempty" bson:"middle_name,omitempty"`
+	FirstName          string             `json:"first_name" bson:"first_name"`
+	LastName           string             `json:"last_name" bson:"last_name"`
+	MiddleName         string             `json:"middle_name,omitempty" bson:"middle_name,omitempty"`
 	Telephone          string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
 	AccountType        string             `json:"accountType" bson:"account_type"`
 	OTP                string             `json:"otp,omitempty" bson:"otp,omitempty"`
@@ -90,7 +90,7 @@ type UpdateProfileRequestDTO struct {
 	LastName     *string `json:"last_name,omitempty" binding:"omitempty,min=1,max=50"`
 	MiddleName   *string `json:"middle_name,omitempty" binding:"omitempty,min=1,max=50"`
 	Address      *string `json:"address,omitempty" binding:"omitempty,min=1,max=100"`
-	Telephone          string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
+	Telephone    *string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
 	Signature    *string `json:"signature,omitempty" binding:"omitempty"`
 	ProfileImage *string `json:"profile_image,omitempty" binding:"omitempty,url"`
 }

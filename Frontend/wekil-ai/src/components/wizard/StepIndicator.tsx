@@ -3,20 +3,14 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
-import { Step, Language } from "@/components/wizard/ContractWizard";
+import { Step } from "@/components/wizard/ContractWizard";
 
 interface StepIndicatorProps {
   steps: Step[];
   currentStep: number;
-  currentLanguage: Language;
 }
 
-export function StepIndicator({ steps, currentStep, currentLanguage }: StepIndicatorProps) {
-  const t = {
-    en: { step: "Step" },
-    am: { step: "ደረጃ" },
-  }[currentLanguage];
-
+export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
   return (
     <div className="flex items-center justify-between max-w-4xl mx-auto">
       {steps.map((step, index) => (
@@ -25,10 +19,18 @@ export function StepIndicator({ steps, currentStep, currentLanguage }: StepIndic
             <div
               className={cn(
                 "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium",
-                index < currentStep ? "bg-slate-800 text-white" : index === currentStep ? "bg-teal-500 text-white" : "bg-gray-200 text-gray-500"
+                index < currentStep
+                  ? "bg-slate-800 text-white"
+                  : index === currentStep
+                  ? "bg-teal-500 text-white"
+                  : "bg-gray-200 text-gray-500"
               )}
             >
-              {index < currentStep ? <Check className="h-5 w-5" /> : <step.icon className="h-5 w-5" />}
+              {index < currentStep ? (
+                <Check className="h-5 w-5" />
+              ) : (
+                <step.icon className="h-5 w-5" />
+              )}
             </div>
             <div className="mt-2 text-center">
               <p

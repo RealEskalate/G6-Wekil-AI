@@ -4,8 +4,6 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-import { Globe } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Language } from "@/components/wizard/ContractWizard";
 
 interface LanguageAndDescriptionProps {

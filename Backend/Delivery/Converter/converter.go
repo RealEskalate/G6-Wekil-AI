@@ -10,9 +10,9 @@ func ToIndividual(u *domain.UnverifiedUserDTO) *domain.Individual {
 		ID:           u.ID,
 		Email:        u.Email,
 		PasswordHash: u.Password,
-		FirstName:    u.FirstName,
-		LastName:     u.LastName,
-		MiddleName:   u.MiddleName,
+		first_name:    u.first_name,
+		last_name:     u.last_name,
+		middle_name:   u.middle_name,
 		Telephone:    u.Telephone,
 		AccountType:  u.AccountType,
 		// New fields for the Individual struct, initialized to default values

@@ -181,14 +181,14 @@ func (u *UserUseCase) GetProfile(ctx context.Context, email string) (*domain.Ind
 func (u *UserUseCase) UpdateProfile(ctx context.Context, email string, updateReq *domain.UpdateProfileRequestDTO) error {
 	updateData := bson.M{}
 
-	if updateReq.FirstName != nil && *updateReq.FirstName != "" {
-		updateData["first_name"] = *updateReq.FirstName
+	if updateReq.first_name != nil && *updateReq.first_name != "" {
+		updateData["first_name"] = *updateReq.first_name
 	}
-	if updateReq.LastName != nil && *updateReq.LastName != "" {
-		updateData["last_name"] = *updateReq.LastName
+	if updateReq.last_name != nil && *updateReq.last_name != "" {
+		updateData["last_name"] = *updateReq.last_name
 	}
-	if updateReq.MiddleName != nil && *updateReq.MiddleName != "" {
-		updateData["middle_name"] = *updateReq.MiddleName
+	if updateReq.middle_name != nil && *updateReq.middle_name != "" {
+		updateData["middle_name"] = *updateReq.middle_name
 	}
 	if updateReq.Address != nil && *updateReq.Address != "" {
 		updateData["address"] = *updateReq.Address

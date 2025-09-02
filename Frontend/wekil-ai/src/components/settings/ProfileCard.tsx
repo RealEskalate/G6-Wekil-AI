@@ -23,9 +23,9 @@ export default function ProfileCard() {
   const [profileData, setProfileData] = useState<FormData>({
     profilePicture: "",
     signatureImage: "",
-    firstName: "",
-    middleName: "",
-    lastName: "",
+    first_name: "",
+    middle_name: "",
+    last_name: "",
     email: "user@example.com",
     telephone: "",
     password: "",
@@ -239,29 +239,29 @@ export default function ProfileCard() {
         {/* Personal Info */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
-            <Label className="text-gray-700">{t.firstName}</Label>
+            <Label className="text-gray-700">{t.first_name}</Label>
             <Input
-              value={profileData.firstName}
-              onChange={(e) => updateProfile("firstName", e.target.value)}
-              placeholder={t.firstNamePlaceholder}
+              value={profileData.first_name}
+              onChange={(e) => updateProfile("first_name", e.target.value)}
+              placeholder={t.first_namePlaceholder}
               className="border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-gray-700">{t.middleName}</Label>
+            <Label className="text-gray-700">{t.middle_name}</Label>
             <Input
-              value={profileData.middleName}
-              onChange={(e) => updateProfile("middleName", e.target.value)}
-              placeholder={t.middleNamePlaceholder}
+              value={profileData.middle_name}
+              onChange={(e) => updateProfile("middle_name", e.target.value)}
+              placeholder={t.middle_namePlaceholder}
               className="border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-gray-700">{t.lastName}</Label>
+            <Label className="text-gray-700">{t.last_name}</Label>
             <Input
-              value={profileData.lastName}
-              onChange={(e) => updateProfile("lastName", e.target.value)}
-              placeholder={t.lastNamePlaceholder}
+              value={profileData.last_name}
+              onChange={(e) => updateProfile("last_name", e.target.value)}
+              placeholder={t.last_namePlaceholder}
               className="border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
             />
           </div>

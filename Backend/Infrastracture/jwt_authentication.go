@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
@@ -87,16 +88,18 @@ func (o *JWTAuthentication) OAuthLogin(req *http.Request, res http.ResponseWrite
 	user, err := gothic.CompleteUserAuth(res, req)
 	log.Print("+++++++_______++++++++++", user)
 	if err != nil {
+		log.Printf("❌ OAuth login failed: %v", err)
 		return nil, err
 	}
-	// name := user.Name
-	// firstname , middlename := strings.Split(name, "")
+
 	return &domain.Individual{
 		Email: user.Email,
-		FirstName: user.FirstName,
-		LastName: user.LastName,
+		first_name: user.first_name,
+		last_name: user.last_name,
+
 	}, nil
 }
+
 
 // NewJWTAuthentication creates a new JWT authentication service instance.
 // The signing key should be a strong, secret key.

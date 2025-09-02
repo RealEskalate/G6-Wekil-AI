@@ -10,6 +10,8 @@ import UsersTab from "@/components/admin/UsersTab";
 import { useLanguage } from "@/context/LanguageContext";
 import { adminTranslation } from "@/lib/adminTranslation";
 import { AnalyticsData, Contract, User } from "@/types/auth";
+// import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -21,7 +23,18 @@ export default function AdminDashboard() {
 
   const { lang } = useLanguage();
   const t = adminTranslation[lang];
+  const { data: session, status } = useSession();
+  console.log("Session data:", session);
+  console.log("Session status:", status);
 
+  // useEffect(() => {
+  //   if (session && status === "authenticated") {
+  //     window.location.href = "/";
+  //   }
+  //   if (session?.user. !== "admin") {
+  //     window.location.href = "/";
+  //   }
+  // }, [status, session]);
   // Mock data
   const mockUsers: User[] = useMemo(
     () => [

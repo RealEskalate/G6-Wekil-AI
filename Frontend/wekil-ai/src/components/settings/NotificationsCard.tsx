@@ -9,7 +9,7 @@ import {
   CardDescription,
 } from "../ui/Card";
 import { Label } from "../ui/Label";
-import { Switch } from "../ui/Switch";
+import { Switch } from "../ui/Switchs";
 import { settingTranslations } from "@/lib/settingTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 import { Bell, Mail, Save } from "lucide-react";
@@ -69,8 +69,8 @@ export default function NotificationsCard() {
           </div>
           <Switch
             checked={settings.pushNotifications}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              updateSetting("pushNotifications", e.target.checked)
+            onCheckedChange={(checked: boolean) =>
+              updateSetting("pushNotifications", checked)
             }
           />
         </div>
@@ -90,8 +90,8 @@ export default function NotificationsCard() {
           </div>
           <Switch
             checked={settings.emailNotifications}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              updateSetting("emailNotifications", e.target.checked)
+            onCheckedChange={(checked: boolean) =>
+              updateSetting("emailNotifications", checked)
             }
           />
         </div>

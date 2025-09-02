@@ -7,6 +7,9 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/context/LanguageContext";
 import { authTranslations } from "@/lib/authTranslations";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/redux/store";
+import { resetPassword, forgotPassword } from "@/lib/redux/slices/authSlice";
 
 function ChangePasswordForm() {
   const router = useRouter();
@@ -28,6 +31,7 @@ function ChangePasswordForm() {
 
   const { lang } = useLanguage();
   const t = authTranslations[lang];
+  const dispatch = useDispatch<AppDispatch>();
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
@@ -45,10 +49,16 @@ function ChangePasswordForm() {
 
     setIsLoading(true);
     try {
-      // Fake API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success(t.passwordChangedSuccess);
-      router.push("/");
+      const res = await dispatch(
+        resetPassword({ email, otp, new_password: password })
+      ).unwrap();
+
+      if (res.success) {
+        toast.success(t.passwordChangedSuccess);
+        router.push("/");
+      } else {
+        toast.error(res.data.message || t.passwordChangeFailed);
+      }
     } catch (error) {
       console.error(error);
       toast.error(t.passwordChangeFailed);
@@ -69,8 +79,13 @@ function ChangePasswordForm() {
   const handleResendOTP = async () => {
     if (!email) return;
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success(`${t.otpSentSuccess} ${email}`);
+      const res = await dispatch(forgotPassword({ email: email })).unwrap();
+
+      if (res.success) {
+        toast.success(t.otpSentSuccess + " " + email);
+      } else {
+        toast.error(res.data.message || t.otpSentFailed);
+      }
       setResendCountdown(30);
     } catch (error) {
       console.error(error);

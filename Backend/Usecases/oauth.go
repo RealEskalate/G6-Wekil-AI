@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"log"
 	"net/http"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
@@ -22,6 +23,8 @@ func NewOAuthUsecase(ur domainInterface.IIndividualRepository, as domainInterfac
 
 func (uc *OAuthUsecase) HandleOAuthLogin(req *http.Request, res http.ResponseWriter) (*domain.Individual,string,string, error) {
 	userData, err := uc.authService.OAuthLogin(req, res)
+	log.Printf("OAuth user**************************: %+v", userData)
+
 	if err != nil {
 		return nil, "","",err
 	}

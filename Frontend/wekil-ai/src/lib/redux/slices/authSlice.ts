@@ -59,7 +59,7 @@ export const registerUser = createAsyncThunk<
       let errorMessage = `HTTP error! status: ${response.status}`;
       try {
         const errorData = JSON.parse(responseText);
-        errorMessage = errorData.data.error || errorMessage;
+        errorMessage = errorData.data.error;
       } catch (e) {
         console.error('Error parsing error response JSON:', e);
         errorMessage = responseText || errorMessage;

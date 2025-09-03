@@ -28,6 +28,7 @@ export default function CommonDetails({
       currency: "Currency",
       start: "Start Date",
       end: "End Date",
+      dateError: "End date cannot be before start date.",
     },
     am: {
       title: "የጋራ ዝርዝሮች",
@@ -37,6 +38,7 @@ export default function CommonDetails({
       currency: "ገንዘብ",
       start: "የመጀመሪያ ቀን",
       end: "የመጨረሻ ቀን",
+      dateError: "የመጨረሻ ቀን ከመጀመሪያ ቀን በፊት መሆን አይችልም።",
     },
   }[currentLanguage];
 
@@ -46,6 +48,12 @@ export default function CommonDetails({
   ) => {
     setCommonDetails({ ...commonDetails, [field]: value });
   };
+
+  // Validation: check if end date is before start date
+  const isInvalidDate =
+    commonDetails?.startDate &&
+    commonDetails?.endDate &&
+    new Date(commonDetails.endDate) < new Date(commonDetails.startDate);
 
   return (
     <Card className="max-w-4xl mx-auto">
@@ -86,7 +94,6 @@ export default function CommonDetails({
                   }
                   onClick={() => updateCommonDetails("currency", c)}
                 >
-                  {" "}
                   {c}
                 </Button>
               ))}
@@ -119,6 +126,9 @@ export default function CommonDetails({
               />
               <Calendar className="text-gray-400 h-5 w-5" />
             </div>
+            {isInvalidDate && (
+              <p className="text-red-500 text-sm mt-1">{t.dateError}</p>
+            )}
           </div>
         </div>
       </CardContent>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -5,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
+import { Switch } from "@/components/ui/Switchs"; // Fixed typo: Switchs -> Switch
+import { Label } from "@/components/ui/Label";
 import { Language, ContractData } from "@/components/wizard/ContractWizard";
 
 interface SpecificDetailsProps {
@@ -33,6 +36,9 @@ export default function SpecificDetails({
       principal: "Principal Amount",
       terms: "Delivery Terms",
       purpose: "Purpose",
+      effectiveDate: "Effective Date",
+      confidentialityPeriod: "Confidentiality Period (years)",
+      isMutual: "Mutual NDA",
     },
     am: {
       title: "የተወሰኑ ዝርዝሮች",
@@ -46,19 +52,20 @@ export default function SpecificDetails({
       principal: "ዋና መጠን",
       terms: "የመላኪያ መመሪያዎች",
       purpose: "አላማ",
+      effectiveDate: "የተግባር ቀን",
+      confidentialityPeriod: "የምስጢር ጊዜ (ዓመታት)",
+      isMutual: "የጋራ ሚስጥር ጥበቃ ስምምነት",
     },
   }[currentLanguage];
 
   const updateSpecificDetails = <
-  K extends keyof NonNullable<ContractData["specificDetails"]>
->(
-  field: K,
-  value: NonNullable<ContractData["specificDetails"]>[K]
-) => {
-  setSpecificDetails({ ...specificDetails, [field]: value });
-};
-
-
+    K extends keyof NonNullable<ContractData["specificDetails"]>
+  >(
+    field: K,
+    value: NonNullable<ContractData["specificDetails"]>[K]
+  ) => {
+    setSpecificDetails({ ...specificDetails, [field]: value });
+  };
 
   const addItem = () => {
     const newItems = [...(specificDetails.items || []), { description: "", quantity: 1, unitPrice: 0 }];
@@ -70,12 +77,12 @@ export default function SpecificDetails({
       case "service":
         return (
           <div>
-            <label className="block mb-2 font-medium">{t.services}</label>
+            <Label className="block mb-2 font-medium">{t.services}</Label>
             <Textarea
               value={specificDetails.servicesDescription || ""}
               onChange={(e) => updateSpecificDetails("servicesDescription", e.target.value)}
               placeholder={t.services}
-              className="w-full"
+              className="w-full bg-white"
             />
           </div>
         );
@@ -83,7 +90,7 @@ export default function SpecificDetails({
       case "goods":
         return (
           <div>
-            <label className="block mb-2 font-medium">{t.items}</label>
+            <Label className="block mb-2 font-medium">{t.items}</Label>
             {(specificDetails.items || []).map((item, idx) => (
               <div key={idx} className="grid grid-cols-3 gap-4 mb-2">
                 <Input
@@ -126,7 +133,7 @@ export default function SpecificDetails({
       case "loan":
         return (
           <div>
-            <label className="block mb-2 font-medium">{t.principal}</label>
+            <Label className="block mb-2 font-medium">{t.principal}</Label>
             <Input
               type="number"
               placeholder={t.principal}
@@ -138,14 +145,43 @@ export default function SpecificDetails({
 
       case "nda":
         return (
-          <div>
-            <label className="block mb-2 font-medium">{t.purpose}</label>
-            <Textarea
-              value={specificDetails.purpose || ""}
-              onChange={(e) => updateSpecificDetails("purpose", e.target.value)}
-              placeholder={t.purpose}
-              className="w-full"
-            />
+          <div className="space-y-6 ">
+            <div>
+              <Label className="block mb-2 font-medium">{t.effectiveDate}</Label>
+              <Input
+                type="date"
+                value={specificDetails.effectiveDate || ""}
+                onChange={(e) => updateSpecificDetails("effectiveDate", e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <Label className="block mb-2 font-medium">{t.confidentialityPeriod}</Label>
+              <Input
+                type="number"
+                placeholder={t.confidentialityPeriod}
+                value={specificDetails.confidentialityPeriod || ""}
+                onChange={(e) => updateSpecificDetails("confidentialityPeriod", Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <Label className="block mb-2 font-medium">{t.purpose}</Label>
+              <Textarea
+                value={specificDetails.purpose || ""}
+                onChange={(e) => updateSpecificDetails("purpose", e.target.value)}
+                placeholder={t.purpose}
+                className="w-full  bg-white "
+              />
+            </div>
+            <div className=" bg-white items-center">
+              <Label className="font-medium">{t.isMutual}</Label>
+              <Switch
+                checked={specificDetails.isMutual || false}
+                onCheckedChange={(checked: boolean) => updateSpecificDetails("isMutual", checked)}
+                className="data-[state=checked]:bg-teal-500"
+              />
+            </div>
           </div>
         );
 

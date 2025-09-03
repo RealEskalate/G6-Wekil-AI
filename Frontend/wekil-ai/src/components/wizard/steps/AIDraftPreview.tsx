@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -250,7 +249,7 @@ export function AIDraftPreview({
                         newDraft.sections[index].text = e.target.value;
                         setAiDraft(newDraft);
                       }}
-                      className="min-h-24"
+                      className="min-h-24 bg-white"
                     />
                   ) : (
                     <p className="text-sm leading-relaxed">{section.text}</p>

@@ -6,6 +6,8 @@ interface ExtendedJWT extends JWT {
   accessToken?: string;
   refreshToken?: string;
   account_type?: string;
+  rememberMe?: boolean;
+  accessTokenExpires?: number;
   error?: string;
 }
 
@@ -22,15 +24,11 @@ async function refreshBackendToken(token: ExtendedJWT): Promise<ExtendedJWT> {
     if (!res.ok) throw new Error("Failed to refresh token");
 
     const accessToken = res.headers.get("Authorization")?.replace("Bearer ", "");
-    const body = await res.json();
-    const account_type = body?.data?.account_type;
-
     if (!accessToken) throw new Error("No access token returned from refresh");
 
     return {
       ...token,
-      accessToken,
-      account_type,
+      accessToken,   
       error: undefined,
     };
   } catch (err) {
@@ -39,6 +37,7 @@ async function refreshBackendToken(token: ExtendedJWT): Promise<ExtendedJWT> {
   }
 }
 
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -46,8 +45,10 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        rememberMe: { label: "Remember Me", type: "checkbox" },
       },
       async authorize(credentials) {
+        const rememberMe = credentials?.rememberMe === "true";
         if (!credentials?.email || !credentials?.password) return null;
 
         const res = await fetch(`${API_URL}/api/auth/login`, {
@@ -71,7 +72,8 @@ export const authOptions: NextAuthOptions = {
         return {
           accessToken,
           account_type,
-        } as User & { accessToken: string; account_type?: string };
+          rememberMe,
+        } as User & { accessToken: string; account_type?: string; rememberMe?: boolean };
       },
     }),
   ],
@@ -87,23 +89,34 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token, user }: { token: ExtendedJWT; user?: User & { accessToken?: string; account_type?: string } }) {
-      if (user) {
-        return {
-          ...token,
-          accessToken: user.accessToken,
-          account_type: user.account_type,
-          error: undefined,
-        };
-      }
+    async jwt({
+  token,
+  user,
+}: {
+  token: ExtendedJWT; 
+  user?: User & { accessToken?: string; account_type?: string; rememberMe?: boolean };
+}) {
+  
+        if (user) {
+          return {
+            ...token,
+            accessToken: user.accessToken,
+            account_type: user.account_type,
+            rememberMe: user.rememberMe,
+            error: undefined,
+          };
+        }
 
-      if (token.accessTokenExpires && Date.now() > (token.accessTokenExpires as number)) {
-        return refreshBackendToken(token);
-      }
+        if (token.rememberMe) {
+          token.accessTokenExpires = Date.now() + 60 * 60 * 24 * 30 * 1000; // 30 days
+        }
 
+        if (token.accessTokenExpires && Date.now() > token.accessTokenExpires) {
+          return refreshBackendToken(token);
+        }
 
-      return token;
-    },
+        return token;
+      },
 
     async session({ session, token }: { session: Session; token: ExtendedJWT }) {
       return {
@@ -112,6 +125,7 @@ export const authOptions: NextAuthOptions = {
           ...session.user,
           accessToken: token.accessToken,
           account_type: token.account_type,
+          rememberMe: token.rememberMe,
           error: token.error,
         },
       };

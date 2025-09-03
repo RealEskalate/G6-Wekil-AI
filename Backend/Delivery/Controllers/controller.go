@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
-
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
 	infrastracture "wekil_ai/Infrastracture"
@@ -34,6 +32,8 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 		return
 	}
 
+
+
 	// Validate email format
 	if !infrastracture.NewPasswordService().IsValidEmail(unverifiedUser.Email) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -54,17 +54,6 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 		return
 	}
 
-	// Hash password
-	unverifiedUser.Password = infrastracture.NewPasswordService().Hashpassword(unverifiedUser.Password)
-
-	// Generate OTP
-	otp := infrastracture.NewOTPService().GenerateOTP()
-	unverifiedUser.OTP = otp
-	unverifiedUser.ExpiresAt = time.Now().Add(2 * time.Minute) // OTP valid 3 min
-	unverifiedUser.AccountType = domain.User
-
-	// Send OTP via email
-	infrastracture.NewOTPService().SendOTP(unverifiedUser.Email, otp)
 
 	// Store in OTP collection
 	err := u.userUseCase.StoreUserInOTPColl(ctx,&unverifiedUser)

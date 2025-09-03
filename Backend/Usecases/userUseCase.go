@@ -51,6 +51,19 @@ func (u *UserUseCase) StoreUserInOTPColl(ctx context.Context,user *domain.Unveri
 		return fmt.Errorf("USER_UNVERIFIED: user with email %s is already in registration process, check your email for OTP", user.Email)
 	}
 
+	
+	// Hash password
+	user.Password = u.userValidation.Hashpassword(user.Password)
+
+	// Generate OTP
+	otp := u.OTPSevice.GenerateOTP()
+	user.OTP = otp
+	user.ExpiresAt = time.Now().Add(2 * time.Minute) // OTP valid 3 min
+	user.AccountType = domain.User
+
+	// Send OTP via email
+	u.OTPSevice.SendOTP(user.Email, otp)
+
 	// 3. If not found at all → new user
 	return u.unverifiedUserCollection.CreateUnverifiedUser(context.Background(), user)
 }

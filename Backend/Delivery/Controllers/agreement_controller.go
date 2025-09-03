@@ -1,8 +1,12 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
+	"net/http"
+	domain "wekil_ai/Domain"
 	domainInter "wekil_ai/Domain/Interfaces"
+
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type AgreementController struct {

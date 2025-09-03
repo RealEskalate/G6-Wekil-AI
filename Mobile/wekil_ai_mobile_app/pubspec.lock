@@ -49,7 +49,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.19.1"
-
   convert:
     dependency: transitive
     description:
@@ -148,6 +147,11 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_web_plugins:
+    dependency: transitive
+    description: flutter
+    source: sdk
+    version: "0.0.0"
   get_it:
     dependency: "direct main"
     description:
@@ -156,27 +160,16 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.7.0"
-  flutter_web_plugins:
-    dependency: transitive
-    description: flutter
-    source: sdk
-    version: "0.0.0"
   google_fonts:
     dependency: "direct main"
     description:
       name: google_fonts
-      sha256: df9763500dadba0155373e9cb44e202ce21bd9ed5de6bdbd05c5854e86839cb8
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.3.0"
-  http:
-    dependency: "direct main"
       sha256: ebc94ed30fd13cefd397cb1658b593f21571f014b7d1197eeb41fb95f05d899a
       url: "https://pub.dev"
     source: hosted
     version: "6.3.1"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       sha256: bb2ce4590bc2667c96f318d68cac1b5a7987ec819351d32b1c987239a815e007
@@ -199,7 +192,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.19.0"
-
   leak_tracker:
     dependency: transitive
     description:
@@ -284,7 +276,6 @@ packages:
     dependency: transitive
     description:
       name: path_provider_android
-
       sha256: "993381400e94d18469750e5b9dcb8206f15bc09f9da86b9e44a9b0092a0066db"
       url: "https://pub.dev"
     source: hosted
@@ -353,7 +344,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.5+1"
-
   sky_engine:
     dependency: transitive
     description: flutter
@@ -495,7 +485,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
-
   url_launcher:
     dependency: transitive
     description:

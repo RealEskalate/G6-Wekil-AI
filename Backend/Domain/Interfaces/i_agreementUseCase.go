@@ -16,5 +16,5 @@ type IAgreementUseCase interface {
 	DeclineAgreement(agreementID primitive.ObjectID, userID primitive.ObjectID) error // change the status to DECLINED	
 	GetAgreementByID(agreementID primitive.ObjectID) (*domain.Agreement, error)
 	GetAgreementsByUserID(userID primitive.ObjectID, pageNumber int) ([]*domain.Agreement, error) // pagination
-
+	DuplicateAgreement(originalAgreementID primitive.ObjectID, newAcceptorEmail string, callerID primitive.ObjectID) (*domain.Intake, *domain.Draft, error)
 }

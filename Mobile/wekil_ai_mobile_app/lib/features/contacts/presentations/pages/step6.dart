@@ -9,13 +9,13 @@ import '../../domain/usecases/modify_draft_usecase.dart';
 class CreateStep5 extends StatefulWidget {
   final IntakeModel intakeModel;
   final String draftContractPdfUrl; // From GenerateDraft usecase
-  final ModifyDraft modifyDraft;    // Injected usecase
+  final ModifyDraft? modifyDraft;    // Injected usecase
 
   const CreateStep5({
     Key? key,
     required this.intakeModel,
     required this.draftContractPdfUrl,
-    required this.modifyDraft,
+    this.modifyDraft, // <-- optional now
   }) : super(key: key);
 
   @override
@@ -27,20 +27,29 @@ class _CreateStep5State extends State<CreateStep5> {
   bool _isLoading = false;
 
   Future<void> _submitChanges() async {
-    setState(() => _isLoading = true);
-
-    try {
-      await widget.modifyDraft(widget.intakeModel, _changesController.text);
-
-      Navigator.pop(context, true);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
-    } finally {
-      setState(() => _isLoading = false);
-    }
+  if (widget.modifyDraft == null) {
+    // Backend not ready: just show a message and go back
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("ModifyDraft not available (backend not ready)")),
+    );
+    Navigator.pop(context, true);
+    return;
   }
+
+  setState(() => _isLoading = true);
+
+  try {
+    await widget.modifyDraft!(widget.intakeModel, _changesController.text); // use !
+    Navigator.pop(context, true);
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: $e")),
+    );
+  } finally {
+    setState(() => _isLoading = false);
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {

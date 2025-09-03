@@ -185,7 +185,7 @@ export function AIDraftPreview({
 
   useEffect(() => {
     generateDraft();
-  });
+  }, [contractData,currentLanguage]);
 
   if (isGeneratingDraft) {
     return (

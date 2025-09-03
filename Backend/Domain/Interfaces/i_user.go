@@ -45,3 +45,8 @@ type INotification interface {
 	CreateNotification(ctx context.Context, notification *domain.Notification) (*domain.Notification, error)
 	FindByReceiverID(ctx context.Context, individualID string, page, limit int64) ([]domain.Notification, error)
 }
+
+type IOTPService interface{
+	GenerateOTP() string
+	 SendOTP(toEmail, otp string) error
+}

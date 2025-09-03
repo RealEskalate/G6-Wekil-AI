@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"time"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
 	"wekil_ai/config"
@@ -11,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	// "go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -22,7 +25,13 @@ func NewUnverifiedUserRepository(client *mongo.Client) domainInterface.IOTPRepos
 	dbName :=  config.MONGODB     // Replace with your database name
 	collectionName := "Unverified User" // Replace with your collection name
 	coll := client.Database(dbName).Collection(collectionName)
-
+	indexModel := mongo.IndexModel{
+        Keys:    bson.M{"expires_at": 1},
+        Options: options.Index().SetExpireAfterSeconds(0), // delete exactly at expires_at
+    }
+    if _, err := coll.Indexes().CreateOne(context.Background(), indexModel); err != nil {
+        log.Fatal("failed to create TTL index:", err)
+    }
 	return &OTPRepository{
 		collection: coll,
 	}
@@ -31,7 +40,7 @@ func NewUnverifiedUserRepository(client *mongo.Client) domainInterface.IOTPRepos
 
 func (r *OTPRepository) CreateUnverifiedUser(ctx context.Context, unverifiedUser *domain.UnverifiedUserDTO) error {
 
-
+	unverifiedUser.ExpiresAt =time.Now().Add(15 * time.Minute)
 	_, err := r.collection.InsertOne(ctx, unverifiedUser)
 	if err != nil {
 		return err

@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -87,7 +88,7 @@ type UpdateProfileRequestDTO struct {
 	LastName     *string `json:"last_name,omitempty" binding:"omitempty,min=1,max=50"`
 	MiddleName   *string `json:"middle_name,omitempty" binding:"omitempty,min=1,max=50"`
 	Address      *string `json:"address,omitempty" binding:"omitempty,min=1,max=100"`
-	Telephone    *string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
+	Telephone    *string  `json:"telephone,omitempty" bson:"telephone,omitempty"`
 	Signature    *string `json:"signature,omitempty" binding:"omitempty"`
 	ProfileImage *string `json:"profile_image,omitempty" binding:"omitempty,url"`
 }
@@ -98,4 +99,13 @@ type Notification struct {
 	Title        string             `json:"title" bson:"title"`     // e.g., "New Document Request"
 	Message      string             `json:"message" bson:"message"` // e.g., "You have a request in your email"
 	AgreementID  primitive.ObjectID `json:"agreement_id" bson:"agreement_id"`
+}
+
+type RegistrationInProgressError struct {
+    Email    string
+    Verified bool
+}
+
+func (e *RegistrationInProgressError) Error() string {
+    return fmt.Sprintf("user with email %s is already in registration process please verify your email", e.Email)
 }

@@ -30,7 +30,8 @@ func main() {
 	auth := infrastracture.NewJWTAuthentication(config.SigningKey)
 	unverifiedUserRepo := repository.NewUnverifiedUserRepository(mongoClient.Client)
 	NotifationRepo := repository.NewNotificationRepository(mongoClient.Client)
-	userUsecase := usecases.NewUserUseCase(auth,userRepo,password_service,unverifiedUserRepo,NotifationRepo)
+	otpService := infrastracture.NewOTPService()
+	userUsecase := usecases.NewUserUseCase(auth,userRepo,password_service,unverifiedUserRepo,NotifationRepo,otpService)
 
 
 	aiInfra, err := ai_interaction.NewAIInteraction(apiKey)

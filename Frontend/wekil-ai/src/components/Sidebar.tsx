@@ -8,34 +8,55 @@ import {
   LogOut,
   Globe,
   Menu,
-  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation"; // ✅ App Router compatible
 import { sidebarTranslations } from "@/lib/sidebarTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/redux/store";
+import { logoutUser, setUser } from "@/lib/redux/slices/authSlice";
+import toast from "react-hot-toast";
+import { signOut } from "next-auth/react";
 
 export function Sidebar() {
   const router = useRouter();
   const { lang, setLang } = useLanguage();
   const t = sidebarTranslations[lang];
   const [open, setOpen] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+
+      dispatch(setUser(null));
+
+      await signOut({ callbackUrl: "/" });
+
+      toast.success("Logged out successfully");
+      router.push("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
   return (
-    <div className="w-64 bg-white text-blue-950 flex flex-col shadow-xl border-gray-200">
+    <div className="bg-transparent text-blue-950 flex flex-col shadow-xl border-gray-200 w-fit">
       {/* Header (desktop view) */}
-      <div className="p-6 border-b border-gray-400">
+      <div className="hidden md:block p-6 border-b border-gray-400">
         <h1 className="text-xl font-semibold">{t.app_name}</h1>
       </div>
 
       <>
         {/* Mobile toggle button */}
-        <div className="lg:hidden p-4 bg-white shadow-md flex justify-between items-center">
-          <h1 className="text-lg font-bold text-blue-950">{t.app_name}</h1>
+        <div className="lg:hidden p-4 shadow-md flex justify-between items-center">
+          <h1 className="text-lg font-bold text-blue-950 hidden md:block ">
+            {t.app_name}
+          </h1>
           <button onClick={() => setOpen(!open)}>
             {open ? (
-              <X className="h-6 w-6 text-blue-950" />
+              <Menu className="h-6 w-6 text-blue-950" />
             ) : (
               <Menu className="h-6 w-6 text-blue-950" />
             )}
@@ -51,8 +72,17 @@ export function Sidebar() {
           `}
         >
           {/* Header */}
-          <div className="p-6 border-b border-gray-300">
+          <div className="p-6 border-b border-gray-300 flex justify-between">
             <h1 className="text-xl font-semibold">{t.app_name}</h1>
+            <div className="lg:hidden">
+              <button onClick={() => setOpen(!open)}>
+                {open ? (
+                  <Menu className="h-6 w-6 text-blue-950" />
+                ) : (
+                  <Menu className="h-6 w-6 text-blue-950" />
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Navigation */}
@@ -109,7 +139,7 @@ export function Sidebar() {
 
             <Button
               variant="ghost"
-              onClick={() => router.push("/")}
+              onClick={handleLogout}
               className="w-full cursor-pointer justify-start text-red-400 hover:text-red-300 hover:bg-slate-700"
             >
               <LogOut className="mr-3 h-4 w-4" />

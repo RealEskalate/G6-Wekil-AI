@@ -59,9 +59,7 @@ export default function LoginPage({
     }
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      onLoginComplete(email, password, rememberMe);
-      toast.success(t.loginSuccess);
+      await onLoginComplete(email, password, rememberMe);
     } catch (err) {
       console.log(err);
       setErrors({
@@ -77,11 +75,10 @@ export default function LoginPage({
     try {
       await signIn("google", {
         callbackUrl: "/dashboard",
-        keepAlive: rememberMe,
+        rememberMe, // pass the value correctly
       });
-      toast.success(t.loginSuccess);
     } catch (err) {
-      toast.error(`${t.loginFailed}: ${err}`);
+      toast.error(`Login Failed: ${err}`);
     }
   };
 

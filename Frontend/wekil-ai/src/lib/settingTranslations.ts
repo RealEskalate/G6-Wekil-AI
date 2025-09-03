@@ -15,9 +15,9 @@ export const settingTranslations = {
     signature: "Signature",
     profileDescription: "Manage your personal information and profile settings.",
     imageRequirements: "JPG, PNG or GIF. Max size 5MB.",
-    first_namePlaceholder: "John",
-    middle_namePlaceholder: "Michael",
-    last_namePlaceholder: "Smith",
+    first_namePlaceholder: "Abebe",
+    middle_namePlaceholder: "Kebede",
+    last_namePlaceholder: "Alemu",
     email: "Email",
     emailCannotBeChanged: "Email address cannot be changed",
     changePassword: "Change Password",
@@ -36,6 +36,7 @@ export const settingTranslations = {
     passwordsDoNotMatch: "New password and confirm password do not match",
     invalidFileType: "Please select an image file",
     fileSizeLimit: "Image size should be less than 5MB",
+    address: "Address",
 
     // Sections
     languageAndRegion: "Language & Region",
@@ -145,9 +146,9 @@ export const settingTranslations = {
     signature: "ፊርማ",
     profileDescription: "የግል መረጃዎን እና የመገለጫ ቅንብሮችን ያስተዳድሩ።",
     imageRequirements: "JPG, PNG ወይም GIF. ከፍተኛ መጠን 5MB.",
-    first_namePlaceholder: "ጆን",
-    middle_namePlaceholder: "ሚካኤል",
-    last_namePlaceholder: "ስሚት",
+    first_namePlaceholder: "አበበ",
+    middle_namePlaceholder: "ከበደ",
+    last_namePlaceholder: "አለሙ",
     email: "ኢሜይል",
     emailCannotBeChanged: "የኢሜይል አድራሻ ሊቀየር አይችልም",
     changePassword: "የፓስዎርድ ለውጥ",
@@ -166,6 +167,7 @@ export const settingTranslations = {
     passwordsDoNotMatch: "አዲሱ የይለፍ ቃል እና የማረጋገጫ የይለፍ ቃል አይዛመዱም።",
     invalidFileType: "እባክዎ የምስል ፋይል ይምረጡ",
     fileSizeLimit: "የምስሉ መጠን ከ 5MB በታች መሆን አለበት",
+    address: "አድራሻ",
 
     // Sections
     languageAndRegion: "ቋንቋ እና ክልል",

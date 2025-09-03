@@ -58,16 +58,16 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 	unverifiedUser.Password = infrastracture.NewPasswordService().Hashpassword(unverifiedUser.Password)
 
 	// Generate OTP
-	otp := infrastracture.GenerateOTP()
+	otp := infrastracture.NewOTPService().GenerateOTP()
 	unverifiedUser.OTP = otp
 	unverifiedUser.ExpiresAt = time.Now().Add(2 * time.Minute) // OTP valid 3 min
 	unverifiedUser.AccountType = domain.User
 
 	// Send OTP via email
-	infrastracture.SendOTP(unverifiedUser.Email, otp)
+	infrastracture.NewOTPService().SendOTP(unverifiedUser.Email, otp)
 
 	// Store in OTP collection
-	err := u.userUseCase.StoreUserInOTPColl(&unverifiedUser)
+	err := u.userUseCase.StoreUserInOTPColl(ctx,&unverifiedUser)
 
 	if err != nil {
 		parts := strings.SplitN(err.Error(), ":", 2)
@@ -118,6 +118,7 @@ func (u *UserController) ResendOTPHandler(ctx *gin.Context) {
 		"message": "OTP has been resent to your email.",
 	})
 }
+
 
 // VerfiyOTPRequest implements domain.IUserController.
 func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {

@@ -32,6 +32,7 @@ export default function HomePage() {
   const { lang } = useLanguage();
   const t = translations[lang];
   const { data: session, status } = useSession();
+  const accessToken = session?.user?.accessToken;
 
   const sectionRefs = {
     hero: useRef<HTMLElement>(null),
@@ -97,12 +98,12 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    if (session && status === "authenticated") {
+    if (accessToken && status === "authenticated") {
       setShowAuthModal(false);
       document.body.style.overflow = "unset";
       window.location.href = "/dashboard";
     }
-  }, [status, session]);
+  }, [status, accessToken]);
 
   const handleAuthComplete = async (
     email: string,

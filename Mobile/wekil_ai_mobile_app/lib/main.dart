@@ -1,20 +1,23 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
+import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
+import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/create_start_page.dart';
+import 'package:wekil_ai_mobile_app/Dashboard.dart';
+import 'package:wekil_ai_mobile_app/history.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(const MyApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+      home: CreateContractScreen(),
+      debugShowCheckedModeBanner: false, // Optional
     );
   }
 }

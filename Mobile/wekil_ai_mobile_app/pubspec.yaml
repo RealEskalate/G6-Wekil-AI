@@ -7,8 +7,12 @@ environment:
   sdk: ^3.8.1
 
 dependencies:
+  google_fonts: ^6.0.0
   flutter:
     sdk: flutter
+  intl: ^0.18.1
+  equatable: ^2.0.7
+  syncfusion_flutter_pdfviewer: ^30.2.7
 
 dev_dependencies:
   flutter_test:
@@ -17,3 +21,18 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/logo.jpg
+  fonts:
+    - family: NotoSansEthiopic
+      fonts:
+        - asset: assets/fonts/NotoSansEthiopic-Regular.ttf
+        - asset: assets/fonts/NotoSansEthiopic-Bold.ttf
+          weight: 700
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter_28pt-Regular.ttf
+        - asset: assets/fonts/Inter_28pt-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter_28pt-Bold.ttf
+          weight: 700

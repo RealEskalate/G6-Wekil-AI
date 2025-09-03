@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import DashboardCard from "@/components/dashboard/dashboardCard";
 import AgreementType from "@/components/dashboard/AgreementType";
 const Contracttype: ("service" | "loan" | "sale" | "nonDisclosure")[] = [
@@ -33,8 +33,20 @@ import { data1, data2, data3, data4 } from "@/types/Contracttype";
 import { DashBoardContract } from "@/components/dashboard/DashBoardContract";
 import Link from "next/link";
 import { Globe } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const Dashboard = () => {
+  const { data: session, status } = useSession();
+  const accessToken = session?.user?.accessToken;
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!accessToken && status === "unauthenticated") {
+      router.push("/");
+    }
+  }, [accessToken, router, status]);
+
   return (
     <div className="bg-gray-50 sm:pl-6 lg:pl-8 h-full">
       <div className="p-4 sm:p-6 lg:p-8 w-auto">

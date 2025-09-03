@@ -53,12 +53,13 @@ export const registerUser = createAsyncThunk<
     });
 
     const responseText = await response.text();
+    
 
     if (!response.ok) {
       let errorMessage = `HTTP error! status: ${response.status}`;
       try {
         const errorData = JSON.parse(responseText);
-        errorMessage = errorData.message || errorData.error || errorMessage;
+        errorMessage = errorData.data.error;
       } catch (e) {
         console.error('Error parsing error response JSON:', e);
         errorMessage = responseText || errorMessage;
@@ -101,7 +102,7 @@ export const loginUser = createAsyncThunk<
   }
 });
 
-// aLogout
+// Logout
 export const logoutUser = createAsyncThunk<void, void, { rejectValue: string }>(
   "auth/logout",
   async (_, { rejectWithValue, getState }) => {
@@ -134,6 +135,45 @@ export const logoutUser = createAsyncThunk<void, void, { rejectValue: string }>(
   }
 );
 
+export const changePassword = createAsyncThunk<
+  { data: { message: string }; success: boolean },
+  { old_password: string; new_password: string },
+  { rejectValue: string; state: { auth: AuthState } }
+>(
+  "auth/changePassword",
+  async ({ old_password, new_password }, { rejectWithValue, getState }) => {
+    try {
+      const state = getState();
+      const email = state.auth.user?.email;
+      const token = state.auth.user?.accessToken;
+
+      if (!email || !token) {
+        return rejectWithValue("User not authenticated");
+      }
+
+      const response = await fetch(`${API_URL}/api/users/change-password`, {
+        method: "POST", // or PUT if your backend expects it
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email,
+          old_password,
+          new_password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Failed to change password");
+
+      return data;
+    } catch (error: unknown) {
+      return rejectWithValue(error instanceof Error ? error.message : String(error));
+    }
+  }
+);
 
 
 // forgot Password
@@ -327,6 +367,24 @@ const authSlice = createSlice({
       state.error = action.payload || "Forgot password failed";
       state.success = false;
     });
+
+    // change password
+    builder.addCase(changePassword.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+      state.success = null;
+    });
+    builder.addCase(changePassword.fulfilled, (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.message = action.payload.data.message;
+    });
+    builder.addCase(changePassword.rejected, (state, action) => {
+      state.loading = false;
+      state.success = false;
+      state.error = action.payload || "Failed to change password";
+    });
+
 
     // Reset Password
     builder.addCase(resetPassword.pending, (state) => {

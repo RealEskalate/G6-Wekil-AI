@@ -16,12 +16,12 @@ import (
 )
 
 type UserUseCase struct {
-	userCollection    domainInterface.IIndividualRepository
+	userCollection           domainInterface.IIndividualRepository
 	unverifiedUserCollection domainInterface.IOTPRepository
-	auth              domainInterface.IAuthentication
-	userValidation	  domainInterface.IUserValidation
-	NotificationCollection domainInterface.INotification
-
+	auth                     domainInterface.IAuthentication
+	userValidation           domainInterface.IUserValidation
+	NotificationCollection   domainInterface.INotification
+	OTPSevice                domainInterface.IOTPService
 }
 
 // StoreUserInMainColl implements domain.IUserUseCase.
@@ -32,7 +32,7 @@ func (u *UserUseCase) StoreUserInMainColl(user *domain.UnverifiedUserDTO) (*doma
 }
 
 // StoreUserInOTPColl implements domain.IUserUseCase.
-func (u *UserUseCase) StoreUserInOTPColl(user *domain.UnverifiedUserDTO) error {
+func (u *UserUseCase) StoreUserInOTPColl(ctx context.Context,user *domain.UnverifiedUserDTO) error {
 	// 1. Check if user is already verified
 	_, errVerified := u.userCollection.FindByEmail(context.Background(), user.Email)
 	if errVerified == nil {
@@ -71,7 +71,7 @@ func (u *UserUseCase) ResendOTP(ctx context.Context, email string) error {
 	// Check if OTP is expired
 	if time.Now().After(user.ExpiresAt) {
 		// OTP expired → generate a new one
-		user.OTP = infrastracture.GenerateOTP()
+		user.OTP = u.OTPSevice.GenerateOTP()
 		user.ExpiresAt = time.Now().Add(2 * time.Minute) // Reset expiry time
 		err := u.unverifiedUserCollection.UpdateUnverifiedUser(ctx, user)
 		if err != nil {
@@ -82,7 +82,7 @@ func (u *UserUseCase) ResendOTP(ctx context.Context, email string) error {
 	}
 
 	// Resend OTP
-	return infrastracture.SendOTP(email, user.OTP)
+	return u.OTPSevice.SendOTP(email, user.OTP)
 }
 
 
@@ -112,24 +112,22 @@ func (u *UserUseCase) ValidOTPRequest(emailOtp *domain.EmailOTP) (*domain.Unveri
 
 
 // ReSendAccessToken implements domain.IUserUseCase.
-func (u *UserUseCase) ReSendAccessToken(jwtToken string) (string,string, error) {
+func (u *UserUseCase) ReSendAccessToken(jwtToken string) (string, string, error) {
 	userClaim, err := u.auth.ParseTokenToClaim(jwtToken)
 	if err != nil {
-		return "", "",err
+		return "", "", err
 	}
 	// if the tokentype isn't refreshToken then it is invalid token type
 	if userClaim.TokenType != domainInterface.RefreshToken {
-		return "","", fmt.Errorf("invalid token type")
+		return "", "", fmt.Errorf("invalid token type")
 	}
 	//? Even thoug the current User claim has the tokenType == refreshToken inside genereateToken it will be changed
 	accessTokenString, err := u.auth.GenerateToken(userClaim, domainInterface.AccessToken)
 	if err != nil {
-		return "","", err
+		return "", "", err
 	}
-	return accessTokenString,userClaim.AccountType, nil
+	return accessTokenString, userClaim.AccountType, nil
 }
-
-
 
 func (u *UserUseCase) SendResetOTP(ctx context.Context, email string) error {
 	user, err := u.userCollection.FindByEmail(ctx, email)
@@ -137,12 +135,12 @@ func (u *UserUseCase) SendResetOTP(ctx context.Context, email string) error {
 		return errors.New("user not found")
 	}
 
-	otp := infrastracture.GenerateOTP()
+	otp := u.OTPSevice.GenerateOTP()
 	if err := u.userCollection.UpdateResetOTP(ctx, email, otp); err != nil {
 		return err
 	}
 
-	return infrastracture.SendOTP(email, otp)
+	return u.OTPSevice.SendOTP(email, otp)
 }
 
 func (u *UserUseCase) ResetPassword(ctx context.Context, email, otp, newPassword string) error {
@@ -164,56 +162,54 @@ func (u *UserUseCase) ResetPassword(ctx context.Context, email, otp, newPassword
 func (a *UserUseCase) Login(email, password string) (string,string, string,error) {
 	user, err := a.userCollection.FindByEmail(context.Background(),email)
 	if err != nil {
-		return "", "","", errors.New("user not found")
+		return "", "", "", errors.New("user not found")
 	}
 
 	err = a.userValidation.ComparePassword(user.PasswordHash, password)
 	if err != nil {
-		return "", "","", errors.New("invalid password")
+		return "", "", "", errors.New("invalid password")
 	}
 	accessClaims := &domain.UserClaims{
-		UserID: user.ID.String(),
-		Email: user.Email,
-		IsVerified: true,
-		AccountType:user.AccountType,
-		TokenType: domainInterface.AccessToken,
-
+		UserID:      user.ID.String(),
+		Email:       user.Email,
+		IsVerified:  true,
+		AccountType: user.AccountType,
+		TokenType:   domainInterface.AccessToken,
 	}
 	accessToken, err := a.auth.GenerateToken(accessClaims, domainInterface.AccessToken)
-    if err != nil {
-        panic(err)
-    }
-	refreshClaims := &domain.UserClaims{
-		UserID: user.ID.String(),
-		Email: user.Email,
-		IsVerified: true,
-		AccountType:user.AccountType,
-		TokenType: domainInterface.AccessToken,
-
+	if err != nil {
+		panic(err)
 	}
-    // Generate Refresh Token
-    refreshToken, err := a.auth.GenerateToken(refreshClaims, domainInterface.RefreshToken)
-    if err != nil {
-        panic(err)
-    }
+	refreshClaims := &domain.UserClaims{
+		UserID:      user.ID.String(),
+		Email:       user.Email,
+		IsVerified:  true,
+		AccountType: user.AccountType,
+		TokenType:   domainInterface.AccessToken,
+	}
+	// Generate Refresh Token
+	refreshToken, err := a.auth.GenerateToken(refreshClaims, domainInterface.RefreshToken)
+	if err != nil {
+		panic(err)
+	}
 	updateUser := bson.M{
-    "refresh_token": refreshToken,
+		"refresh_token": refreshToken,
 	}
 	user.RefreshToken = refreshToken
-	err = a.userCollection.UpdateIndividual(context.Background(),user.ID,updateUser)
+	err = a.userCollection.UpdateIndividual(context.Background(), user.ID, updateUser)
 	if err != nil {
-		return "", "","", err
+		return "", "", "", err
 	}
-	
-	return accessToken,refreshToken, user.AccountType,nil
+
+	return accessToken, refreshToken, user.AccountType, nil
 }
 
 func (uuc *UserUseCase) Logout(ctx context.Context, userID string) error {
-    return uuc.userCollection.DeleteRefreshToken(ctx, userID)
+	return uuc.userCollection.DeleteRefreshToken(ctx, userID)
 }
 
 func (u *UserUseCase) GetProfile(ctx context.Context, email string) (*domain.Individual, error) {
-	
+
 	user, err := u.userCollection.FindByEmail(ctx, email)
 	if err != nil {
 		return nil, errors.New("user not found")
@@ -221,7 +217,6 @@ func (u *UserUseCase) GetProfile(ctx context.Context, email string) (*domain.Ind
 
 	return user, nil
 }
-
 
 func (u *UserUseCase) UpdateProfile(ctx context.Context, email string, updateReq *domain.UpdateProfileRequestDTO) error {
 	updateData := bson.M{}
@@ -287,12 +282,13 @@ func (u *UserUseCase) ChangePassword(ctx context.Context, email, oldPassword, ne
 
 
 
-func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository, notify domainInterface.INotification) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
+func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository, notify domainInterface.INotification,OtpService domainInterface.IOTPService) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
 	return &UserUseCase{
-		auth: AUTH,
-		userCollection: UserColl,
-		userValidation: userValid,
+		auth:                     AUTH,
+		userCollection:           UserColl,
+		userValidation:           userValid,
 		unverifiedUserCollection: unverifiedUserColl,
-		NotificationCollection: notify,
+		NotificationCollection:   notify,
+		OTPSevice:                OtpService,
 	}
 }

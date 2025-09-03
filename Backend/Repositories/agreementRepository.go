@@ -3,16 +3,75 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+const (
+	ITEM_PER_PAGE = 5
 )
 
 type AgreementRepository struct {
 	collection *mongo.Collection
+}
+
+// SoftDeleteAgreement implements domain.IAgreementRepo.
+func (a *AgreementRepository) SoftDeleteAgreement(ctx context.Context, agreementID primitive.ObjectID) error {
+	resAgree, err := a.GetAgreement(ctx, agreementID)
+	if err != nil {
+		return err
+	}
+	resAgree.DeletedAt = time.Now()
+	resAgree.IsDeleted = true
+	_, err = a.UpdateAgreement(ctx, resAgree.ID, resAgree)
+	return err
+}
+
+// GetAgreementsByPartyID implements domain.IAgreementRepo.
+func (a *AgreementRepository) GetAgreementsByPartyID(ctx context.Context, ownerID primitive.ObjectID, pageNumber int) ([]*domain.Agreement, error) {
+	pageSize := ITEM_PER_PAGE
+	skip := int64((pageNumber - 1) * pageSize)
+	limit := int64(pageSize)
+	filter := bson.D{
+		{Key: "$or", Value: bson.A{
+			bson.M{"creator_id": ownerID},
+			bson.M{"acceptor_id": ownerID},
+		}},
+	}
+
+	log.Println(" 👈 ", filter)
+	findOptions := options.Find().SetSkip(skip).SetLimit(limit).SetSort(bson.D{{Key: "updated_at", Value: -1}})
+	log.Println("✅ filtering finished")
+
+	cursor, err := a.collection.Find(ctx, filter, findOptions)
+	if err != nil {
+		return nil, fmt.Errorf("error getting filtered agreements: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var agreements []*domain.Agreement
+	for cursor.Next(ctx) {
+		var agreement domain.Agreement // Change target type to DTO for decoding
+		if err := cursor.Decode(&agreement); err != nil {
+			return nil, fmt.Errorf("error decoding filtered agreement: %w", err)
+		}
+		if !agreement.IsDeleted {
+			agreements = append(agreements, &agreement)
+		}
+	}
+
+	if err = cursor.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating through filtered agreement cursor: %w", err)
+	}
+	log.Println("✅ Returning from GetAgreementsByPartyID")
+	return agreements, nil
 }
 
 // GetAgreement implements domain.IAgreementRepo.
@@ -21,6 +80,9 @@ func (a *AgreementRepository) GetAgreement(ctx context.Context, agreementID prim
 	var singleAgreement domain.Agreement
 	if err := a.collection.FindOne(ctx, filter).Decode(&singleAgreement); err != nil {
 		return nil, err
+	}
+	if singleAgreement.IsDeleted{
+		return nil, fmt.Errorf("this agreement was deleted ✅")
 	}
 	return &singleAgreement, nil
 }

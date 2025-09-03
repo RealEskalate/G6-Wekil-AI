@@ -47,6 +47,7 @@ export const fetchProfile = createAsyncThunk<
   string,
   { rejectValue: string }
 >("profile/fetchProfile", async (accessToken, { rejectWithValue }) => {
+
   try {
     const response = await axios.get(`${API_URL}/api/users/profile`, {
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -72,35 +73,39 @@ export const fetchProfile = createAsyncThunk<
   }
 });
 
+
 // PUT update profile
 export const updateProfileApi = createAsyncThunk<
   { message: string },
   { accessToken: string; profileData: Partial<Person> },
   { rejectValue: string }
->("profile/updateProfileApi", async ({ accessToken, profileData }, { rejectWithValue }) => {
-  try {
-    // Map keys to backend format
-    const payload = {
-      first_name: profileData.first_name,
-      middle_name: profileData.middle_name,
-      last_name: profileData.last_name,
-      telephone: profileData.telephone,
-      address: profileData.address,
-      profile_image: profileData.profileImage,
-      signature: profileData.signature,
-    };
+>(
+  "profile/updateProfileApi",
+  async ({ accessToken, profileData }, { rejectWithValue }) => {
+    try {
+      const payload = {
+        first_name: profileData.first_name,
+        middle_name: profileData.middle_name,
+        last_name: profileData.last_name,
+        telephone: profileData.telephone,
+        address: profileData.address,
+        profile_image: profileData.profileImage,
+        signature: profileData.signature,
+      };
+      
+      console.log("Updating profile with payload:", payload);
+      
+      const response = await axios.put(`${API_URL}/api/users/profile`, payload, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
 
-    const response = await axios.put(`${API_URL}/api/users/profile`, payload, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-
-    return { message: response.data.message };
-  } catch (error: unknown) {
-    return rejectWithValue(getErrorMessage(error));
+      return { message: response.data.message };
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
+    }
   }
-});
+);
 
-// ------------------- Slice -------------------
 
 const profileSlice = createSlice({
   name: "profile",

@@ -3,15 +3,14 @@ import type { NextAuthOptions, Session, User } from "next-auth";
 import { JWT } from "next-auth/jwt";
 
 interface ExtendedJWT extends JWT {
-  accessToken?: string;
-  refreshToken?: string;
   account_type?: string;
+  rememberMe?: boolean;
   error?: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
-async function refreshBackendToken(token: ExtendedJWT): Promise<ExtendedJWT> {
+async function refreshBackendSession(token: ExtendedJWT): Promise<ExtendedJWT> {
   try {
     const res = await fetch(`${API_URL}/api/auth/refresh`, {
       method: "POST",
@@ -19,22 +18,13 @@ async function refreshBackendToken(token: ExtendedJWT): Promise<ExtendedJWT> {
       credentials: "include",
     });
 
-    if (!res.ok) throw new Error("Failed to refresh token");
-
-    const accessToken = res.headers.get("Authorization")?.replace("Bearer ", "");
-    const body = await res.json();
-    const account_type = body?.data?.account_type;
-
-    if (!accessToken) throw new Error("No access token returned from refresh");
-
-    return {
-      ...token,
-      accessToken,
-      account_type,
-      error: undefined,
-    };
+     if (!res.ok) {
+      console.warn("Refresh failed:", res.status, await res.text());
+      return { ...token, error: "RefreshTokenError" };
+    }
+    return { ...token, error: undefined };
   } catch (err) {
-    console.error("Error refreshing token:", err);
+    console.error("Error refreshing session:", err);
     return { ...token, error: "RefreshTokenError" };
   }
 }
@@ -46,6 +36,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        rememberMe: { label: "Remember Me", type: "checkbox" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
@@ -63,15 +54,20 @@ export const authOptions: NextAuthOptions = {
         if (!res.ok) throw new Error("Invalid credentials");
 
         const data = await res.json();
+        const account_type = data?.data?.account_type;
         const accessToken = res.headers.get("Authorization")?.replace("Bearer ", "");
-        const account_type = data?.data?.["account_ type"] || data?.data?.account_type;
 
         if (!accessToken) throw new Error("No access token returned");
 
         return {
-          accessToken,
           account_type,
-        } as User & { accessToken: string; account_type?: string };
+          rememberMe: credentials?.rememberMe === "true",
+          accessToken: accessToken, 
+        } as User & {
+          account_type?: string;
+          rememberMe?: boolean;
+          accessToken: string;
+        };
       },
     }),
   ],
@@ -87,20 +83,21 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token, user }: { token: ExtendedJWT; user?: User & { accessToken?: string; account_type?: string } }) {
+    async jwt({ token, user }: { token: ExtendedJWT; user?: User & { account_type?: string; rememberMe?: boolean; accessToken?: string } }) {
+      // On login
       if (user) {
         return {
           ...token,
-          accessToken: user.accessToken,
           account_type: user.account_type,
+          rememberMe: user.rememberMe,
+          accessToken: user.accessToken, 
           error: undefined,
         };
       }
 
-      if (token.accessTokenExpires && Date.now() > (token.accessTokenExpires as number)) {
-        return refreshBackendToken(token);
+      if (token.rememberMe && token.accessTokenExpires && Date.now() > token.accessTokenExpires) {
+        return await refreshBackendSession(token);
       }
-
 
       return token;
     },
@@ -110,8 +107,9 @@ export const authOptions: NextAuthOptions = {
         ...session,
         user: {
           ...session.user,
-          accessToken: token.accessToken,
           account_type: token.account_type,
+          rememberMe: token.rememberMe,
+          accessToken: token.accessToken, 
           error: token.error,
         },
       };
@@ -120,3 +118,4 @@ export const authOptions: NextAuthOptions = {
 
   secret: process.env.NEXTAUTH_SECRET,
 };
+

@@ -92,7 +92,6 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
     setIsSubmitting(true);
 
     try {
-      // Prepare data exactly as backend expects
       const formDataToSend = {
         first_name: individualForm.first_name,
         middle_name: individualForm.middle_name,

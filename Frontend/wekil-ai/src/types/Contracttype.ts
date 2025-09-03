@@ -29,6 +29,7 @@ export interface ContractFormat {
   late_fee_percent?: number;
 
   // Non-disclosure-specific fields
+  isMutual?: boolean;
   effectiveDate?: string; // ISO 8601 format
   confidentialityTerm?: number; // in years
   purpose?: string;

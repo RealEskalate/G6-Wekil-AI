@@ -2,13 +2,16 @@
 import { ContractFormat } from "@/types/Contracttype";
 import React from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 interface ServiceAgreementSpecificProps {
   contract: ContractFormat;
 }
+
 const ServiceAgreementSpecific: React.FC<ServiceAgreementSpecificProps> = ({
   contract,
 }) => {
   const [showMilestones, setShowMilestones] = React.useState(false);
+  const {lang} = useLanguage();
   return (
     <div className="w-full font-bold">
       <div className="p-4">
@@ -17,7 +20,7 @@ const ServiceAgreementSpecific: React.FC<ServiceAgreementSpecificProps> = ({
       </div>
       <div className="p-4">
         <div className="flex justify-between my-2 text-md text-blue-950">
-          <p className="">Milestones</p>
+          <p className="">{lang=='en'?'Milestones':'ዋና ዋና ደረጃዎች'} </p>
           <p className="">
             {!showMilestones ? (
               <button onClick={() => setShowMilestones(!showMilestones)}>
@@ -33,11 +36,11 @@ const ServiceAgreementSpecific: React.FC<ServiceAgreementSpecificProps> = ({
         {showMilestones ? (
           <div className=" m-8 border-gray-100 py-4 rounded-2xl flex justify-between">
             <p className="text-lg text-blue-950 font-bold inline">
-              Milestone Description
+              {lang=='en'?'Milestone Description':'የደረጃዎች መግለጫ'} 
             </p>
 
             <p className="text-lg text-blue-950 font-bold inline">
-              Deadline Date
+              {lang=='en'?'Deadline Date':'የማድረሻ ቀን'} 
             </p>
           </div>
         ) : null}
@@ -59,12 +62,12 @@ const ServiceAgreementSpecific: React.FC<ServiceAgreementSpecificProps> = ({
               );
             })
           ) : (
-            <p className="text-md inline mx-4">No milestones yet</p>
+            <p className="text-md inline mx-4">{lang=='en'?'No milestones yet':'ገና ምንም ዋና ደረጃዎች አልተጨመሩም'} </p>
           )
         ) : null}
       </div>
       <div className="p-4 mt-6">
-        <p className="my-2 text-md text-blue-950">Revisions</p>
+        <p className="my-2 text-md text-blue-950">{lang=='en'?'Revisions':'የማሻሻያ ብዛት'} </p>
         <p className="my-2 text-md text-blue-950">{contract.revisions}</p>
       </div>
     </div>

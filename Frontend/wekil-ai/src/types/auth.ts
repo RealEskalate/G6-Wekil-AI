@@ -18,6 +18,7 @@ export interface FormData {
   telephone: string;
   password: string;
   confirmPassword: string;
+  address: string;
 }
 
 export interface FormErrors {
@@ -28,6 +29,7 @@ export interface FormErrors {
   telephone?: string;
   password?: string;
   confirmPassword?: string;
+  address?:string;
   general?: string;
 }
 

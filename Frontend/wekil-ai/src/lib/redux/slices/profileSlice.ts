@@ -47,6 +47,7 @@ export const fetchProfile = createAsyncThunk<
   string,
   { rejectValue: string }
 >("profile/fetchProfile", async (accessToken, { rejectWithValue }) => {
+
   try {
     const response = await axios.get(`${API_URL}/api/users/profile`, {
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -91,7 +92,9 @@ export const updateProfileApi = createAsyncThunk<
         profile_image: profileData.profileImage,
         signature: profileData.signature,
       };
-
+      
+      console.log("Updating profile with payload:", payload);
+      
       const response = await axios.put(`${API_URL}/api/users/profile`, payload, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -103,7 +106,6 @@ export const updateProfileApi = createAsyncThunk<
   }
 );
 
-// ------------------- Slice -------------------
 
 const profileSlice = createSlice({
   name: "profile",

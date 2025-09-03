@@ -12,7 +12,7 @@ import { Input } from "../ui/Input";
 import { Label } from "../ui/Label";
 import { Button } from "../ui/Button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { User, Camera, Loader2, Lock, Upload, X } from "lucide-react";
+import { User, Camera, Loader2, Lock, Pencil } from "lucide-react";
 import toast from "react-hot-toast";
 import { settingTranslations } from "@/lib/settingTranslations";
 import { useLanguage } from "@/context/LanguageContext";
@@ -26,6 +26,7 @@ import {
 } from "@/lib/redux/slices/profileSlice";
 import { useSession } from "next-auth/react";
 import { changePassword } from "@/lib/redux/slices/authSlice";
+import { useRouter } from "next/navigation";
 
 export default function ProfileCard() {
   const profileState = useSelector((state: RootState) => state.profile);
@@ -35,7 +36,7 @@ export default function ProfileCard() {
     first_name: "",
     middle_name: "",
     last_name: "",
-    email: "user@example.com",
+    email: "",
     telephone: "",
     password: "",
     confirmPassword: "",
@@ -48,9 +49,12 @@ export default function ProfileCard() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const profileInputRef = useRef<HTMLInputElement>(null);
-  const signatureInputRef = useRef<HTMLInputElement>(null);
+  const [paths, setPaths] = useState<string[]>([]);
+  const [drawing, setDrawing] = useState(false);
+  const currentPath = useRef<string>("");
+  const router = useRouter();
 
   const { lang } = useLanguage();
   const t = settingTranslations[lang];
@@ -60,10 +64,11 @@ export default function ProfileCard() {
     if (accessToken) {
       dispatch(fetchProfile(accessToken));
     }
-  }, [accessToken, dispatch]);
+  }, [accessToken, dispatch, router, status]);
 
   useEffect(() => {
     if (profileState.user) {
+      console.log("Profile fetched from backend:", profileState.user);
       setProfileData({
         profilePicture: profileState.user.profileImage || "",
         signatureImage: profileState.user.signature || "",
@@ -79,6 +84,64 @@ export default function ProfileCard() {
     }
   }, [profileState.user]);
 
+  const getPoint = (
+    e:
+      | React.MouseEvent<SVGSVGElement, MouseEvent>
+      | React.TouchEvent<SVGSVGElement>
+  ) => {
+    if ("touches" in e && e.touches.length > 0) {
+      const rect = (e.target as SVGSVGElement).getBoundingClientRect();
+      const touch = e.touches[0];
+      return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+    } else if ("nativeEvent" in e) {
+      const mouseEvent = e.nativeEvent as MouseEvent;
+      return { x: mouseEvent.offsetX, y: mouseEvent.offsetY };
+    }
+    return { x: 0, y: 0 };
+  };
+
+  const handleDrawStart = (
+    e: React.MouseEvent<SVGSVGElement> | React.TouchEvent<SVGSVGElement>
+  ) => {
+    setDrawing(true);
+    const { x, y } = getPoint(e);
+    currentPath.current = `M ${x} ${y}`;
+  };
+
+  const handleDrawMove = (
+    e: React.MouseEvent<SVGSVGElement> | React.TouchEvent<SVGSVGElement>
+  ) => {
+    if (!drawing) return;
+    const { x, y } = getPoint(e);
+    currentPath.current += ` L ${x} ${y}`;
+    setPaths((prev) => [...prev.slice(0, -1), currentPath.current]);
+  };
+
+  const handleClearDrawing = () => {
+    setPaths([]);
+    currentPath.current = "";
+  };
+
+  const uploadSVG = async () => {
+    if (paths.length === 0) return "";
+    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="200">${paths
+      .map(
+        (d) => `<path d="${d}" stroke="black" stroke-width="2" fill="none"/>`
+      )
+      .join("")}</svg>`;
+    const blob = new Blob([svgContent], { type: "image/svg+xml" });
+    const file = new File([blob], "signature.svg", { type: "image/svg+xml" });
+    const url = await uploadToCloudinary(file);
+    return url;
+  };
+
+  const handleDrawEnd = () => {
+    if (!drawing) return;
+    setDrawing(false);
+    setPaths([...paths, currentPath.current]);
+    currentPath.current = "";
+  };
+
   const updateProfile = <K extends keyof FormData>(
     key: K,
     value: FormData[K]
@@ -88,16 +151,30 @@ export default function ProfileCard() {
 
   const uploadToCloudinary = async (file: File) => {
     setIsUploading(true);
+    // console.log("Uploading file:", file);
+    // console.log(
+    //   "Using preset:",
+    //   process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+    // );
+    // console.log(
+    //   "Using cloud name:",
+    //   process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+    // );
     const formData = new FormData();
+
     formData.append("file", file);
-    formData.append("upload_preset", `${process.env.CLOUDINARY_UPLOAD_PRESET}`);
+    formData.append(
+      "upload_preset",
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+    );
 
     try {
       const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
         { method: "POST", body: formData }
       );
       const data = await res.json();
+      console.log("Cloudinary response:", data);
       return data.secure_url;
     } catch (error) {
       toast.error("Failed to upload image");
@@ -151,6 +228,11 @@ export default function ProfileCard() {
     if (!accessToken) return toast.error("Not authenticated");
     setIsSavingProfile(true);
     try {
+      let signatureUrl = profileData.signatureImage;
+      if (!profileData.signatureImage && paths.length > 0) {
+        signatureUrl = await uploadSVG();
+      }
+
       const payload = {
         first_name: profileData.first_name,
         middle_name: profileData.middle_name,
@@ -158,8 +240,12 @@ export default function ProfileCard() {
         telephone: profileData.telephone,
         address: profileData.address,
         profile_image: profileData.profilePicture,
-        signature: profileData.signatureImage,
+        signature: signatureUrl,
       };
+
+      // console.log("Profile update payload:", payload);
+      // console.log("signature url:", signatureUrl);
+
       const result = await dispatch(
         updateProfileApi({ accessToken, profileData: payload })
       ).unwrap();
@@ -220,7 +306,7 @@ export default function ProfileCard() {
                 <AvatarImage
                   src={profileData.profilePicture}
                   alt={t.profilePicture}
-                  className="object-cover"
+                  className="w-full h-full object-cover rounded-full"
                 />
               ) : (
                 <AvatarFallback className="bg-blue-50 text-blue-600 text-2xl font-bold">
@@ -247,10 +333,10 @@ export default function ProfileCard() {
               <Button
                 size="sm"
                 variant="destructive"
-                className="absolute -top-2 -right-2 rounded-full p-1 h-6 w-6 shadow-md"
+                className="absolute -bottom-2 -right-2 z-50 rounded-full p-1 h-6 w-6 shadow-md cursor-pointer flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white"
                 onClick={() => removeImage("profilePicture")}
               >
-                <X className="w-3 h-3" />
+                <Pencil className="w-4 h-4 bottom-0 right-0" />
               </Button>
             )}
             <input
@@ -300,7 +386,7 @@ export default function ProfileCard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Email (readonly) */}
           <div className="space-y-2">
             <Label className="text-gray-700">{t.email}</Label>
@@ -322,6 +408,17 @@ export default function ProfileCard() {
               value={profileData.telephone}
               onChange={(e) => updateProfile("telephone", e.target.value)}
               placeholder="+251..."
+              className="border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+            />
+          </div>
+
+          {/* Address */}
+          <div className="space-y-2">
+            <Label className="text-gray-700">{t.address}</Label>
+            <Input
+              value={profileData.address}
+              onChange={(e) => updateProfile("address", e.target.value)}
+              placeholder="Enter your address"
               className="border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
             />
           </div>
@@ -372,60 +469,69 @@ export default function ProfileCard() {
           </div>
         </div>
 
-        {/* Signature Section */}
-        <div className="space-y-4 pt-4 border-t border-gray-100">
-          <Label className="flex items-center gap-2 text-blue-600 font-semibold">
-            <Upload className="w-4 h-4" /> {t.signature}
-          </Label>
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="relative border-2 border-dashed border-gray-300 rounded-lg w-full md:w-64 h-32 flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors">
-              {profileData.signatureImage ? (
-                <>
-                  <Image
-                    src={profileData.signatureImage}
-                    alt="Signature"
-                    className="max-h-28 max-w-full object-contain"
+        {/* Signature Drawing Section */}
+        <div className="relative border-2 border-dashed border-gray-300 rounded-lg w-full md:w-64 h-32 flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors">
+          {!profileData.signatureImage && (
+            <>
+              <p className="absolute top-1 left-1 text-gray-400 text-sm select-none pointer-events-none">
+                Draw your signature here
+              </p>
+              <svg
+                width="100%"
+                height="100%"
+                style={{ touchAction: "none", cursor: "crosshair" }}
+                onMouseDown={handleDrawStart}
+                onMouseMove={handleDrawMove}
+                onMouseUp={handleDrawEnd}
+                onMouseLeave={handleDrawEnd}
+                onTouchStart={handleDrawStart}
+                onTouchMove={handleDrawMove}
+                onTouchEnd={handleDrawEnd}
+              >
+                {paths.map((d, idx) => (
+                  <path
+                    key={idx}
+                    d={d}
+                    stroke="black"
+                    strokeWidth={2}
+                    fill="none"
                   />
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="absolute -top-2 -right-2 rounded-full p-1 h-6 w-6 shadow-md"
-                    onClick={() => removeImage("signatureImage")}
-                  >
-                    <X className="w-3 h-3" />
-                  </Button>
-                </>
-              ) : (
-                <div className="text-center p-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2 cursor-pointer"
-                    onClick={() => signatureInputRef.current?.click()}
-                    disabled={isUploading}
-                  >
-                    {isUploading ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                    ) : (
-                      <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                    )}
-                  </Button>
-                  <p className="text-sm text-gray-500">{t.uploadSignature}</p>
-                </div>
-              )}
-              <input
-                type="file"
-                ref={signatureInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={(e) => handleImageChange("signatureImage", e)}
+                ))}
+              </svg>
+            </>
+          )}
+
+          {profileData.signatureImage && (
+            <>
+              <Image
+                src={profileData.signatureImage}
+                alt="Signature"
+                fill
+                className="max-h-28 max-w-full object-contain"
               />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">{t.signatureRequirements}</p>
-            </div>
-          </div>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="absolute -bottom-2 -right-2 z-50 rounded-full p-1 h-6 w-6 shadow-md cursor-pointer flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white"
+                onClick={() => removeImage("signatureImage")}
+              >
+                <Pencil className="w-4 h-4 bottom-0 right-0" />
+              </Button>
+            </>
+          )}
         </div>
+        {!profileData.signatureImage && paths.length > 0 && (
+          <div className="flex justify-end mt-2">
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleClearDrawing}
+              className="bg-blue-600 cursor-pointer hover:bg-blue-700 text-white"
+            >
+              Clear
+            </Button>
+          </div>
+        )}
 
         {/* Save Profile Button */}
         <div className="flex justify-end pt-4 border-t border-gray-100">

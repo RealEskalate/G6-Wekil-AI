@@ -29,19 +29,17 @@ interface AvatarImageProps {
   src: string;
   alt?: string;
   className?: string;
-  width?: number;
-  height?: number;
 }
 
 const AvatarImage = React.forwardRef<HTMLDivElement, AvatarImageProps>(
-  ({ src, alt = "Avatar", className, width = 80, height = 80 }, ref) => (
+  ({ src, alt = "Avatar", className }, ref) => (
     <div ref={ref} className={cn("relative w-full h-full", className)}>
       <Image
         src={src}
         alt={alt}
-        width={width}
-        height={height}
-        className="object-cover rounded-full"
+        fill
+        style={{ objectFit: "cover" }}
+        className="rounded-full"
       />
     </div>
   )

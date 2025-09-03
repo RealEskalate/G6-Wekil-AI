@@ -5,10 +5,12 @@ const DashboardCard = ({
   title,
   children,
   type,
+  lang,
 }: {
   title: string;
   children: ReactNode;
   type: "create" | "view";
+  lang: "en" | "am";
 }) => {
   return (
     <div className="border w-9/10 bg-white  border-gray-200 shadow-md shadow-gray-200 hover:shadow-blue-200 rounded-3xl p-4 hover:shadow-xl cursor-pointer col-span-2 md:col-span-1">
@@ -26,12 +28,16 @@ const DashboardCard = ({
       {type === "view" ? (
         <div className="flex justify-center">
           <div className="border px-2 py-1 font-bold text-blue-600 border-blue-800 rounded-full">
-            3 Contracts
+            {`3 ${lang === "en" ? "contracts" : "ውሎች"}`}
           </div>
         </div>
       ) : (
-        <div className="border px-2 py-1 font-bold ml-16 text-blue-600 border-blue-800 rounded-full w-fit">
-          Free,AI powered agreements
+        <div className="flex justify-center">
+          <div className="border px-2 py-1 font-bold text-blue-600 border-blue-800 rounded-full w-fit">
+            {`${
+              lang === "en" ? "Free,AI powered agreements" : "ነጻ ፣ በAI የታገዙ ውሎች"
+            }`}
+          </div>
         </div>
       )}
     </div>

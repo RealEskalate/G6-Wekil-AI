@@ -6,47 +6,49 @@ export const contractTypes = {
     icon: (
       <Handshake className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all rounded-full text-blue-500 " />
     ),
-    title: { english: "Service Agreement", amharic: "የአገልግሎት ስምምነት" },
+    title: { en: "Service Agreement", am: "የአገልግሎት ስምምነት" },
     description: {
-      english: "For freelance work, consulting, and services",
-      amharic: "ለነጻ ስራ፣ አማካሪነት እና አገልግሎቶች",
+      en: "For freelance work, consulting, and services",
+      am: "ለነጻ ስራ፣ አማካሪነት እና አገልግሎቶች",
     },
   },
   sale: {
     icon: (
       <Banknote className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all rounded-full text-blue-500 " />
     ),
-    title: { english: "Sale of Goods", amharic: "የዕቃ ሽያጭ" },
+    title: { en: "Sale of Goods", am: "የዕቃ ሽያጭ" },
     description: {
-      english: "For buying and selling products or items",
-      amharic: "ምርቶችን ወይም እቃዎችን ለመግዛት እና ለመሸጥ",
+      en: "For buying and selling products or items",
+      am: "ምርቶችን ወይም እቃዎችን ለመግዛት እና ለመሸጥ",
     },
   },
   loan: {
     icon: (
       <ScrollText className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all rounded-full text-blue-500 " />
     ),
-    title: { english: "Simple Loan", amharic: "ቀለል ያለ ብድር" },
+    title: { en: "Simple Loan", am: "ቀለል ያለ ብድር" },
     description: {
-      english: "For personal loans between individuals",
-      amharic: "በግለሰቦች መካከል ለግል ብድር",
+      en: "For personal loans between individuals",
+      am: "በግለሰቦች መካከል ለግል ብድር",
     },
   },
   nonDisclosure: {
     icon: (
       <Shield className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all rounded-full text-blue-500 " />
     ),
-    title: { english: "Non-Disclosure Agreement", amharic: "የሚስጥር ጥበቃ ስምምነት" },
+    title: { en: "Non-Disclosure Agreement", am: "የሚስጥር ጥበቃ ስምምነት" },
     description: {
-      english: "To protect confidential information",
-      amharic: "ሚስጥራዊ መረጃን ለመጠበቅ",
+      en: "To protect confidential information",
+      am: "ሚስጥራዊ መረጃን ለመጠበቅ",
     },
   },
 };
 const AgreementType = ({
   type,
+  lang,
 }: {
   type: "service" | "loan" | "sale" | "nonDisclosure";
+  lang: "en" | "am";
 }) => {
   return (
     <div className="px-4 border col-span-4 md:col-span-2 lg:col-span-1 border-gray-100 cursor-pointer hover:shadow-lg hover:scale-105 hover:border hover:border-blue-300 transition-all duration-300 ease-in-out p-6 rounded-lg">
@@ -54,10 +56,10 @@ const AgreementType = ({
         {contractTypes[type].icon}
       </div>
       <p className="pl-3 mb-4 text-center text-lg font-bold text-gray-700">
-        {contractTypes[type].title.english}
+        {contractTypes[type].title[lang]}
       </p>
       <p className="pl-3 mb-4 text-md text-gray-500">
-        {contractTypes[type].description.english}
+        {contractTypes[type].description[lang]}
       </p>
     </div>
   );

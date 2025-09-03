@@ -32,6 +32,10 @@ class _CreateStep5State extends State<CreateStep5> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("ModifyDraft not available (backend not ready)")),
     );
+    print('this is partes one:\n${widget.intakeModel.parties[0].name}');
+    print('this is partes two:\n${widget.intakeModel.parties[1].name}');
+    print('Intake Data (local test):\n${widget.intakeModel}');
+    
     Navigator.pop(context, true);
     return;
   }
@@ -41,6 +45,7 @@ class _CreateStep5State extends State<CreateStep5> {
   try {
     await widget.modifyDraft!(widget.intakeModel, _changesController.text); // use !
     Navigator.pop(context, true);
+    // print('Intake Data after changes:\n${widget.intakeModel}'); // also log here
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Error: $e")),

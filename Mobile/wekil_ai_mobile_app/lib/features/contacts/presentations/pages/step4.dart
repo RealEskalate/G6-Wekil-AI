@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/entities/contract_type.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/create_step4.dart';
+import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step5.dart';
 import '../../../widget/progress_bar.dart';
 import '../../data/models/contact_data.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -23,7 +23,7 @@ class CreateStep3 extends StatefulWidget {
 
 class _CreateStep3State extends State<CreateStep3> {
   final _formKey = GlobalKey<FormState>();
-
+  late TextEditingController _locationController;
   late TextEditingController _amountController;
   late TextEditingController _startDateController;
   late TextEditingController _endDateController;
@@ -35,6 +35,9 @@ class _CreateStep3State extends State<CreateStep3> {
   void initState() {
     super.initState();
 
+    _locationController = TextEditingController(
+      text: widget.intake.location ?? '',
+    );
     _amountController = TextEditingController(
       text: widget.intake.totalAmount?.toString() ?? '',
     );
@@ -56,6 +59,7 @@ class _CreateStep3State extends State<CreateStep3> {
 
   @override
   void dispose() {
+    _locationController.dispose();
     _amountController.dispose();
     _startDateController.dispose();
     _endDateController.dispose();
@@ -63,7 +67,9 @@ class _CreateStep3State extends State<CreateStep3> {
   }
 
   Future<void> _selectDate(
-      BuildContext context, TextEditingController controller) async {
+    BuildContext context,
+    TextEditingController controller,
+  ) async {
     DateTime initialDate = DateTime.now();
     if (controller.text.isNotEmpty) {
       try {
@@ -115,16 +121,33 @@ class _CreateStep3State extends State<CreateStep3> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const SizedBox(height: 16),
+                      // Location
+                      Text("Location", style: AppTypography.body()),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _locationController,
+                        decoration: const InputDecoration(
+                          hintText: "Enter location",
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.location_on_outlined),
+                        ),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? "Required" : null,
+                      ),
+
                       // Currency
                       Text("Currency", style: AppTypography.body()),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
                         value: _selectedCurrency,
                         items: _currencies
-                            .map((c) =>
-                                DropdownMenuItem(value: c, child: Text(c)))
+                            .map(
+                              (c) => DropdownMenuItem(value: c, child: Text(c)),
+                            )
                             .toList(),
-                        onChanged: (val) => setState(() => _selectedCurrency = val),
+                        onChanged: (val) =>
+                            setState(() => _selectedCurrency = val),
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                         ),
@@ -192,7 +215,9 @@ class _CreateStep3State extends State<CreateStep3> {
                     label: const Text("Back"),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.textDark,
-                      side: BorderSide(color: AppColors.textDark.withOpacity(0.3)),
+                      side: BorderSide(
+                        color: AppColors.textDark.withOpacity(0.3),
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -206,13 +231,17 @@ class _CreateStep3State extends State<CreateStep3> {
                   ElevatedButton.icon(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
+                        widget.intake.location = _locationController.text;
                         widget.intake.currency = _selectedCurrency!;
-                        widget.intake.totalAmount =
-                            double.tryParse(_amountController.text);
-                        widget.intake.startDate =
-                            DateFormat('dd/MM/yyyy').parse(_startDateController.text);
-                        widget.intake.endDate =
-                            DateFormat('dd/MM/yyyy').parse(_endDateController.text);
+                        widget.intake.totalAmount = double.tryParse(
+                          _amountController.text,
+                        );
+                        widget.intake.startDate = DateFormat(
+                          'dd/MM/yyyy',
+                        ).parse(_startDateController.text);
+                        widget.intake.endDate = DateFormat(
+                          'dd/MM/yyyy',
+                        ).parse(_endDateController.text);
 
                         Navigator.push(
                           context,

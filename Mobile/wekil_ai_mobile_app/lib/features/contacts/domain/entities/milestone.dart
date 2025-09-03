@@ -1,10 +1,11 @@
 class Milestone {
-  String? description;
-  DateTime ?date;
+  String? description; // what the milestone is about
+  double? amount;      // optional amount associated with milestone
+  DateTime? dueDate;   // when it's due
 
   Milestone({
     this.description,
-    this.date,
+    this.amount,
+    this.dueDate,
   });
 }
-

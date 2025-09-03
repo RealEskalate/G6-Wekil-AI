@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/create_step3.dart';
+import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step4.dart';
 import '../../../widget/progress_bar.dart';
 import '../../data/models/contact_data.dart';
 import '../../domain/entities/contract_type.dart';
@@ -32,6 +32,13 @@ class _CreateStep2State extends State<CreateStep2> {
   late TextEditingController partyBPhoneController;
   late TextEditingController partyBEmailController;
 
+  bool isUserPartyA = true; // Default selection
+  final userProfile = Party(
+    name: "User Name",
+    phone: "+251912345678",
+    email: "user@example.com",
+  );
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +57,20 @@ class _CreateStep2State extends State<CreateStep2> {
     partyBNameController = TextEditingController(text: partyB.name);
     partyBPhoneController = TextEditingController(text: partyB.phone);
     partyBEmailController = TextEditingController(text: partyB.email);
+
+    _populateUserParty();
+  }
+
+  void _populateUserParty() {
+    if (isUserPartyA) {
+      partyANameController.text = userProfile.name;
+      partyAPhoneController.text = userProfile.phone!;
+      partyAEmailController.text = userProfile.email!;
+    } else {
+      partyBNameController.text = userProfile.name;
+      partyBPhoneController.text = userProfile.phone!;
+      partyBEmailController.text = userProfile.email!;
+    }
   }
 
   @override
@@ -63,8 +84,56 @@ class _CreateStep2State extends State<CreateStep2> {
     super.dispose();
   }
 
+  // ================================
+  // Helper function for dynamic labels
+  // ================================
+  Map<String, String> _getPartyLabels(ContractType type) {
+    switch (type) {
+      case ContractType.simpleLoan:
+        return {
+          "partyA": "Party A (Lender)",
+          "partyB": "Party B (Borrower)",
+        };
+      case ContractType.serviceAgreement:
+        return {
+          "partyA": "Party A (Service Provider)",
+          "partyB": "Party B (Client)",
+        };
+      case ContractType.salesOfGoods:
+        return {
+          "partyA": "Party A (Seller)",
+          "partyB": "Party B (Buyer)",
+        };
+      case ContractType.basicNDA:
+        return {
+          "partyA": "Party A (Disclosing Party)",
+          "partyB": "Party B (Receiving Party)",
+        };
+      default:
+        return {
+          "partyA": "Party A (First Party)",
+          "partyB": "Party B (Second Party)",
+        };
+    }
+  }
+
+  String _getContractTitle(ContractType type) {
+    switch (type) {
+      case ContractType.serviceAgreement:
+        return "Service Agreement";
+      case ContractType.simpleLoan:
+        return "Simple Loan (IOU)";
+      case ContractType.salesOfGoods:
+        return "Sale of Goods";
+      case ContractType.basicNDA:
+        return "Basic NDA";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final partyLabels = _getPartyLabels(widget.contractType);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -80,7 +149,7 @@ class _CreateStep2State extends State<CreateStep2> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Create ${_getContractTitle(widget.intake.contractType)}",
+                "Create ${_getContractTitle(widget.contractType)}",
                 style: AppTypography.heading().copyWith(fontSize: 20),
               ),
               const SizedBox(height: 4),
@@ -90,6 +159,39 @@ class _CreateStep2State extends State<CreateStep2> {
               ),
               const SizedBox(height: 20),
               const StepProgressBar(currentStep: 3, totalSteps: 7),
+              const SizedBox(height: 24),
+
+              // User Party Selection Toggle
+              Row(
+                children: [
+                  Expanded(
+                    child: RadioListTile<bool>(
+                      title: const Text("I am Party A"),
+                      value: true,
+                      groupValue: isUserPartyA,
+                      onChanged: (val) {
+                        setState(() {
+                          isUserPartyA = val!;
+                          _populateUserParty();
+                        });
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: RadioListTile<bool>(
+                      title: const Text("I am Party B"),
+                      value: false,
+                      groupValue: isUserPartyA,
+                      onChanged: (val) {
+                        setState(() {
+                          isUserPartyA = val!;
+                          _populateUserParty();
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 24),
 
               // Card container
@@ -118,17 +220,19 @@ class _CreateStep2State extends State<CreateStep2> {
                     ),
                     const SizedBox(height: 16),
                     _buildPartySection(
-                      "Party A (First Party)",
+                      partyLabels["partyA"]!,
                       partyANameController,
                       partyAPhoneController,
                       partyAEmailController,
+                      readOnly: isUserPartyA,
                     ),
                     const SizedBox(height: 16),
                     _buildPartySection(
-                      "Party B (Second Party)",
+                      partyLabels["partyB"]!,
                       partyBNameController,
                       partyBPhoneController,
                       partyBEmailController,
+                      readOnly: !isUserPartyA,
                     ),
                   ],
                 ),
@@ -210,8 +314,9 @@ class _CreateStep2State extends State<CreateStep2> {
     String title,
     TextEditingController nameController,
     TextEditingController phoneController,
-    TextEditingController emailController,
-  ) {
+    TextEditingController emailController, {
+    bool readOnly = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -223,10 +328,11 @@ class _CreateStep2State extends State<CreateStep2> {
         const SizedBox(height: 12),
         TextFormField(
           controller: nameController,
-          decoration: InputDecoration(
+          readOnly: readOnly,
+          decoration: const InputDecoration(
             labelText: "Full Name *",
             hintText: "e.g. John Doe",
-            border: const OutlineInputBorder(),
+            border: OutlineInputBorder(),
           ),
           validator: (value) =>
               value == null || value.isEmpty ? "Required" : null,
@@ -235,10 +341,11 @@ class _CreateStep2State extends State<CreateStep2> {
         const SizedBox(height: 12),
         TextFormField(
           controller: phoneController,
-          decoration: InputDecoration(
+          readOnly: readOnly,
+          decoration: const InputDecoration(
             labelText: "Phone Number *",
             hintText: "e.g. +251911123456",
-            border: const OutlineInputBorder(),
+            border: OutlineInputBorder(),
           ),
           validator: (value) =>
               value == null || value.isEmpty ? "Required" : null,
@@ -247,10 +354,11 @@ class _CreateStep2State extends State<CreateStep2> {
         const SizedBox(height: 12),
         TextFormField(
           controller: emailController,
-          decoration: InputDecoration(
+          readOnly: readOnly,
+          decoration: const InputDecoration(
             labelText: "Email Address *",
             hintText: "e.g. john@example.com",
-            border: const OutlineInputBorder(),
+            border: OutlineInputBorder(),
           ),
           validator: (value) =>
               value == null || value.isEmpty ? "Required" : null,
@@ -258,18 +366,5 @@ class _CreateStep2State extends State<CreateStep2> {
         ),
       ],
     );
-  }
-
-  String _getContractTitle(ContractType type) {
-    switch (type) {
-      case ContractType.serviceAgreement:
-        return "Service Agreement";
-      case ContractType.simpleLoan:
-        return "Simple Loan (IOU)";
-      case ContractType.salesOfGoods:
-        return "Sale of Goods";
-      case ContractType.basicNDA:
-        return "Basic NDA";
-    }
   }
 }

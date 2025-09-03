@@ -5,7 +5,7 @@ import '../entities/party.dart';
 import 'contract_type.dart';
 
 class Intake {
-  final ContractType contractType; // 👈 required to distinguish type
+  final ContractType contractType; // Required to distinguish type
 
   // Common fields
   final List<Party> parties;
@@ -18,7 +18,7 @@ class Intake {
 
   // Service-specific fields
   final String? services;
-  final List<Milestone>? milestones;
+  final List<Milestone>? milestones; // Milestones now have description, amount, dueDate
   final int? revisions;
 
   // Sale-specific fields
@@ -27,11 +27,17 @@ class Intake {
 
   // Loan-specific fields
   final double? principal;
-  final List<Installment>? installments;
+  final List<Installment>? installments; // Installments now have amount, dueDate, description
   final double? lateFeePercent;
 
+  // NDA-specific fields
+  final String? effectiveDate;
+  final int? confidentialityYears;
+  final String? purpose;
+  final bool? mutualConfidentiality;
+
   Intake({
-    required this.contractType, // 👈 must specify type
+    required this.contractType,
     required this.parties,
     required this.location,
     required this.currency,
@@ -47,25 +53,9 @@ class Intake {
     this.principal,
     this.installments,
     this.lateFeePercent,
+    this.effectiveDate,
+    this.confidentialityYears,
+    this.purpose,
+    this.mutualConfidentiality,
   });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

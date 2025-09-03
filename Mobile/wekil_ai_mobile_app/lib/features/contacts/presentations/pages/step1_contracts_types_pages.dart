@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/create_step1.dart';
+import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step2.dart';
 import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
 import 'package:wekil_ai_mobile_app/features/widget/progress_bar.dart';
 import '../../domain/entities/contract_type.dart';

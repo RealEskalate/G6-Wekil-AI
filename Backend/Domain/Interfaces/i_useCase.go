@@ -17,4 +17,6 @@ type IUserUseCase interface {
 	GetProfile(ctx context.Context, userID string) (*domain.Individual, error)
 	UpdateProfile(ctx context.Context, userID string, updateReq *domain.UpdateProfileRequestDTO) error
 	GetNotifications(userID string, page, limit int64) ([]domain.Notification, error)
+	ChangePassword(ctx context.Context, email, oldPassword, newPassword string) error
+	ResendOTP(ctx context.Context, email string) error
 }

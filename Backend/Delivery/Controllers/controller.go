@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
@@ -26,100 +28,170 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(&unverifiedUser); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"data": gin.H{
-				"error": err.Error(),
-			},
+			"code":    "BAD_REQUEST",
+			"message": err.Error(),
 		})
 		return
 	}
-	if !infrastracture.NewPasswordService().IsValidEmail(unverifiedUser.Email){
+
+	// Validate email format
+	if !infrastracture.NewPasswordService().IsValidEmail(unverifiedUser.Email) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"data": gin.H{
-				"error": "wrong email format",
-			},
+			"code":    "INVALID_EMAIL",
+			"message": "wrong email format",
 		})
 		return
 	}
-	if !infrastracture.NewPasswordService().IsStrongPassword(unverifiedUser.Password){
+
+	// Validate password strength
+	if !infrastracture.NewPasswordService().IsStrongPassword(unverifiedUser.Password) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"data": gin.H{
-				"error": "your password is not strong Enough",
-			},
+			"code":    "WEAK_PASSWORD",
+			"message": "your password is not strong enough",
 		})
 		return
 	}
-	
+
+	// Hash password
 	unverifiedUser.Password = infrastracture.NewPasswordService().Hashpassword(unverifiedUser.Password)
-	otp:= infrastracture.GenerateOTP()
-	unverifiedUser.OTP=otp
+
+	// Generate OTP
+	otp := infrastracture.GenerateOTP()
+	unverifiedUser.OTP = otp
+	unverifiedUser.ExpiresAt = time.Now().Add(2 * time.Minute) // OTP valid 3 min
 	unverifiedUser.AccountType = domain.User
-	infrastracture.SendOTP(unverifiedUser.Email,otp)
-	log.Print("=========",unverifiedUser)
+
+	// Send OTP via email
+	infrastracture.SendOTP(unverifiedUser.Email, otp)
+
+	// Store in OTP collection
 	err := u.userUseCase.StoreUserInOTPColl(&unverifiedUser)
+
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+		parts := strings.SplitN(err.Error(), ":", 2)
+		code := parts[0]
+		message := strings.TrimSpace(parts[1])
+
+		ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{
 			"success": false,
-			"data": gin.H{
-				"error": err.Error(),
-			},
+			"code":    code,
+			"message": message,
 		})
 		return
 	}
-	// send the otp using email
-	ctx.IndentedJSON(http.StatusCreated, gin.H{
+
+	// Success response
+	ctx.JSON(http.StatusCreated, gin.H{
 		"success": true,
-		"data": gin.H{
-			"message": "Otp has been sent. Please verify your email.",
-		},
+		"code":    "OTP_SENT",
+		"message": "OTP has been sent. Please verify your email.",
+	})
+}
+
+func (u *UserController) ResendOTPHandler(ctx *gin.Context) {
+	var req domain.ResendOTPRequestDTO
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"code":    "BAD_REQUEST",
+			"message": "Invalid input",
+		})
+		return
+	}
+
+	err := u.userUseCase.ResendOTP(ctx, req.Email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"code":    "SERVER_ERROR",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"code":    "OTP_RESENT",
+		"message": "OTP has been resent to your email.",
 	})
 }
 
 // VerfiyOTPRequest implements domain.IUserController.
 func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
 	var emailOTP domain.EmailOTP
+	
 	if err := ctx.ShouldBindJSON(&emailOTP); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"data": gin.H{
-				"error": err.Error(),
-			},
+			"code":    "BAD_REQUEST",
+			"message": err.Error(),
 		})
 		return
 	}
 
 	userInfo, err := u.userUseCase.ValidOTPRequest(&emailOTP)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{ // Changed to StatusBadRequest for invalid requests
+		// Extract error code from message (convention: CODE: msg)
+		parts := strings.SplitN(err.Error(), ":", 2)
+		code := parts[0]
+		message := strings.TrimSpace(parts[1])
+
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"success": false,
-			"data": gin.H{
-				"error": err.Error(),
-			},
+			"code":    code,
+			"message": message,
 		})
 		return
 	}
 
+	// Store user in main collection after verification
 	_, err = u.userUseCase.StoreUserInMainColl(userInfo)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,
-			"data": gin.H{
-				"error": err.Error(),
-			},
+			"code":    "SERVER_ERROR",
+			"message": err.Error(),
 		})
 		return
 	}
 	
-	ctx.IndentedJSON(http.StatusAccepted, gin.H{
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"code":    "OTP_VERIFIED",
+		"message": "Email successfully verified.",
+	})
+}
+
+
+
+func (uc *UserController) ChangePasswordHandler(ctx *gin.Context) {
+	var req domain.ChangePasswordRequestDTO
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "success": false})
+		return
+	}
+
+	email := ctx.GetString("email")
+	err := uc.userUseCase.ChangePassword(ctx, email, req.OldPassword, req.NewPassword)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "success": false})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
-			"message": "Email successfully verified.",
+			"message": "Password changed successfully",
 		},
 	})
 }
 
-// RefreshTokenHandler implements domain.IController.
+
+
 func (u *UserController) RefreshTokenHandler(ctx *gin.Context) {
 	// get refresh token from cookie
 	refreshToken, err := ctx.Cookie("WEKIL-API-REFRESH-TOKEN") //! don't forget to make the string in the cookie to a const

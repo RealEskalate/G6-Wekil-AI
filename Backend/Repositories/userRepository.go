@@ -40,6 +40,8 @@ func (r *UserRepository) CreateIndividual(ctx context.Context, individual *domai
 	return individual, nil
 }
 
+
+
 func (r *UserRepository) UpdateIndividual(ctx context.Context, UserID primitive.ObjectID, updates map[string]interface{}) error {
 
 	filter := bson.M{"_id": UserID}

@@ -21,6 +21,7 @@ type IIndividualRepository interface {
 	DeleteIndividual(ctx context.Context, individualID primitive.ObjectID) error
 	DeleteRefreshToken(ctx context.Context, userID string) error
 	UpdateProfile(ctx context.Context, email string, updateData map[string]interface{}) error
+	
 }
 type IOAuthUsecase interface {
 	HandleOAuthLogin(req *http.Request, res http.ResponseWriter) (*domain.Individual,string,string, error)
@@ -32,6 +33,7 @@ type IOTPRepository interface {
 	CreateUnverifiedUser(ctx context.Context, unverifiedUser *domain.UnverifiedUserDTO) (error)
 	GetByEmail(ctx context.Context, email string) (*domain.UnverifiedUserDTO, error)
 	DeleteByID(ctx context.Context, userID string) error
+	UpdateUnverifiedUser(ctx context.Context, user *domain.UnverifiedUserDTO) error
 }
 
 type IUserValidation interface {

@@ -29,6 +29,25 @@ func NewUnverifiedUserRepository(client *mongo.Client) domainInterface.IOTPRepos
 }
 
 
+// UpdateUnverifiedUser updates the details of an unverified user.
+func (r *OTPRepository) UpdateUnverifiedUser(ctx context.Context, user *domain.UnverifiedUserDTO) error {
+	if user == nil {
+		return errors.New("user is nil")
+	}
+
+	filter := bson.M{"_id": user.ID, "verified": false}
+	update := bson.M{"$set": user}
+
+	res, err := r.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update unverified user: %w", err)
+	}
+	if res.MatchedCount == 0 {
+		return errors.New("unverified user not found")
+	}
+	return nil
+}
+
 func (r *OTPRepository) CreateUnverifiedUser(ctx context.Context, unverifiedUser *domain.UnverifiedUserDTO) error {
 
 

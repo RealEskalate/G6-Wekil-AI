@@ -99,3 +99,11 @@ type Notification struct {
 	Message      string             `json:"message" bson:"message"` // e.g., "You have a request in your email"
 	AgreementID  primitive.ObjectID `json:"agreement_id" bson:"agreement_id"`
 }
+
+type ChangePasswordRequestDTO struct {
+	OldPassword string `json:"old_password" bson:"old_password" binding:"required,min=6,max=50"`
+	NewPassword string `json:"new_password" bson:"new_password" binding:"required,min=6,max=50"`
+}
+type ResendOTPRequestDTO struct {
+	Email string `json:"email" binding:"required,email"`
+}

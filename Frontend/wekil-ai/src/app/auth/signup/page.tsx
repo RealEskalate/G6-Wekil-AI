@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
-import { IndividualFormData, FormErrors } from "@/types/auth";
+import { SignupFormData, FormErrors } from "@/types/auth";
 import {
   validateEmail,
   validatePhone,
@@ -12,16 +12,22 @@ import {
 } from "@/utils/validation";
 import IndividualForm from "@/components/auth/IndividualForm";
 import VerifyEmail from "../verify-email/page";
+import toast from "react-hot-toast";
+import { useLanguage } from "@/context/LanguageContext";
+import { authTranslations } from "@/lib/authTranslations";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/redux/store";
+import { registerUser, clearState } from "@/lib/redux/slices/authSlice";
 
 interface SignupPageProps {
   onBackToLogin: () => void;
 }
 
 export default function SignupPage({ onBackToLogin }: SignupPageProps) {
-  const [individualForm, setIndividualForm] = useState<IndividualFormData>({
-    firstName: "",
-    lastName: "",
-    middleName: "",
+  const [individualForm, setIndividualForm] = useState<SignupFormData>({
+    first_name: "",
+    last_name: "",
+    middle_name: "",
     email: "",
     telephone: "",
     password: "",
@@ -32,8 +38,13 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
 
+  const { lang } = useLanguage();
+  const t = authTranslations[lang];
+  const dispatch = useDispatch<AppDispatch>();
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
     if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
@@ -43,53 +54,81 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!validateName(individualForm.firstName)) {
-      newErrors.firstName = "First name must be at least 2 letters";
-    }
-    if (!validateName(individualForm.middleName)) {
-      newErrors.middleName = "Middle name must be at least 2 letters";
-    }
-    if (!validateName(individualForm.lastName)) {
-      newErrors.lastName = "Last name must be at least 2 letters";
-    }
-    if (!validateEmail(individualForm.email)) {
-      newErrors.email = "Invalid email address";
-    }
-    if (!validatePhone(individualForm.telephone)) {
-      newErrors.telephone = "Invalid phone number";
-    }
-    if (!validatePassword(individualForm.password)) {
-      newErrors.password = "Password must be at least 8 characters";
-    }
+    if (!validateName(individualForm.first_name))
+      newErrors.first_name = t.first_nameError;
+
+    if (!validateName(individualForm.middle_name))
+      newErrors.middle_name = t.middle_nameError;
+
+    if (!validateName(individualForm.last_name))
+      newErrors.last_name = t.last_nameError;
+
+    if (!validateEmail(individualForm.email)) newErrors.email = t.emailError;
+
+    if (!validatePhone(individualForm.telephone))
+      newErrors.telephone = t.telephoneError;
+
+    const passwordError = validatePassword(individualForm.password);
+    if (passwordError) newErrors.password = passwordError;
+
     if (
       !validateConfirmPassword(
         individualForm.password,
         individualForm.confirmPassword
       )
-    ) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
+    )
+      newErrors.confirmPassword = t.confirmPasswordError;
 
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    try {
-      // Fake API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setShowVerifyModal(true); // 👈 show popup after success
-    } catch (error) {
-      setErrors({
-        general: `An error occurred during registration. Please try again. ${error}`,
-      });
-    } finally {
-      setIsSubmitting(false);
+
+    const formDataToSend = {
+      first_name: individualForm.first_name,
+      middle_name: individualForm.middle_name,
+      last_name: individualForm.last_name,
+      email: individualForm.email,
+      telephone: individualForm.telephone,
+      password: individualForm.password,
+      accountType: "user",
+    };
+
+    const resultAction = await dispatch(registerUser(formDataToSend));
+
+    if (registerUser.fulfilled.match(resultAction)) {
+      // success
+      toast.success(resultAction.payload.message);
+      setShowVerifyModal(true);
+      dispatch(clearState());
+    } else if (registerUser.rejected.match(resultAction)) {
+      // handle different error codes
+      const { code, message } = resultAction.payload || {
+        code: "ERROR",
+        message: "Registration failed",
+      };
+
+      switch (code) {
+        case "USER_UNVERIFIED":
+          toast.success(message);
+          setShowVerifyModal(true);
+          break;
+        case "USER_EXISTS":
+        case "UNKNOWN_ERROR":
+        default:
+          toast.error(message);
+          break;
+      }
     }
+
+    setIsSubmitting(false);
   };
 
   return (
@@ -101,13 +140,13 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-800">
-              Create Account
+              {t.createAccount}
             </h2>
             <button
               onClick={onBackToLogin}
               className="text-blue-600 cursor-pointer hover:text-blue-800 text-sm flex items-center"
             >
-              <FaArrowLeft className="mr-1" /> Back
+              <FaArrowLeft className="mr-1" /> {t.back}
             </button>
           </div>
 
@@ -121,7 +160,7 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <IndividualForm
-              formData={individualForm}
+              formData={{ ...individualForm }}
               errors={errors}
               onInputChange={handleInputChange}
             />
@@ -146,17 +185,17 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
                       r="10"
                       stroke="currentColor"
                       strokeWidth="4"
-                    ></circle>
+                    />
                     <path
                       className="opacity-75"
                       fill="currentColor"
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Processing...
+                  {t.processing}
                 </>
               ) : (
-                "Create Account"
+                t.createAccount
               )}
             </button>
           </form>

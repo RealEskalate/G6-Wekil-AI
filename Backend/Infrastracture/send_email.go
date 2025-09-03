@@ -5,11 +5,24 @@ import (
 	"os"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	"math/rand"
+	"time"
 )
 
-func SendOTP(toEmail, otp string) error {
-	from := mail.NewEmail("blogapp", os.Getenv("SENDER_EMAIL")) 
-	subject := "Verify your BlogApp account"
+type OTPService struct{
+}
+
+func NewOTPService()*OTPService{
+	return &OTPService{}
+}
+func (o *OTPService) GenerateOTP() string {
+	rand.Seed(time.Now().UnixNano())
+	return fmt.Sprintf("%06d", rand.Intn(1000000))
+}
+
+func (o *OTPService) SendOTP(toEmail, otp string) error {
+	from := mail.NewEmail("wekilai", os.Getenv("SENDER_EMAIL")) 
+	subject := "Verify your Wekilai account"
 	to := mail.NewEmail("", toEmail)
 
 	plainText := fmt.Sprintf("Your OTP is: %s", otp)

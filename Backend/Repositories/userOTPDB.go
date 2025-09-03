@@ -2,60 +2,70 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
+	"time"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
+	"wekil_ai/config"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	// "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type OTPRepository struct {
 	collection *mongo.Collection
-}
+} 
 
-func NewOTPRepository(client *mongo.Client) domainInterface.IOTPRepository {
-	dbName := "your_database_name"     // Replace with your database name
-	collectionName := "otp_collection" // Replace with your collection name
+func NewUnverifiedUserRepository(client *mongo.Client) domainInterface.IOTPRepository {
+	dbName :=  config.MONGODB     // Replace with your database name
+	collectionName := "Unverified User" // Replace with your collection name
 	coll := client.Database(dbName).Collection(collectionName)
-
+	indexModel := mongo.IndexModel{
+        Keys:    bson.M{"expires_at": 1},
+        Options: options.Index().SetExpireAfterSeconds(0), // delete exactly at expires_at
+    }
+    if _, err := coll.Indexes().CreateOne(context.Background(), indexModel); err != nil {
+        log.Fatal("failed to create TTL index:", err)
+    }
 	return &OTPRepository{
 		collection: coll,
 	}
 }
 
-func (r *OTPRepository) StoreOTP(ctx context.Context, otp *domain.UnverifiedUserDTO) (*domain.UnverifiedUserDTO, error) {
-	// Filter for the document you want to update (or create)
-	filter := bson.M{"email": otp.Email}
 
-	// Only set the specific fields you want to update or insert
-	update := bson.M{
-		"$set": bson.M{
-			"email":               otp.Email,
-			"password":            otp.Password,
-			"first_name":          otp.FirstName,
-			"last_name":           otp.LastName,
-			"middle_name":         otp.MiddleName,
-			"telephone":           otp.Telephone,
-			"account_type":        otp.AccountType,
-			"expires_at":          otp.ExpiresAt,
-		},
+// UpdateUnverifiedUser updates the details of an unverified user.
+func (r *OTPRepository) UpdateUnverifiedUser(ctx context.Context, user *domain.UnverifiedUserDTO) error {
+	if user == nil {
+		return errors.New("user is nil")
 	}
 
-	opts := options.Update().SetUpsert(true)
+	filter := bson.M{"_id": user.ID, "verified": false}
+	update := bson.M{"$set": user}
 
-	res, err := r.collection.UpdateOne(ctx, filter, update, opts)
+	res, err := r.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to update unverified user: %w", err)
+	}
+	if res.MatchedCount == 0 {
+		return errors.New("unverified user not found")
+	}
+	return nil
+}
+
+func (r *OTPRepository) CreateUnverifiedUser(ctx context.Context, unverifiedUser *domain.UnverifiedUserDTO) error {
+
+	unverifiedUser.ExpiresAt =time.Now().Add(15 * time.Minute)
+	_, err := r.collection.InsertOne(ctx, unverifiedUser)
+	if err != nil {
+		return err
 	}
 
-	// Check if a new document was inserted
-	if res.UpsertedID != nil {
-		otp.ID = res.UpsertedID.(primitive.ObjectID)
-	}
-
-	return otp, nil
+	return nil
 }
 
 func (r *OTPRepository) GetByEmail(ctx context.Context, email string) (*domain.UnverifiedUserDTO, error) {
@@ -63,13 +73,12 @@ func (r *OTPRepository) GetByEmail(ctx context.Context, email string) (*domain.U
 	err := r.collection.FindOne(ctx, bson.M{"email": email}).Decode(&entry)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, nil
+			return nil, errors.New("user does not exist")
 		}
 		return nil, fmt.Errorf("could not find OTP entry: %w", err)
 	}
 	return &entry, nil
 }
-
 
 func (r *OTPRepository) DeleteByID(ctx context.Context, userID string) error {
 	objectID, err := primitive.ObjectIDFromHex(userID)
@@ -82,4 +91,3 @@ func (r *OTPRepository) DeleteByID(ctx context.Context, userID string) error {
 	}
 	return nil
 }
-

@@ -8,4 +8,16 @@ type IUserController interface {
 	RegisterIndividualOnly(ctx *gin.Context)
 	SendResetOTP(ctx *gin.Context)
 	ResetPassword(ctx *gin.Context)
+	HandleLogin(ctx *gin.Context) 
+	SignInWithProvider(c *gin.Context) 
+	CallbackHandler(c *gin.Context)
+	Success(c *gin.Context)
+	Logout(ctx *gin.Context)
+	UpdateProfile(ctx *gin.Context)
+	GetProfile(ctx *gin.Context)
+	HandleNotifications(ctx *gin.Context)
+	ChangePasswordHandler(ctx *gin.Context)
+	ResendOTPHandler(ctx *gin.Context)
+	GetAllUsers(ctx *gin.Context)
+	
 }

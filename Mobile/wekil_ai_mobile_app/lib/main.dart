@@ -1,7 +1,16 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import 'core/di/injection.dart';
 import 'features/dashboard/presentation/dashboard.dart';
+
+import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
+import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
+import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/create_start_page.dart';
+import 'package:wekil_ai_mobile_app/Dashboard.dart';
+import 'package:wekil_ai_mobile_app/history.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,13 +24,15 @@ void main() async {
     tokenProvider: () async => token,
   );
   runApp(const MainApp());
+
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+
     final base = ThemeData(
       useMaterial3: true,
       colorSchemeSeed: const Color(0xFF10B981),
@@ -92,6 +103,7 @@ class MainApp extends StatelessWidget {
         ),
       },
       home: DashboardPage.provider(),
+
     );
   }
 }

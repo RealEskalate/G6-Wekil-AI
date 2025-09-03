@@ -34,8 +34,10 @@ class _CreateStep1State extends State<CreateStep1> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Title
+            
             Text(
               "Create ${_getContractTitle(widget.contractType)}",
+              
               style: AppTypography.heading().copyWith(fontSize: 20),
             ),
             const SizedBox(height: 4),
@@ -206,6 +208,7 @@ class _CreateStep1State extends State<CreateStep1> {
   }
 
   String _getContractTitle(ContractType type) {
+
     switch (type) {
       case ContractType.serviceAgreement:
         return "Service Agreement";

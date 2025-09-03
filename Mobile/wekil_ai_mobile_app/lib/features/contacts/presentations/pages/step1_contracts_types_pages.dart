@@ -92,6 +92,7 @@ class ContractsTypesPages extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => CreateStep1(contractType: type),
+            
           ),
         );
       },
@@ -198,6 +199,7 @@ class ContractsTypesPages extends StatelessWidget {
               color: AppColors.textDark.withOpacity(0.7),
             ),
           ],
+          
         ),
       ),
     );

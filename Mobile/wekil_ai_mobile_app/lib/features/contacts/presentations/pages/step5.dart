@@ -46,25 +46,25 @@ class CreateStep4 extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-  detailsKey.currentState?.saveToContractData();
+                  detailsKey.currentState?.saveToContractData();
 
-  final repository = ContractRepositoryImpl(ContractApi());
-  final generateDraft = GenerateDraft(repository);
-  final modifyDraft = ModifyDraft(repository);
+                  // final repository = ContractRepositoryImpl(ContractApi());
+                  // final generateDraft = GenerateDraft(repository);
+                  // final modifyDraft = ModifyDraft(repository);
 
-  final draftUrl = await generateDraft(intakeModel);
-
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => CreateStep5(
-        intakeModel: intakeModel,
-        draftContractPdfUrl: draftUrl,
-        modifyDraft: modifyDraft,
-      ),
-    ),
-  );
-},
+                  // final draftUrl = await generateDraft(intakeModel);
+                  final draftUrl = "https://example.com/fake-contract.pdf";
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CreateStep5(
+                        intakeModel: intakeModel,
+                        draftContractPdfUrl: draftUrl,
+                        modifyDraft: null,
+                      ),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: AppColors.textLight,

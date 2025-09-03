@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,7 +9,6 @@ import (
 
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
-	infrastracture "wekil_ai/Infrastracture"
 
 	"github.com/gin-gonic/gin"
 	"github.com/markbates/goth/gothic"
@@ -22,59 +22,26 @@ type UserController struct {
 
 // RegisterIndividual implements domain.IUserController.
 func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
-	var unverifiedUser domain.UnverifiedUserDTO
-	if err := ctx.ShouldBindJSON(&unverifiedUser); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"data": gin.H{
-				"error": err.Error(),
-			},
-		})
+	var userDTO domain.UnverifiedUserDTO
+	if err := ctx.ShouldBindJSON(&userDTO); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"success": false, "data": gin.H{"error": err.Error()}})
 		return
 	}
-	if !infrastracture.NewPasswordService().IsValidEmail(unverifiedUser.Email){
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"data": gin.H{
-				"error": "wrong email format",
-			},
-		})
-		return
-	}
-	if !infrastracture.NewPasswordService().IsStrongPassword(unverifiedUser.Password){
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"data": gin.H{
-				"error": "your password is not strong Enough",
-			},
-		})
-		return
-	}
-	
-	unverifiedUser.Password = infrastracture.NewPasswordService().Hashpassword(unverifiedUser.Password)
-	otp:= infrastracture.GenerateOTP()
-	unverifiedUser.OTP=otp
-	unverifiedUser.AccountType = domain.User
-	infrastracture.SendOTP(unverifiedUser.Email,otp)
-	log.Print("=========",unverifiedUser)
-	err := u.userUseCase.StoreUserInOTPColl(&unverifiedUser)
+
+	err := u.userUseCase.StoreUserInOTPColl(ctx.Request.Context(),&userDTO)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"data": gin.H{
-				"error": err.Error(),
-			},
-		})
+		var regErr *domain.RegistrationInProgressError
+		if errors.As(err, &regErr) {
+			ctx.JSON(http.StatusBadRequest, gin.H{"success": false, "data": gin.H{"error": regErr.Error(), "verified": regErr.Verified}})
+			return
+		}
+		ctx.JSON(http.StatusBadRequest, gin.H{"success": false, "data": gin.H{"error": err.Error()}})
 		return
 	}
-	// send the otp using email
-	ctx.IndentedJSON(http.StatusCreated, gin.H{
-		"success": true,
-		"data": gin.H{
-			"message": "Otp has been sent. Please verify your email.",
-		},
-	})
+
+	ctx.JSON(http.StatusCreated, gin.H{"success": true, "data": gin.H{"message": "OTP has been sent. Please verify your email."}})
 }
+
 
 // VerfiyOTPRequest implements domain.IUserController.
 func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {

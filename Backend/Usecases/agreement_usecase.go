@@ -14,6 +14,7 @@ type AgreementUseCase struct {
 	IntakeRepo    domainInter.IIntakeRepo
 	AgreementRepo domainInter.IAgreementRepo
 	PendingRepo   domainInter.IPendingAgreementRepo
+	AIInteraction domainInter.IAIInteraction
 }
 
 // SendAgreement implements domain.IAgreementUseCase.
@@ -89,12 +90,28 @@ func (a *AgreementUseCase) DeclineAgreement(agreementID primitive.ObjectID, user
 
 // GetAgreementByID implements domain.IAgreementUseCase.
 func (a *AgreementUseCase) GetAgreementByID(agreementID primitive.ObjectID) (*domain.Agreement, error) {
-	return a.AgreementRepo.GetAgreement(context.Background(), agreementID)
+	resAgree, err := a.AgreementRepo.GetAgreement(context.Background(), agreementID)
+	if err != nil{
+		return nil, err
+	}else if ! (resAgree.IsDeletedByAcceptor || resAgree.IsDeletedByCreator){
+		return nil, fmt.Errorf("trying to access deleted agreement")
+	}
+	return resAgree, nil
 }
 
 // GetAgreementsByUserID implements domain.IAgreementUseCase.
 func (a *AgreementUseCase) GetAgreementsByUserID(userID primitive.ObjectID, pageNumber int) ([]*domain.Agreement, error) {
-	return a.AgreementRepo.GetAgreementsByPartyID(context.Background(), userID, pageNumber)
+	listOfAgreement, err := a.AgreementRepo.GetAgreementsByPartyID(context.Background(), userID, pageNumber)
+	if err != nil {
+		return nil, err
+	}
+	undeletedAgreements := []*domain.Agreement{}
+	for _, agreement := range listOfAgreement {
+		if agreement.IsDeletedByAcceptor || agreement.IsDeletedByCreator {
+			undeletedAgreements = append(undeletedAgreements, agreement)
+		}
+	}
+	return undeletedAgreements, nil
 }
 
 // SignAgreement implements domain.IAgreementUseCase.
@@ -125,8 +142,10 @@ func (a *AgreementUseCase) SignAgreement(agreementID primitive.ObjectID, userID 
 }
 
 // SoftDeleteAgreement implements domain.IAgreementUseCase.
-func (a *AgreementUseCase) SoftDeleteAgreement(agreementID primitive.ObjectID) error {
-	return a.AgreementRepo.SoftDeleteAgreement(context.Background(), agreementID)
+func (a *AgreementUseCase) SoftDeleteAgreement(agreementID primitive.ObjectID, userID primitive.ObjectID) error {
+	_, err := a.AgreementRepo.SoftDeleteAgreement(context.Background(), agreementID, userID)
+	
+	return err
 }
 
 // UpdateAgreement implements domain.IAgreementUseCase.
@@ -134,11 +153,72 @@ func (a *AgreementUseCase) UpdateAgreement(agreementID primitive.ObjectID, newAg
 	return a.AgreementRepo.UpdateAgreement(context.Background(), agreementID, newAgreement)
 }
 
-func NewAgreementUseCase(intakeRepo domainInter.IIntakeRepo, agreementRepo domainInter.IAgreementRepo, pendingRepo domainInter.IPendingAgreementRepo) domainInter.IAgreementUseCase {
+// DuplicateAgreement duplicates an existing agreement, but for a different party.
+// It returns the new intake and the AI-generated draft to the frontend.
+func (a *AgreementUseCase) DuplicateAgreement(originalAgreementID primitive.ObjectID, newAcceptorEmail string, callerID primitive.ObjectID) (*domain.Intake, *domain.Draft, error) {
+	// 1. Get the original agreement and its associated intake.
+	originalAgreement, err := a.AgreementRepo.GetAgreement(context.Background(), originalAgreementID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// 2. Authorize the caller. Only the original Creator or Acceptor can duplicate.
+	if callerID != originalAgreement.CreatorID && callerID != originalAgreement.AcceptorID {
+		return nil, nil, fmt.Errorf("unauthorized access: only the original parties can duplicate this agreement")
+	}
+	
+	originalIntake, err := a.IntakeRepo.GetIntake(context.Background(), originalAgreement.IntakeID)
+	if err != nil {
+		return nil, nil, err
+	}
+	
+	// 3. Create a new intake object (a deep copy) and update the parties.
+	newIntake := *originalIntake // Shallow copy
+	if newIntake.Parties != nil {
+		newParties := make([]domain.Party, len(newIntake.Parties))
+		copy(newParties, newIntake.Parties) // Deep copy the slice
+
+		if len(newParties) >= 2 {
+			// A simple swap: the caller becomes the new creator (Party A),
+			// and the new acceptor becomes the new Party B.
+			originalCallerEmail := ""
+			// Find the caller's email from the original intake.
+			if callerID == originalAgreement.CreatorID {
+				// The creator's email might not be in the intake, but we need it for the AI prompt.
+				// This is a potential gap. Assuming you can get the creator's email from a UserRepo.
+				// For now, let's use the original party's email for the swap.
+				originalCallerEmail = newParties[0].Email
+			} else { // callerID == originalAgreement.AcceptorID
+				originalCallerEmail = newParties[1].Email
+			}
+			
+			// Simple party swap logic.
+			newParties[0].Email = newAcceptorEmail
+			newParties[1].Email = originalCallerEmail
+
+		} else if len(newParties) == 1 {
+			// If only one party, add the new acceptor as the second party.
+			newParties = append(newParties, domain.Party{Email: newAcceptorEmail})
+		}
+		newIntake.Parties = newParties
+	}
+
+	// 4. Call the AI to generate a new draft from the modified intake.
+	// We're using the AI's GenerateDocumentDraft function as it's designed for this.
+	newDraft, err := a.AIInteraction.GenerateDocumentDraft(context.Background(), &newIntake, "en")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// 5. Return the new intake and draft. The frontend will handle PDF creation and saving.
+	return &newIntake, newDraft, nil
+}
+func NewAgreementUseCase(intakeRepo domainInter.IIntakeRepo, agreementRepo domainInter.IAgreementRepo, pendingRepo domainInter.IPendingAgreementRepo, aiInteraction domainInter.IAIInteraction) domainInter.IAgreementUseCase {
 
 	return &AgreementUseCase{
 		IntakeRepo:    intakeRepo,
 		AgreementRepo: agreementRepo,
 		PendingRepo:   pendingRepo,
+		AIInteraction: aiInteraction,
 	}
 }

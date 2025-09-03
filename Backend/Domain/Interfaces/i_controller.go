@@ -15,5 +15,7 @@ type IUserController interface {
 	Logout(ctx *gin.Context)
 	UpdateProfile(ctx *gin.Context)
 	GetProfile(ctx *gin.Context)
-	HandleNotification(ctx *gin.Context)
+	HandleNotifications(ctx *gin.Context)
+	ChangePasswordHandler(ctx *gin.Context)
+	ResendOTPHandler(ctx *gin.Context)
 }

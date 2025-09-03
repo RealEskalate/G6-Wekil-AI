@@ -22,7 +22,9 @@ func Router(uc domain.IUserController, ai *controllers.AIController) {
 	
 	mainRouter.POST("/api/auth/refresh",uc.RefreshTokenHandler)
 	mainRouter.POST("/api/auth/verify-otp",uc.VerfiyOTPRequest)
+	mainRouter.POST("/api/auth/resend-otp",uc.ResendOTPHandler)
 	mainRouter.POST("/api/auth/forgot-password", uc.SendResetOTP)
+	mainRouter.POST("/api/auth/change-password",authMiddleware.JWTAuthMiddleware(), uc.ChangePasswordHandler)
 	mainRouter.POST("/api/auth/reset-password", uc.ResetPassword)
 	
 	mainRouter.POST("/api/auth/register",uc.RegisterIndividualOnly)
@@ -31,17 +33,20 @@ func Router(uc domain.IUserController, ai *controllers.AIController) {
 
 	mainRouter.PUT("/api/users/profile",authMiddleware.JWTAuthMiddleware(),uc.UpdateProfile)
 	mainRouter.GET("/api/users/profile",authMiddleware.JWTAuthMiddleware(),uc.GetProfile)
-	mainRouter.GET("/api/users/notification",authMiddleware.JWTAuthMiddleware(),uc.HandleNotification)
+	mainRouter.GET("/api/users/notification",authMiddleware.JWTAuthMiddleware(),uc.HandleNotifications)
   	mainRouter.GET("/auth/:provider",uc.SignInWithProvider )
 	mainRouter.GET("/auth/:provider/callback",uc.CallbackHandler )
 	mainRouter.GET("/success", uc.Success)
 		
 
 	aiRoutes := mainRouter.Group("/ai")
+	// aiRoutes.Use(authMiddleware.JWTAuthMiddleware())
 	{
 		aiRoutes.POST("/classify", ai.Classify)
 		aiRoutes.POST("/extract", ai.Extract)
 		aiRoutes.POST("/draft", ai.Draft)
+		aiRoutes.POST("/draft-from-prompt", ai.DraftFromPrompt)
+		aiRoutes.POST("/final-preview", ai.FinalPreview)
 	}
 	mainRouter.Run()
 }

@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	User       = "user"
-	AdminRole  = "admin"
+	User      = "user"
+	AdminRole = "admin"
 )
 
 // Individual represents a person's complete data model in the database.
@@ -31,8 +31,6 @@ type Individual struct {
 	UpdatedAt          time.Time          `json:"updated_at" bson:"updated_at"`
 	RefreshToken	   string			  `json:"refresh_token" bson:"refresh_token"`
 }
-
-
 
 // UpdateIndividualDTO now uses pointers and has no BSON tags.
 // the string being a pointer helps to use omitempty when editing a user's profile, meaning empty strings won't be saved as a name.
@@ -61,23 +59,22 @@ type UnverifiedUserDTO struct {
 	LastName           string             `json:"last_name" bson:"last_name"`
 	MiddleName         string             `json:"middle_name,omitempty" bson:"middle_name,omitempty"`
 	Telephone          string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
-	AccountType        string             `json:"accountType" bson:"account_type"`
+	AccountType        string             `json:"account_type" bson:"account_type"`
 	OTP                string             `json:"otp,omitempty" bson:"otp,omitempty"`
-	ExpiresAt          time.Time          `json:"expiresAt" bson:"expires_at"`
+	ExpiresAt          time.Time          `json:"expires_at" bson:"expires_at"`
 }
 type EmailOTP struct {
 	Email string `json:"email" bson:"email"`
 	OTP   string `json:"otp" bson:"otp"`
 }
-type LoginDTO struct{
-	Email string `json:"email" bson:"email"`
+type LoginDTO struct {
+	Email    string `json:"email" bson:"email"`
 	Password string `json:"password" bson:"password"`
 }
 
 type ForgotPasswordRequestDTO struct {
 	Email string `json:"email" binding:"required,email"`
 }
-
 
 type ResetPasswordRequestDTO struct {
 	Email       string `json:"email" binding:"required,email"`
@@ -90,15 +87,23 @@ type UpdateProfileRequestDTO struct {
 	LastName     *string `json:"last_name,omitempty" binding:"omitempty,min=1,max=50"`
 	MiddleName   *string `json:"middle_name,omitempty" binding:"omitempty,min=1,max=50"`
 	Address      *string `json:"address,omitempty" binding:"omitempty,min=1,max=100"`
-	Telephone    *string             `json:"telephone,omitempty" bson:"telephone,omitempty"`
+	Telephone    *string  `json:"telephone,omitempty" bson:"telephone,omitempty"`
 	Signature    *string `json:"signature,omitempty" binding:"omitempty"`
 	ProfileImage *string `json:"profile_image,omitempty" binding:"omitempty,url"`
 }
 
 type Notification struct {
-    UserID      primitive.ObjectID `json:"user_id,omitempty" bson:"user_id,omitempty"`
-    Title       string    `json:"title" bson:"title"`       // e.g., "New Document Request"
-    Message     string    `json:"message" bson:"message"`     // e.g., "You have a request in your email"
-	ArgumentID	primitive.ObjectID `json:"argumentid" bson:"argumentid"`
+	SenderID     primitive.ObjectID `json:"sender_id,omitempty" bson:"sender_id,omitempty"`
+	ReceiverID   primitive.ObjectID `json:"receiver_id,omitempty" bson:"receiver_id,omitempty"`
+	Title        string             `json:"title" bson:"title"`     // e.g., "New Document Request"
+	Message      string             `json:"message" bson:"message"` // e.g., "You have a request in your email"
+	AgreementID  primitive.ObjectID `json:"agreement_id" bson:"agreement_id"`
+}
 
-    }
+type ChangePasswordRequestDTO struct {
+	OldPassword string `json:"old_password" bson:"old_password" binding:"required,min=6,max=50"`
+	NewPassword string `json:"new_password" bson:"new_password" binding:"required,min=6,max=50"`
+}
+type ResendOTPRequestDTO struct {
+	Email string `json:"email" binding:"required,email"`
+}

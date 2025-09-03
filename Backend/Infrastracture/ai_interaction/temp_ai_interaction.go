@@ -275,7 +275,7 @@ func (ai *AIInteraction) ClassifyDeal(ctx context.Context, text string) (*domain
 func (ai *AIInteraction) GenerateDocumentDraft(ctx context.Context, intake *domain.Intake, language string) (*domain.Draft, error) {
 	// Marshal the intake object into a JSON string to be included in the prompt.
 	intakeJSON, err := json.MarshalIndent(intake, "", "  ")
-	fmt.Println("=> json: ", string(intakeJSON)) //! don't forget to delete
+	fmt.Println("=> json: ", string(intakeJSON)) //! remove in production
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal intake data to JSON: %w", err)
 	}
@@ -284,9 +284,25 @@ func (ai *AIInteraction) GenerateDocumentDraft(ctx context.Context, intake *doma
 	prompt := fmt.Sprintf(`
 		Fill this one-page template in simple %s language. Avoid legal jargon. Keep each section short (2–4 lines).
 		Include the agreement type in the draft: %s.
-		Always include this footer: 'This document is for information only and is not legal advice. Consult a qualified lawyer.'
-		Input JSON: <<%s>>
-		Output: sections as JSON: {title, sections:[{heading,text}], signatures:{partyA,partyB,place,date}}. Today is: %s`,
+
+		For all parties, do NOT use their actual names. Always use placeholders:
+		  - "<<Party A>>"
+		  - "<<Party B>>"
+		For signatures, always return placeholders:
+		  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
+
+		Always include this footer:
+		  "This document is for information only and is not legal advice. Consult a qualified lawyer."
+
+		Input JSON (sensitive fields ignored): <<%s>>
+
+		Output format:
+		{
+		  "title": "...",
+		  "sections": [{ "heading": "...", "text": "..." }],
+		  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
+		}
+		Today is: %s`,
 		language, intake.AgreementType, string(intakeJSON), time.Now().Format("2006-01-02"))
 
 	parts := []genai.Part{genai.Text(prompt)}
@@ -314,4 +330,70 @@ func (ai *AIInteraction) GenerateDocumentDraft(ctx context.Context, intake *doma
 	}
 
 	return &draft, nil
+}
+
+// GenerateDraftFromPrompt takes an initial Draft object + a custom prompt,
+// and uses the AI client to generate a filled Draft in the same format.
+func (ai *AIInteraction) GenerateDraftFromPrompt(ctx context.Context, draft *domain.Draft, promptText, language string) (*domain.Draft, error) {
+	// Marshal the provided draft (may be partial/empty) into JSON for context
+	draftJSON, err := json.MarshalIndent(draft, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal draft to JSON: %w", err)
+	}
+
+	// Build the AI prompt
+	prompt := fmt.Sprintf(`
+		Fill this one-page template in simple %s language. Avoid legal jargon. Keep each section short (2–4 lines).
+		You must follow these rules:
+
+		1. For all parties, do NOT use their actual names. Always use placeholders:
+		   - "<<Party A>>"
+		   - "<<Party B>>"
+
+		2. For signatures, always return placeholders:
+		   "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
+
+		3. Always include this footer in the last section:
+		   "This document is for information only and is not legal advice. Consult a qualified lawyer."
+
+		Input Draft JSON (may be partial): <<%s>>
+
+		User Prompt: %s
+
+		Output format:
+		{
+		  "title": "...",
+		  "sections": [{ "heading": "...", "text": "..." }],
+		  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
+		}
+
+		Today is: %s`,
+		language, string(draftJSON), promptText, time.Now().Format("2006-01-02"))
+
+	parts := []genai.Part{genai.Text(prompt)}
+
+	// Send request to AI
+	resp, err := ai.DocumentClient.GenerateContent(ctx, parts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate draft from prompt: %w", err)
+	}
+
+	// Validate response
+	if resp == nil || len(resp.Candidates) == 0 || resp.Candidates[0].Content == nil || len(resp.Candidates[0].Content.Parts) == 0 {
+		return nil, fmt.Errorf("received an empty draft response from the API")
+	}
+
+	// Extract text
+	jsonString, ok := resp.Candidates[0].Content.Parts[0].(genai.Text)
+	if !ok {
+		return nil, fmt.Errorf("draft response part is not of type genai.Text")
+	}
+
+	// Parse JSON into Draft struct
+	var result domain.Draft
+	if err := json.Unmarshal([]byte(strings.TrimSpace(string(jsonString))), &result); err != nil {
+		return nil, fmt.Errorf("error unmarshaling draft JSON: %w\nRaw JSON: %s", err, jsonString)
+	}
+
+	return &result, nil
 }

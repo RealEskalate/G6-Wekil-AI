@@ -10,6 +10,9 @@ import UsersTab from "@/components/admin/UsersTab";
 import { useLanguage } from "@/context/LanguageContext";
 import { adminTranslation } from "@/lib/adminTranslation";
 import { AnalyticsData, Contract, User } from "@/types/auth";
+import { useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -21,6 +24,24 @@ export default function AdminDashboard() {
 
   const { lang } = useLanguage();
   const t = adminTranslation[lang];
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    console.log("Session data:", session);
+    console.log("Session status:", status);
+    if (status === "unauthenticated") {
+      router.replace("/not-authorized");
+    }
+    if (status === "loading") {
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-gray-500 dark:text-gray-300">Loading...</p>
+      </div>;
+    }
+    if (!session || session.user?.account_type !== "admin") {
+      router.replace("/not-authorized");
+    }
+  }, [status, router, session]);
 
   // Mock data
   const mockUsers: User[] = useMemo(

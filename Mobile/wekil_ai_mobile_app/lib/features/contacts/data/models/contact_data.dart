@@ -4,10 +4,8 @@ import '../../domain/entities/contract_type.dart';
 import '../../domain/entities/good.dart';
 import '../../domain/entities/milestone.dart';
 
-
 class IntakeModel {
   final ContractType contractType;
-
 
   // Common fields
   final List<Party> parties;
@@ -20,7 +18,7 @@ class IntakeModel {
 
   // Service-specific fields
   String? services;
-  List<Milestone>? milestones;
+  List<Milestone>? milestones; // now includes amount, dueDate
   int? revisions;
 
   // Sale-specific fields
@@ -29,13 +27,14 @@ class IntakeModel {
 
   // Loan-specific fields
   double? principal;
-  List<Installment>? installments;
+  List<Installment>? installments; // now includes description
   double? lateFeePercent;
 
-  //NDA
+  // NDA-specific fields
   String? effectiveDate;
   int? confidentialityYears;
   String? purpose;
+  bool? mutualConfidentiality;
 
   IntakeModel({
     required this.contractType,
@@ -57,13 +56,12 @@ class IntakeModel {
     this.effectiveDate,
     this.confidentialityYears,
     this.purpose,
-    
+    this.mutualConfidentiality,
   });
 
   // ---------------------------
   // Type-safe helpers
   // ---------------------------
-
   bool get isServiceContract => contractType == ContractType.serviceAgreement;
   bool get isSaleContract => contractType == ContractType.salesOfGoods;
   bool get isLoanContract => contractType == ContractType.simpleLoan;
@@ -94,7 +92,8 @@ class IntakeModel {
           'effectiveDate': effectiveDate,
           'confidentialityYears': confidentialityYears,
           'purpose': purpose,
-        }; // No specific fields for NDA
+          'mutualConfidentiality': mutualConfidentiality,
+        };
     }
   }
 
@@ -112,7 +111,7 @@ class IntakeModel {
     }
   }
 
-  // CopyWith method (same as before)
+  // CopyWith method
   IntakeModel copyWith({
     ContractType? contractType,
     List<Party>? parties,
@@ -130,6 +129,10 @@ class IntakeModel {
     double? principal,
     List<Installment>? installments,
     double? lateFeePercent,
+    String? effectiveDate,
+    int? confidentialityYears,
+    String? purpose,
+    bool? mutualConfidentiality,
   }) {
     return IntakeModel(
       contractType: contractType ?? this.contractType,
@@ -148,6 +151,12 @@ class IntakeModel {
       principal: principal ?? this.principal,
       installments: installments ?? this.installments,
       lateFeePercent: lateFeePercent ?? this.lateFeePercent,
+      effectiveDate: effectiveDate ?? this.effectiveDate,
+      confidentialityYears: confidentialityYears ?? this.confidentialityYears,
+      purpose: purpose ?? this.purpose,
+      mutualConfidentiality: mutualConfidentiality ?? this.mutualConfidentiality,
     );
   }
+
+  Object? toJson() {}
 }

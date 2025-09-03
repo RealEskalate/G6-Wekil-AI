@@ -12,6 +12,7 @@ dependencies:
     sdk: flutter
   intl: ^0.18.1
   equatable: ^2.0.7
+  syncfusion_flutter_pdfviewer: ^30.2.7
 
 dev_dependencies:
   flutter_test:

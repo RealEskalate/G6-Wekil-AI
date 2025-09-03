@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
 import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/create_contracts_page.dart';
+import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/create_start_page.dart';
 import 'package:wekil_ai_mobile_app/Dashboard.dart';
 import 'package:wekil_ai_mobile_app/history.dart';
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/contracts_types_pages.dart';
+import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step1_contracts_types_pages.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../widget/nav_bar.dart';

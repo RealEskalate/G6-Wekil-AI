@@ -1,11 +1,12 @@
 import React from "react";
-import ContractLists from "./ContractLists";
+import ViewContract from "./ViewContract";
+import { data3 } from "@/types/Contracttype";
 
 const MyContracts = () => {
   return (
     <div>
-      {/* <ViewContract contract={data3} /> */}
-      <ContractLists />
+      <ViewContract contract={data3} />
+      {/* <ContractLists /> */}
     </div>
   );
 };

@@ -10,7 +10,7 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar stays fixed */}
-      <div className="hidden lg:block fixed h-full">
+      <div className="fixed h-full">
         <Sidebar />
       </div>
 

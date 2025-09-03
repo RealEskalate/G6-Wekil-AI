@@ -23,15 +23,28 @@ type AgreementRepository struct {
 }
 
 // SoftDeleteAgreement implements domain.IAgreementRepo.
-func (a *AgreementRepository) SoftDeleteAgreement(ctx context.Context, agreementID primitive.ObjectID) error {
+func (a *AgreementRepository) SoftDeleteAgreement(ctx context.Context, agreementID primitive.ObjectID, userID primitive.ObjectID) (*domain.Agreement, error) {
 	resAgree, err := a.GetAgreement(ctx, agreementID)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	resAgree.DeletedAt = time.Now()
-	resAgree.IsDeleted = true
-	_, err = a.UpdateAgreement(ctx, resAgree.ID, resAgree)
-	return err
+	// if unathorized user wants to delete it by mistake
+	if resAgree.CreatorID != userID && resAgree.AcceptorID != userID {
+		return nil, fmt.Errorf("unauthorized access")
+	}
+	
+	// one of the IsDeleted will become true when either party wants to delete their agreement
+	if resAgree.CreatorID == userID {
+		resAgree.IsDeletedByCreator = true
+	} else {
+		resAgree.IsDeletedByAcceptor = true
+	}
+	// if both parties want to delete the agreement then the deletedAt will have the time stamp of now
+	if resAgree.IsDeletedByAcceptor && resAgree.IsDeletedByCreator {
+		resAgree.DeletedAt = time.Now()
+	}
+		
+	return a.UpdateAgreement(ctx, resAgree.ID, resAgree)
 }
 
 // GetAgreementsByPartyID implements domain.IAgreementRepo.
@@ -62,9 +75,9 @@ func (a *AgreementRepository) GetAgreementsByPartyID(ctx context.Context, ownerI
 		if err := cursor.Decode(&agreement); err != nil {
 			return nil, fmt.Errorf("error decoding filtered agreement: %w", err)
 		}
-		if !agreement.IsDeleted {
-			agreements = append(agreements, &agreement)
-		}
+
+		agreements = append(agreements, &agreement)
+
 	}
 
 	if err = cursor.Err(); err != nil {
@@ -80,9 +93,6 @@ func (a *AgreementRepository) GetAgreement(ctx context.Context, agreementID prim
 	var singleAgreement domain.Agreement
 	if err := a.collection.FindOne(ctx, filter).Decode(&singleAgreement); err != nil {
 		return nil, err
-	}
-	if singleAgreement.IsDeleted{
-		return nil, fmt.Errorf("this agreement was deleted ✅")
 	}
 	return &singleAgreement, nil
 }
@@ -102,15 +112,16 @@ func (a *AgreementRepository) UpdateAgreement(ctx context.Context, agreementID p
 	// update := bson.M{"$set": updates}
 	filter := bson.M{"_id": agreementID}
 	updateMapping := bson.M{"$set": map[string]interface{}{
-		"acceptor_id": agreement.AcceptorID,
-		"created_at":  agreement.CreatedAt,
-		"deleted_at":  agreement.DeletedAt,
-		"creator_id":  agreement.CreatorID,
-		"intake_id":   agreement.IntakeID,
-		"is_deleted":  agreement.IsDeleted,
-		"pdf_url":     agreement.PDFURL,
-		"status":      agreement.Status,
-		"updated_at":  agreement.UpdatedAt,
+		"acceptor_id":            agreement.AcceptorID,
+		"created_at":             agreement.CreatedAt,
+		"deleted_at":             agreement.DeletedAt,
+		"creator_id":             agreement.CreatorID,
+		"intake_id":              agreement.IntakeID,
+		"is_deleted_by_creator":  agreement.IsDeletedByCreator,
+		"is_deleted_by_acceptor": agreement.IsDeletedByAcceptor,
+		"pdf_url":                agreement.PDFURL,
+		"status":                 agreement.Status,
+		"updated_at":             agreement.UpdatedAt,
 	},
 	}
 	updateResult, err := a.collection.UpdateOne(ctx, filter, updateMapping)

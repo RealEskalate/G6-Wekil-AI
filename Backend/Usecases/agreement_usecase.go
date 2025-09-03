@@ -89,12 +89,28 @@ func (a *AgreementUseCase) DeclineAgreement(agreementID primitive.ObjectID, user
 
 // GetAgreementByID implements domain.IAgreementUseCase.
 func (a *AgreementUseCase) GetAgreementByID(agreementID primitive.ObjectID) (*domain.Agreement, error) {
-	return a.AgreementRepo.GetAgreement(context.Background(), agreementID)
+	resAgree, err := a.AgreementRepo.GetAgreement(context.Background(), agreementID)
+	if err != nil{
+		return nil, err
+	}else if ! (resAgree.IsDeletedByAcceptor || resAgree.IsDeletedByCreator){
+		return nil, fmt.Errorf("trying to access deleted agreement")
+	}
+	return resAgree, nil
 }
 
 // GetAgreementsByUserID implements domain.IAgreementUseCase.
 func (a *AgreementUseCase) GetAgreementsByUserID(userID primitive.ObjectID, pageNumber int) ([]*domain.Agreement, error) {
-	return a.AgreementRepo.GetAgreementsByPartyID(context.Background(), userID, pageNumber)
+	listOfAgreement, err := a.AgreementRepo.GetAgreementsByPartyID(context.Background(), userID, pageNumber)
+	if err != nil {
+		return nil, err
+	}
+	undeletedAgreements := []*domain.Agreement{}
+	for _, agreement := range listOfAgreement {
+		if agreement.IsDeletedByAcceptor || agreement.IsDeletedByCreator {
+			undeletedAgreements = append(undeletedAgreements, agreement)
+		}
+	}
+	return undeletedAgreements, nil
 }
 
 // SignAgreement implements domain.IAgreementUseCase.
@@ -125,8 +141,10 @@ func (a *AgreementUseCase) SignAgreement(agreementID primitive.ObjectID, userID 
 }
 
 // SoftDeleteAgreement implements domain.IAgreementUseCase.
-func (a *AgreementUseCase) SoftDeleteAgreement(agreementID primitive.ObjectID) error {
-	return a.AgreementRepo.SoftDeleteAgreement(context.Background(), agreementID)
+func (a *AgreementUseCase) SoftDeleteAgreement(agreementID primitive.ObjectID, userID primitive.ObjectID) error {
+	_, err := a.AgreementRepo.SoftDeleteAgreement(context.Background(), agreementID, userID)
+	
+	return err
 }
 
 // UpdateAgreement implements domain.IAgreementUseCase.

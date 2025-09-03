@@ -136,41 +136,40 @@ export const logoutUser = createAsyncThunk<void, void, { rejectValue: string }>(
 );
 
 export const changePassword = createAsyncThunk<
-  { data: { message: string }; success: boolean },
-  { old_password: string; new_password: string },
+  { data?: { message: string }; success: boolean; error?: string },
+  { old_password: string; new_password: string, token: string },
   { rejectValue: string; state: { auth: AuthState } }
 >(
   "auth/changePassword",
-  async ({ old_password, new_password }, { rejectWithValue, getState }) => {
+  async ({ old_password, new_password, token }, { rejectWithValue }) => {
     try {
-      const state = getState();
-      const email = state.auth.user?.email;
-      const token = state.auth.user?.accessToken;
 
-      if (!email || !token) {
+      if (!token) {
         return rejectWithValue("User not authenticated");
       }
 
-      const response = await fetch(`${API_URL}/api/users/change-password`, {
-        method: "POST", // or PUT if your backend expects it
+      const response = await fetch(`${API_URL}/api/auth/change-password`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          email,
-          old_password,
-          new_password,
-        }),
+        body: JSON.stringify({ old_password, new_password }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.message || "Failed to change password");
+      if (!response.ok || data.success === false) {
+        const errorMsg =
+          data.error || data.data?.message || "Failed to change password";
+        return rejectWithValue(errorMsg);
+      }
 
-      return data;
+      return data as { data: { message: string }; success: boolean };
     } catch (error: unknown) {
-      return rejectWithValue(error instanceof Error ? error.message : String(error));
+      return rejectWithValue(
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 );
@@ -377,7 +376,7 @@ const authSlice = createSlice({
     builder.addCase(changePassword.fulfilled, (state, action) => {
       state.loading = false;
       state.success = true;
-      state.message = action.payload.data.message;
+      state.message = action.payload.data?.message || null;;
     });
     builder.addCase(changePassword.rejected, (state, action) => {
       state.loading = false;

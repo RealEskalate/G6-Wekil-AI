@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -18,8 +18,17 @@ import { settingTranslations } from "@/lib/settingTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 import type { FormData } from "@/types/auth";
 import Image from "next/image";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/lib/redux/store";
+import {
+  fetchProfile,
+  updateProfileApi,
+} from "@/lib/redux/slices/profileSlice";
+import { useSession } from "next-auth/react";
+import { changePassword } from "@/lib/redux/slices/authSlice";
 
 export default function ProfileCard() {
+  const profileState = useSelector((state: RootState) => state.profile);
   const [profileData, setProfileData] = useState<FormData>({
     profilePicture: "",
     signatureImage: "",
@@ -30,6 +39,7 @@ export default function ProfileCard() {
     telephone: "",
     password: "",
     confirmPassword: "",
+    address: "",
   });
 
   const [oldPassword, setOldPassword] = useState("");
@@ -37,12 +47,37 @@ export default function ProfileCard() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-
+  const dispatch = useDispatch<AppDispatch>();
+  const { data: session } = useSession();
   const profileInputRef = useRef<HTMLInputElement>(null);
   const signatureInputRef = useRef<HTMLInputElement>(null);
 
   const { lang } = useLanguage();
   const t = settingTranslations[lang];
+  const accessToken = session?.user?.accessToken;
+
+  useEffect(() => {
+    if (accessToken) {
+      dispatch(fetchProfile(accessToken));
+    }
+  }, [accessToken, dispatch]);
+
+  useEffect(() => {
+    if (profileState.user) {
+      setProfileData({
+        profilePicture: profileState.user.profileImage || "",
+        signatureImage: profileState.user.signature || "",
+        first_name: profileState.user.first_name || "",
+        middle_name: profileState.user.middle_name || "",
+        last_name: profileState.user.last_name || "",
+        email: profileState.user.email || "",
+        telephone: profileState.user.telephone || "",
+        password: "",
+        confirmPassword: "",
+        address: profileState.user.address || "",
+      });
+    }
+  }, [profileState.user]);
 
   const updateProfile = <K extends keyof FormData>(
     key: K,
@@ -55,11 +90,11 @@ export default function ProfileCard() {
     setIsUploading(true);
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "YOUR_CLOUDINARY_UPLOAD_PRESET"); // replace with your preset
+    formData.append("upload_preset", `${process.env.CLOUDINARY_UPLOAD_PRESET}`);
 
     try {
       const res = await fetch(
-        "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload",
+        `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
         { method: "POST", body: formData }
       );
       const data = await res.json();
@@ -80,19 +115,18 @@ export default function ProfileCard() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type and size
     if (!file.type.startsWith("image/")) {
       toast.error(t.invalidFileType);
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      // 5MB limit
       toast.error(t.fileSizeLimit);
       return;
     }
 
     const url = await uploadToCloudinary(file);
+    console.log("Uploaded URL:", url);
     if (url) {
       updateProfile(key, url);
       toast.success(
@@ -101,8 +135,6 @@ export default function ProfileCard() {
         }`
       );
     }
-
-    // Reset the input
     e.target.value = "";
   };
 
@@ -116,22 +148,28 @@ export default function ProfileCard() {
   };
 
   const handleSaveProfile = async () => {
+    if (!accessToken) return toast.error("Not authenticated");
     setIsSavingProfile(true);
     try {
-      const response = await fetch("/api/profile/update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profileData),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        toast.success(`${t.updateProfile} ${t.successfully}`);
-      } else {
-        toast.error(data.message || t.failedToUpdateProfile);
-      }
-    } catch (error) {
+      const payload = {
+        first_name: profileData.first_name,
+        middle_name: profileData.middle_name,
+        last_name: profileData.last_name,
+        telephone: profileData.telephone,
+        address: profileData.address,
+        profile_image: profileData.profilePicture,
+        signature: profileData.signatureImage,
+      };
+      const result = await dispatch(
+        updateProfileApi({ accessToken, profileData: payload })
+      ).unwrap();
+
+      toast.success(result.message);
+      // Refetch profile after update
+      dispatch(fetchProfile(accessToken));
+    } catch (error: unknown) {
+      console.log(error);
       toast.error(t.failedToUpdateProfile);
-      console.error(error);
     } finally {
       setIsSavingProfile(false);
     }
@@ -139,31 +177,26 @@ export default function ProfileCard() {
 
   const handleChangePassword = async () => {
     if (!oldPassword || !newPassword || !confirmPassword) {
-      toast.error(t.fillAllPasswordFields);
+      toast.error("Please fill all password fields");
       return;
     }
+
     if (newPassword !== confirmPassword) {
-      toast.error(t.passwordsDoNotMatch);
+      toast.error("Passwords do not match");
       return;
     }
+
     try {
-      const response = await fetch("/api/profile/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oldPassword, newPassword }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        toast.success(t.passwordChangedSuccessfully);
-        setOldPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-      } else {
-        toast.error(data.message || t.failedToChangePassword);
-      }
+      const result = await dispatch(
+        changePassword({ old_password: oldPassword, new_password: newPassword })
+      ).unwrap();
+      toast.success(result.data.message);
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
     } catch (error) {
-      toast.error(t.failedToChangePassword);
       console.error(error);
+      toast.error("Failed to change password");
     }
   };
 
@@ -339,6 +372,7 @@ export default function ProfileCard() {
           </div>
         </div>
 
+        {/* Signature Section */}
         <div className="space-y-4 pt-4 border-t border-gray-100">
           <Label className="flex items-center gap-2 text-blue-600 font-semibold">
             <Upload className="w-4 h-4" /> {t.signature}

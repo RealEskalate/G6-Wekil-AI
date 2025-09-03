@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Router(uc domain.IUserController, ai *controllers.AIController) {
+func Router(uc domain.IUserController, ai *controllers.AIController, ag domain.IAgreementController) {
 	mainRouter := gin.Default()
 		// Allow CORS from all origins
 	mainRouter.Use(cors.New(cors.Config{
@@ -45,6 +45,17 @@ func Router(uc domain.IUserController, ai *controllers.AIController) {
 		aiRoutes.POST("/draft", ai.Draft)
 		aiRoutes.POST("/draft-from-prompt", ai.DraftFromPrompt)
 		aiRoutes.POST("/final-preview", ai.FinalPreview)
+	}
+
+	agreementRoutes := mainRouter.Group("/agreement")
+	// agreement.Use(authMiddleware.JWTAuthMiddleware())
+	{
+		agreementRoutes.POST("/create", ag.CreateAgreement)
+		agreementRoutes.DELETE("", ag.DeleteAgreement)
+		agreementRoutes.POST("/duplicate", ag.DuplicateAgreement)
+		agreementRoutes.GET("", ag.GetAgreementByID)
+		agreementRoutes.GET("", ag.GetAgreementByUserID)
+		agreementRoutes.POST("", ag.SaveAgreement)
 	}
 	mainRouter.Run()
 }

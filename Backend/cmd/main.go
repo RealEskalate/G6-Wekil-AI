@@ -44,5 +44,11 @@ func main() {
 
 	oAuthusecase := usecases.NewOAuthUsecase(userRepo,auth)
 	userController := controllers.NewUserController(userUsecase,oAuthusecase)
-  routers.Router(userController, aiController)
+
+	pendingRepo := repository.NewPendingAgreementRepository(mongoClient.Client,config.MONGODB,"pending")
+	intakeRepo := repository.NewIntakeRepository(mongoClient.Client,config.MONGODB,"intake")
+	agreementRepo := repository.NewAgreementRepository(mongoClient.Client,config.MONGODB,"agreement")
+	agreementUsecase := usecases.NewAgreementUseCase(intakeRepo, agreementRepo, pendingRepo,aiInfra)
+	agreementController := controllers.NewAgreementController(agreementUsecase)
+    routers.Router(userController, aiController, agreementController)
 }

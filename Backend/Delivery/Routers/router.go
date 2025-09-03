@@ -1,7 +1,6 @@
 package routers
 
 import (
-	controllers "wekil_ai/Delivery/Controllers"
 	domain "wekil_ai/Domain/Interfaces"
 	infrastracture "wekil_ai/Infrastracture"
 	"wekil_ai/config"
@@ -9,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Router(uc domain.IUserController, ai *controllers.AIController, ag domain.IAgreementController) {
+func Router(uc domain.IUserController, ai domain.IAIController, ag domain.IAgreementController) {
 	mainRouter := gin.Default()
 		// Allow CORS from all origins
 	mainRouter.Use(cors.New(cors.Config{

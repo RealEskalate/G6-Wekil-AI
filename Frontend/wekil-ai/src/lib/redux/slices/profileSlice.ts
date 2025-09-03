@@ -22,6 +22,7 @@ interface ProfileState {
   loading: boolean;
   error: string | null;
   message: string | null;
+  loaded: boolean;
 }
 
 const initialState: ProfileState = {
@@ -29,6 +30,7 @@ const initialState: ProfileState = {
   loading: false,
   error: null,
   message: null,
+  loaded: false,
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -47,12 +49,14 @@ export const fetchProfile = createAsyncThunk<
   string,
   { rejectValue: string }
 >("profile/fetchProfile", async (accessToken, { rejectWithValue }) => {
+  console.log("Fetching profile with access token:", accessToken);
 
   try {
     const response = await axios.get(`${API_URL}/api/users/profile`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     const data = response.data.data;
+    console.log("Fetched profile data:", data);
     return {
       id: data.id,
       email: data.email,
@@ -130,6 +134,7 @@ const profileSlice = createSlice({
     builder.addCase(fetchProfile.fulfilled, (state, action) => {
       state.loading = false;
       state.user = action.payload;
+      state.loaded = true;
     });
     builder.addCase(fetchProfile.rejected, (state, action) => {
       state.loading = false;

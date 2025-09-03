@@ -28,15 +28,13 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log("Session data:", session);
-    console.log("Session status:", status);
-    if (status === "unauthenticated") {
-      router.replace("/not-authorized");
-    }
     if (status === "loading") {
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-gray-500 dark:text-gray-300">Loading...</p>
       </div>;
+    }
+    if (status === "unauthenticated") {
+      router.replace("/not-authorized");
     }
     if (!session || session.user?.account_type !== "admin") {
       router.replace("/not-authorized");

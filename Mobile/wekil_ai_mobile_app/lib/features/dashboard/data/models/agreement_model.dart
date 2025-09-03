@@ -177,22 +177,15 @@ class AgreementModel {
 
   static List<Agreement> listFromJsonString(String body) {
     final decoded = json.decode(body);
+    Iterable<Map<String, dynamic>> rawList = const [];
     if (decoded is List) {
-      return decoded
-          .map(
-            (e) =>
-                AgreementModel.fromJson(e as Map<String, dynamic>).toEntity(),
-          )
-          .toList();
+      rawList = decoded.cast<Map<String, dynamic>>();
+    } else if (decoded is Map<String, dynamic> && decoded['data'] is List) {
+      rawList = (decoded['data'] as List).cast<Map<String, dynamic>>();
     }
-    if (decoded is Map<String, dynamic> && decoded['data'] is List) {
-      return (decoded['data'] as List)
-          .map(
-            (e) =>
-                AgreementModel.fromJson(e as Map<String, dynamic>).toEntity(),
-          )
-          .toList();
-    }
-    return const [];
+    final models = rawList
+        .map((e) => AgreementModel.fromJson(e))
+        .where((m) => (m.id).trim().isNotEmpty);
+    return models.map((m) => m.toEntity()).toList(growable: false);
   }
 }

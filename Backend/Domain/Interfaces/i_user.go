@@ -21,6 +21,7 @@ type IIndividualRepository interface {
 	DeleteIndividual(ctx context.Context, individualID primitive.ObjectID) error
 	DeleteRefreshToken(ctx context.Context, userID string) error
 	UpdateProfile(ctx context.Context, email string, updateData map[string]interface{}) error
+	FindAll(ctx context.Context, page, limit int64, sort string) ([]domain.Individual, int64, error)
 	
 }
 type IOAuthUsecase interface {

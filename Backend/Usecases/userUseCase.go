@@ -294,6 +294,13 @@ func (u *UserUseCase) ChangePassword(ctx context.Context, email, oldPassword, ne
 }
 
 
+func (u *UserUseCase) GetAllUsers(ctx context.Context, page, limit int64, sort string) ([]domain.Individual, int64, error) {
+	users, totalUsers, err := u.userCollection.FindAll(ctx, page, limit, sort)
+	if err != nil {
+		return nil, 0, err
+	}
+	return users, totalUsers, nil
+}
 
 func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository, notify domainInterface.INotification,OtpService domainInterface.IOTPService) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
 	return &UserUseCase{

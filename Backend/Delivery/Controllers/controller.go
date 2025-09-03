@@ -452,7 +452,33 @@ func (uc *UserController) HandleNotifications(ctx *gin.Context) {
 	})
 }
 
+func (uc *UserController) GetAllUsers(ctx *gin.Context) {
+	// Read query params for pagination and sorting
+	pageStr := ctx.DefaultQuery("page", "1")
+	limitStr := ctx.DefaultQuery("limit", "10")
+	sort := ctx.DefaultQuery("sort", "asc")
 
+	page, _ := strconv.ParseInt(pageStr, 10, 64)
+	limit, _ := strconv.ParseInt(limitStr, 10, 64)
+
+	// Fetch users and total count
+	users, totalUsers, err := uc.userUseCase.GetAllUsers(ctx, page, limit, sort)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"success": false,
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success":    true,
+		"page":       page,
+		"limit":      limit,
+		"totalUsers": totalUsers,
+		"data":       users,
+	})
+}
 
 func NewUserController(userUseCase_ domainInterface.IUserUseCase,OAuthUsecase domainInterface.IOAuthUsecase) domainInterface.IUserController {
 	return &UserController{

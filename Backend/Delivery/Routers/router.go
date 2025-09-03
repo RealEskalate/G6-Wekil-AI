@@ -48,6 +48,18 @@ func Router(uc domain.IUserController, ai *controllers.AIController) {
 		aiRoutes.POST("/draft-from-prompt", ai.DraftFromPrompt)
 		aiRoutes.POST("/final-preview", ai.FinalPreview)
 	}
+
+	adminRoutes := mainRouter.Group("api/admin")
+
+	adminRoutes.Use(authMiddleware.JWTAuthMiddleware())
+	{
+		adminRoutes.GET("/users", uc.GetAllUsers)
+		// adminRoutes.GET("/agreements", uc.GetAllAgreements)
+
+		// adminRoutes.GET("/users/:id", uc.GetUserByID)
+		// adminRoutes.GET("/agreements/:id", uc.GetAgreement)
+	}
 	mainRouter.Run()
+
 }
 

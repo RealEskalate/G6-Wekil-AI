@@ -50,11 +50,12 @@ func Router(uc domain.IUserController, ai domain.IAIController, ag domain.IAgree
 	// agreement.Use(authMiddleware.JWTAuthMiddleware())
 	{
 		agreementRoutes.POST("/create", ag.CreateAgreement)
-		agreementRoutes.DELETE("", ag.DeleteAgreement)
+		agreementRoutes.POST("/handle-signature", ag.SignitureHandling)
+		agreementRoutes.DELETE("/delete", ag.DeleteAgreement)
 		agreementRoutes.POST("/duplicate", ag.DuplicateAgreement)
 		agreementRoutes.GET("", ag.GetAgreementByID)
 		agreementRoutes.GET("", ag.GetAgreementByUserID)
-		agreementRoutes.POST("", ag.SaveAgreement)
+		// agreementRoutes.POST("", ag.SaveAgreement)
 	}
 	mainRouter.Run()
 }

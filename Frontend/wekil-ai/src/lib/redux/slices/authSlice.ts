@@ -16,6 +16,7 @@ interface AuthState {
   error: string | null;
   message: string | null;
   success: boolean | null;
+  code: string | null;
 }
 
 const initialState: AuthState = {
@@ -24,6 +25,7 @@ const initialState: AuthState = {
   error: null,
   message: null,
   success: null,
+  code: null,
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -38,39 +40,33 @@ const getErrorMessage = (error: unknown): string => {
 
 // Register
 export const registerUser = createAsyncThunk<
-  { data: { message: string }; success: boolean },
+  { code: string; message: string; success: boolean },
   Omit<User, "accountType"> & { accountType: string },
-  { rejectValue: string }
+  { rejectValue: { code: string; message: string } }
 >("auth/register", async (data, { rejectWithValue }) => {
   try {
     const response = await fetch(`${API_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
 
-    const responseText = await response.text();
-    
+    const responseData = await response.json();
+    console.log("Registration response:", responseData);
 
-    if (!response.ok) {
-      let errorMessage = `HTTP error! status: ${response.status}`;
-      try {
-        const errorData = JSON.parse(responseText);
-        errorMessage = errorData.data.error;
-      } catch (e) {
-        console.error('Error parsing error response JSON:', e);
-        errorMessage = responseText || errorMessage;
-      }
-      throw new Error(errorMessage);
+    if (!responseData.success) {
+      return rejectWithValue({
+        code: responseData.code,
+        message: responseData.message,
+      });
     }
 
-    return JSON.parse(responseText);
+    return responseData; // { code, message, success }
   } catch (error: unknown) {
-    console.error('Registration error:', error);
-    return rejectWithValue(getErrorMessage(error));
+    return rejectWithValue({
+      code: "UNKNOWN_ERROR",
+      message: getErrorMessage(error),
+    });
   }
 });
 
@@ -291,6 +287,7 @@ const authSlice = createSlice({
       state.error = null;
       state.message = null;
       state.success = null;
+      state.code = null;
     },
     setUser: (state, action: PayloadAction<User | null>) => {
       state.user = action.payload;
@@ -304,21 +301,28 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     // Register
-    builder.addCase(registerUser.pending, (state) => {
+     builder.addCase(registerUser.pending, (state) => {
       state.loading = true;
       state.error = null;
       state.success = null;
+      state.message = null;
+      state.code = null;
     });
+
     builder.addCase(registerUser.fulfilled, (state, action) => {
       state.loading = false;
-      state.message = action.payload.data.message;
-      state.success = action.payload.success;
+      state.success = true;
+      state.message = action.payload.message;
+      state.code = action.payload.code;
       state.user = { email: action.meta.arg.email! };
     });
+
     builder.addCase(registerUser.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.payload || "Registration failed";
       state.success = false;
+      state.message = action.payload?.message || "Registration failed";
+      state.code = action.payload?.code || "ERROR";
+      state.error = action.payload?.message || "Registration failed";
     });
 
     // Login

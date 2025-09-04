@@ -102,7 +102,6 @@ export default function HomePage() {
     if (status === "authenticated" && accessToken) {
       setShowAuthModal(false);
       document.body.style.overflow = "unset";
-
       if (accountType === "admin") {
         window.location.href = "/dashboard/admin";
       } else {

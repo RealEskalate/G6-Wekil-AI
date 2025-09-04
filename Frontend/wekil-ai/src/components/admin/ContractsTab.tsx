@@ -145,9 +145,6 @@ const ContractsTab: React.FC<ContractsTabProps> = ({
                 <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
                   {t.amount}
                 </TableHead>
-                <TableHead className="font-semibold text-gray-700 dark:text-gray-300 text-right">
-                  {t.actions}
-                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

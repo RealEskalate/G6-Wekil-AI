@@ -1,7 +1,6 @@
 package routers
 
 import (
-	controllers "wekil_ai/Delivery/Controllers"
 	domain "wekil_ai/Domain/Interfaces"
 	infrastracture "wekil_ai/Infrastracture"
 	"wekil_ai/config"
@@ -9,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Router(uc domain.IUserController, ai *controllers.AIController) {
+func Router(uc domain.IUserController, ai domain.IAIController, ag domain.IAgreementController) {
 	mainRouter := gin.Default()
 		// Allow CORS from all origins
 	mainRouter.Use(cors.New(cors.Config{
@@ -58,6 +57,18 @@ func Router(uc domain.IUserController, ai *controllers.AIController) {
 
 		// adminRoutes.GET("/users/:id", uc.GetUserByID)
 		// adminRoutes.GET("/agreements/:id", uc.GetAgreement)
+	}
+
+	agreementRoutes := mainRouter.Group("/agreement")
+	// agreement.Use(authMiddleware.JWTAuthMiddleware())
+	{
+		agreementRoutes.POST("/create", ag.CreateAgreement)
+		agreementRoutes.POST("/handle-signature", ag.SignitureHandling)
+		agreementRoutes.DELETE("/delete", ag.DeleteAgreement)
+		agreementRoutes.POST("/duplicate", ag.DuplicateAgreement)
+		agreementRoutes.GET("", ag.GetAgreementByID)
+		agreementRoutes.GET("", ag.GetAgreementByUserID)
+		// agreementRoutes.POST("", ag.SaveAgreement)
 	}
 	mainRouter.Run()
 

@@ -285,22 +285,20 @@ class _RecentContracts extends StatelessWidget {
             Icon(
               Icons.insert_drive_file_outlined,
               size: 46,
-              color: AppColors.textDark.withOpacity(0.5),
+              color: AppColors.primary,
             ),
             const SizedBox(height: 12),
             Text(
               'No contracts yet',
               style: AppTypography.body(
                 fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
+                color: AppColors.primary,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'Create your first contract',
-              style: AppTypography.body(
-                color: AppColors.textDark.withOpacity(0.5),
-              ),
+              style: AppTypography.small(color: AppColors.textDark),
             ),
             const SizedBox(height: 12),
             FilledButton.icon(

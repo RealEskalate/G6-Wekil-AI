@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card";
 import { Button } from "../ui/Button";
-import { settingTranslations } from "@/lib/settingTranslations";
+import { settingTranslations } from "@/lib/translations/settingTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 import {
   ExternalLink,

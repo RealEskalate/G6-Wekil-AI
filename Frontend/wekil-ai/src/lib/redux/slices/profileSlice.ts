@@ -55,6 +55,7 @@ export const fetchProfile = createAsyncThunk<
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     const data = response.data.data;
+    console.log("Fetched profile data:", data);
     return {
       id: data.id,
       email: data.email,

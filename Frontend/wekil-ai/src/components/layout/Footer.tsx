@@ -1,5 +1,5 @@
 import { FaRobot } from "react-icons/fa";
-import { translations } from "@/lib/generalTranslations";
+import { translations } from "@/lib/translations/generalTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function Footer() {

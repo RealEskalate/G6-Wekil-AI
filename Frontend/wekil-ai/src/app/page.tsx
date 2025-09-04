@@ -22,7 +22,7 @@ import LoginPage from "./auth/login/page";
 import SignupPage from "./auth/signup/page";
 import { useSession, signIn } from "next-auth/react";
 import toast from "react-hot-toast";
-import { translations } from "@/lib/generalTranslations";
+import { translations } from "@/lib/translations/generalTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function HomePage() {

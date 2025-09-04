@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import ContractCard from "@/components/Contract/ContractCard";
 import { data1, data2, data3, data4 } from "@/types/Contracttype";
 import { useLanguage } from "@/context/LanguageContext";
-import { viewContractTranslation } from "@/lib/DashboardTranslation/dashboardPageTranslation";
+import { viewContractTranslation } from "@/lib/translations/dashboardPageTranslation";
 const ContractLists = () => {
   const route = useRouter();
   const { lang, setLang } = useLanguage();
@@ -21,7 +21,9 @@ const ContractLists = () => {
             {viewContractTranslation[lang].back}
           </button>
           <span className="">
-            <p className="text-lg my-2 text-blue-950 font-bold">{viewContractTranslation[lang].title}</p>
+            <p className="text-lg my-2 text-blue-950 font-bold">
+              {viewContractTranslation[lang].title}
+            </p>
           </span>
         </div>
         <div className="">

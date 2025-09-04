@@ -14,7 +14,7 @@ import { Button } from "../ui/Button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User, Camera, Loader2, Lock, Pencil } from "lucide-react";
 import toast from "react-hot-toast";
-import { settingTranslations } from "@/lib/settingTranslations";
+import { settingTranslations } from "@/lib/translations/settingTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 import type { FormData } from "@/types/auth";
 import Image from "next/image";

@@ -7,7 +7,7 @@ const Contracttype: ("service" | "loan" | "sale" | "nonDisclosure")[] = [
   "sale",
   "nonDisclosure",
 ];
-import { dashboardPageTranslation } from "@/lib/DashboardTranslation/dashboardPageTranslation";
+import { dashboardPageTranslation } from "@/lib/translations/dashboardPageTranslation";
 import { data1, data2, data3, data4 } from "@/types/Contracttype";
 import { DashBoardContract } from "@/components/dashboard/DashBoardContract";
 import Link from "next/link";
@@ -27,7 +27,7 @@ const Dashboard = () => {
         </p>
         <div className="flex justify-center my-4">
           <button
-            className="py-1 px-3 rounded-full border text-sm border-gray-200 mr-6 hover:text-blue-400"
+            className="py-1 px-3 cursor-pointer rounded-full border text-sm border-gray-200 mr-6 hover:text-blue-400"
             onClick={() => (lang == "am" ? setLang("en") : setLang("am"))}
           >
             <Globe className="w-4 h-4 inline mx-2" />

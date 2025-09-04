@@ -12,7 +12,11 @@ interface ChooseContractTypeProps {
   setContractType: (type: string) => void;
 }
 
-export default function ChooseContractType({ currentLanguage, contractType, setContractType }: ChooseContractTypeProps) {
+export default function ChooseContractType({
+  currentLanguage,
+  contractType,
+  setContractType,
+}: ChooseContractTypeProps) {
   const t = {
     en: {
       title: "Choose Contract Type",
@@ -48,7 +52,7 @@ export default function ChooseContractType({ currentLanguage, contractType, setC
   ];
 
   return (
-    <Card className="max-w-4xl mx-auto">
+    <Card className="max-w-4xl px-6">
       <CardHeader>
         <CardTitle>{t.title}</CardTitle>
         <p className="text-sm text-gray-600">{t.subtitle}</p>
@@ -60,7 +64,9 @@ export default function ChooseContractType({ currentLanguage, contractType, setC
               key={id}
               className={cn(
                 "p-6 cursor-pointer transition-all hover:shadow-md bg-white",
-                contractType === id ? "border-teal-500 bg-teal-50" : "border-gray-200 hover:border-gray-300"
+                contractType === id
+                  ? "border-teal-500 bg-teal-50"
+                  : "border-gray-200 hover:border-gray-300"
               )}
               onClick={() => setContractType(id)}
             >
@@ -68,7 +74,9 @@ export default function ChooseContractType({ currentLanguage, contractType, setC
                 <div
                   className={cn(
                     "p-3 rounded-full",
-                    contractType === id ? "bg-teal-500 text-white" : "bg-gray-100 text-gray-400"
+                    contractType === id
+                      ? "bg-teal-500 text-white"
+                      : "bg-gray-100 text-gray-400"
                   )}
                 >
                   <Icon className="h-6 w-6" />

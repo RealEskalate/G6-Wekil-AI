@@ -1,6 +1,8 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
+import 'package:wekil_ai_mobile_app/history.dart';
 
 import 'core/di/injection.dart';
 import 'features/dashboard/presentation/dashboard.dart';
@@ -10,8 +12,7 @@ import 'features/widget/bottom_nav.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  const provided =
-      'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ik9iamVjdElEKFwiNjhiNTk5N2I3Yzg0M2ZjYjJhOTEwZDFmXCIpIiwiZW1haWwiOiJhbWlubWFtaW5lNjIwQGdtYWlsLmNvbSIsImlzX3ZlcmlmaWVkIjp0cnVlLCJhY2NvdW50X3R5cGUiOiJ1c2VyIiwidG9rZW5fdHlwZSI6ImFjY2Vzc190b2tlbiIsImV4cCI6MTc1NjczNjA4NywiaWF0IjoxNzU2NzM1MTg3fQ.8xFhEbHLVGxEm53_CIuYQp8p-AAEmkBZwLLa-q25ZW8';
+  const provided = 'Bearer YOUR_TOKEN_HERE';
 
   final token = provided.startsWith('Bearer ')
       ? provided.substring('Bearer '.length)
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
       useMaterial3: true,
       colorSchemeSeed: const Color(0xFF10B981),
     );
-    const brand = Color(0xFF14B8A6); // Teal from the design
+    const brand = Color(0xFF14B8A6);
     final hover = brand.withOpacity(0.10);
     final pressed = brand.withOpacity(0.16);
 
@@ -62,8 +63,9 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    DashboardPage.provider(),
-    const Scaffold(body: Center(child: Text('Contracts list coming soon...'))),
+    DashboardPage.provider(), // index 0
+    const CreateContractScreen(), // index 1
+    const History(), // index 2
   ];
 
   void _onItemSelected(int index) {
@@ -73,14 +75,15 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _onCreatePressed() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const CreateContractScreen()));
+    setState(() {
+      _currentIndex = 1; // index of CreateContractScreen
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const NavBar(),
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNav(
         currentIndex: _currentIndex,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/create_start_page.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../core/di/injection.dart';
 import 'bloc/dashboard_cubit.dart';
 import 'bloc/dashboard_state.dart';
@@ -10,7 +12,6 @@ import '../domain/repositories/dashboard_repository.dart' as d;
 import '../domain/usecases/get_dashboard_data.dart' as u;
 import '../data/repositories/dashboard_repository_impl.dart' as impl;
 import '../data/datasources/dashboard_remote_data_source.dart' as ds;
-// Import entity types for easier references
 import '../domain/entities/dashboard_summary.dart';
 import '../domain/entities/agreement.dart';
 import '../domain/entities/individual.dart';
@@ -27,10 +28,6 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  /// Easy-to-integrate builder. Pass either an existing [DashboardCubit],
-  /// or a [GetDashboardData] use case, or a [DashboardRepository]. If nothing is
-  /// provided, a lightweight in-memory implementation is used so the screen
-  /// works out-of-the-box without DI.
   static Widget withDependencies({
     DashboardCubit? cubit,
     u.GetDashboardData? usecase,
@@ -61,8 +58,6 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  /// Quick builder for showcases/tests: pass final data directly.
-  /// No backend or DI required.
   static Widget withMockData({
     required DashboardSummary summary,
     required List<Agreement> recent,
@@ -84,7 +79,7 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: BlocBuilder<DashboardCubit, DashboardState>(
           builder: (context, state) {
@@ -92,6 +87,7 @@ class DashboardPage extends StatelessWidget {
             final first = (user?.firstName ?? '').trim();
             final name = first.isNotEmpty ? first : 'there';
             final verified = user?.isVerified == true;
+
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Column(
@@ -103,18 +99,21 @@ class DashboardPage extends StatelessWidget {
                       Expanded(
                         child: Text(
                           'Welcome back, $name!',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.w700),
+                          style: AppTypography.heading(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (verified)
-                        const Padding(
-                          padding: EdgeInsets.only(left: 8.0),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
                           child: Icon(
                             Icons.verified_rounded,
-                            color: Color(0xFF10B981),
+                            color: AppColors.accent,
                             size: 22,
                           ),
                         ),
@@ -123,7 +122,7 @@ class DashboardPage extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'Overview',
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: AppTypography.body(color: AppColors.textDark),
                   ),
                   const SizedBox(height: 10),
                   _OverviewRow(state: state),
@@ -132,22 +131,27 @@ class DashboardPage extends StatelessWidget {
                     children: [
                       Text(
                         'Recent Contracts',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        style: AppTypography.body(
                           fontWeight: FontWeight.w600,
+                          color: AppColors.textDark,
                         ),
                       ),
                       const Spacer(),
                       TextButton(
                         onPressed: () {
                           if ((state.recent).isEmpty) {
-                            // If empty, reuse create action
                             (onCreate ?? () {})();
                           } else {
-                            // Placeholder route for View All
                             Navigator.of(context).pushNamed('/agreements');
                           }
                         },
-                        child: const Text('View All'),
+                        child: Text(
+                          'View All',
+                          style: AppTypography.body(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.accent,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -212,7 +216,8 @@ class _OverviewRow extends StatelessWidget {
               : StatCard(
                   label: 'Draft Contracts',
                   value: summary?.draftCount ?? 0,
-                  color: const Color(0xFF3B82F6),
+                  color: Colors.blue,
+                  labelColor: Colors.blue,
                 ),
         ),
         const SizedBox(width: 8),
@@ -222,7 +227,8 @@ class _OverviewRow extends StatelessWidget {
               : StatCard(
                   label: 'Exported Contracts',
                   value: summary?.exportedCount ?? 0,
-                  color: const Color(0xFF10B981),
+                  color: Colors.green,
+                  labelColor: Colors.green,
                 ),
         ),
         const SizedBox(width: 8),
@@ -232,7 +238,8 @@ class _OverviewRow extends StatelessWidget {
               : StatCard(
                   label: 'All Contracts',
                   value: summary?.allCount ?? 0,
-                  color: const Color(0xFF14B8A6),
+                  color: Colors.deepPurple,
+                  labelColor: Colors.deepPurple,
                 ),
         ),
       ],
@@ -247,7 +254,7 @@ class _SkeletonCard extends StatelessWidget {
     return Container(
       height: 74,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: AppColors.background.withOpacity(0.8),
         borderRadius: BorderRadius.circular(14),
       ),
     );
@@ -261,12 +268,14 @@ class _RecentContracts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = Theme.of(context).dividerColor.withOpacity(.3);
+    final borderColor = AppColors.textDark.withOpacity(0.3);
+
     if (state.recent.isEmpty) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 30),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
+          color: AppColors.textLight,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: borderColor),
         ),
@@ -276,25 +285,39 @@ class _RecentContracts extends StatelessWidget {
             Icon(
               Icons.insert_drive_file_outlined,
               size: 46,
-              color: Theme.of(context).hintColor,
+              color: AppColors.textDark.withOpacity(0.5),
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'No contracts yet',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: AppTypography.body(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textDark,
+              ),
             ),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Create your first contract',
-              style: TextStyle(color: Colors.grey),
+              style: AppTypography.body(
+                color: AppColors.textDark.withOpacity(0.5),
+              ),
             ),
             const SizedBox(height: 12),
             FilledButton.icon(
-              onPressed: onCreate,
+              onPressed: onCreate, // make sure to call your function
               icon: const Icon(Icons.add),
-              label: const Text('Create Contract'),
+              label: Text('Create Contract', style: AppTypography.button()),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF14B8A6),
+                backgroundColor: AppColors.accent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    6,
+                  ), // smaller radius → more rectangular
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
               ),
             ),
           ],
@@ -307,10 +330,24 @@ class _RecentContracts extends StatelessWidget {
           .map(
             (c) => Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
-              child: RecentContractCard(
-                contract: c,
-                onTap: () {},
-                onEdit: () {},
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white, // <-- white background
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(12),
+                child: RecentContractCard(
+                  contract: c,
+                  onTap: () {},
+                  onEdit: () {},
+                ),
               ),
             ),
           )

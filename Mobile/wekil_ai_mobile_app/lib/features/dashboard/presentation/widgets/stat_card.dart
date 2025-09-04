@@ -4,12 +4,14 @@ class StatCard extends StatelessWidget {
   final String label;
   final int value;
   final Color color;
+  final Color labelColor; // <-- use this
 
   const StatCard({
     super.key,
     required this.label,
     required this.value,
     required this.color,
+    this.labelColor = Colors.black54, // default fallback
   });
 
   @override
@@ -37,7 +39,7 @@ class StatCard extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(.7),
+              color: labelColor, // <-- use the labelColor here
             ),
           ),
         ],

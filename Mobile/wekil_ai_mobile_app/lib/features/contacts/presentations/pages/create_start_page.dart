@@ -11,7 +11,6 @@ class CreateContractScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const NavBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -43,22 +42,6 @@ class CreateContractScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNav(
-          currentIndex: 2,
-          onItemSelected: (index) {
-            // Handle tab change here if needed
-            print("Selected tab: $index");
-          },
-          onCreatePressed: () {
-            // Navigate to Create Contract screen (or any action you want)
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const CreateContractScreen(),
-              ),
-            );
-          },
       ),
     );
   }

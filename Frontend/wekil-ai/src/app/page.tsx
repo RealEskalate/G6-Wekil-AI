@@ -33,6 +33,7 @@ export default function HomePage() {
   const t = translations[lang];
   const { data: session, status } = useSession();
   const accessToken = session?.user?.accessToken;
+  const accountType = session?.user?.account_type;
 
   const sectionRefs = {
     hero: useRef<HTMLElement>(null),
@@ -98,12 +99,17 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    if (accessToken && status === "authenticated") {
+    if (status === "authenticated" && accessToken) {
       setShowAuthModal(false);
       document.body.style.overflow = "unset";
-      window.location.href = "/dashboard";
+
+      if (accountType === "admin") {
+        window.location.href = "/dashboard/admin";
+      } else {
+        window.location.href = "/dashboard";
+      }
     }
-  }, [status, accessToken]);
+  }, [status, accessToken, accountType]);
 
   const handleAuthComplete = async (
     email: string,
@@ -122,6 +128,7 @@ export default function HomePage() {
         toast.error(result.error || "Login Failed!");
       } else {
         toast.success("Login Successful!");
+        console.log(result, "result");
         setShowAuthModal(false);
         document.body.style.overflow = "unset";
         window.location.href = "/dashboard";

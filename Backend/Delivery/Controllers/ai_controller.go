@@ -3,8 +3,8 @@ package controllers
 import (
 	"context"
 	"net/http"
-	"wekil_ai/Domain"
-	"wekil_ai/Usecases"
+	domain "wekil_ai/Domain"
+	usecases "wekil_ai/Usecases"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,7 +12,8 @@ import (
 type AIController struct {
 	aiUsecase *usecases.AIUsecase
 }
-//* This controller doesn't have an Interface like others ‼️‼️‼️
+
+// * This controller doesn't have an Interface like others ‼️‼️‼️
 func NewAIController(aiUsecase *usecases.AIUsecase) *AIController {
 	return &AIController{aiUsecase: aiUsecase}
 }
@@ -75,9 +76,9 @@ func (c *AIController) Draft(ctx *gin.Context) {
 // POST /ai/draft-from-prompt
 func (c *AIController) DraftFromPrompt(ctx *gin.Context) {
 	var req struct {
-		Draft      domain.Draft   `json:"draft" binding:"required"`
-		PromptText string         `json:"prompt" binding:"required"`
-		Language   string         `json:"language" binding:"required"`
+		Draft      domain.Draft `json:"draft" binding:"required"`
+		PromptText string       `json:"prompt" binding:"required"`
+		Language   string       `json:"language" binding:"required"`
 	}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

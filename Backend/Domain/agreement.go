@@ -63,16 +63,16 @@ type PartyDTO struct {
 
 // AgreementRequestDTO holds the metadata for an agreement.
 type AgreementRequestDTO struct {
-	AgreementType string `json:"agreement_type" bson:"agreement_type"`
-	PDFURL        string `json:"pdf_url,omitempty" bson:"pdf_url,omitempty"`
-	CreatorSigned bool   `json:"creator_signed,omitempty" bson:"creator_signed,omitempty"`
-	Status        string `json:"status,omitempty" bson:"status,omitempty"`
-	PartyA        PartyDTO  `json:"party_a,omitempty" bson:"party_a,omitempty"`
-	PartyB        PartyDTO  `json:"party_b,omitempty" bson:"party_b,omitempty"`
+	AgreementType string   `json:"agreement_type" bson:"agreement_type"`
+	PDFURL        string   `json:"pdf_url,omitempty" bson:"pdf_url,omitempty"`
+	CreatorSigned bool     `json:"creator_signed,omitempty" bson:"creator_signed,omitempty"`
+	Status        string   `json:"status,omitempty" bson:"status,omitempty"`
+	PartyA        PartyDTO `json:"party_a,omitempty" bson:"party_a,omitempty"`
+	PartyB        PartyDTO `json:"party_b,omitempty" bson:"party_b,omitempty"`
 }
 
 // AgreementSaveRequest combines the agreement metadata and the draft text for saving.
 type AgreementRequest struct {
 	AgrementInfo AgreementRequestDTO `json:"agreement"`
-	DraftText        string              `json:"draft_text"`
+	DraftText    string              `json:"draft_text"`
 }

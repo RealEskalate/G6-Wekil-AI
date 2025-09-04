@@ -15,5 +15,4 @@ type IAgreementController interface {
 	// used for both accepting and declining an agreement //? I don't want to assign two different end-points for simmilar interaction
 	SignitureHandling(ctx *gin.Context)
 	GetAgreementByFilter(ctx *gin.Context)
-	
 }

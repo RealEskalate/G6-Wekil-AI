@@ -337,6 +337,18 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 		})
 		return
 	}
+	// check the complexity
+	res, err := a.AIInteraction.ClassifyDeal(context.Background(), aR.DraftText)
+	if err != nil || res.Category != "basic" {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "your agreement is complex",
+			},
+		})
+		return
+	}
+
 	// create the intake form the draft
 	intake, err := a.AIInteraction.GenerateIntake(context.Background(), aR.DraftText, domain.EnglishLang)
 	if err != nil {

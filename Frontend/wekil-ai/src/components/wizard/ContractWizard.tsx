@@ -23,6 +23,7 @@ import CommonDetails from "@/components/wizard/steps/CommonDetails";
 import SpecificDetails from "@/components/wizard/steps/SpecificDetails";
 import { AIDraftPreview } from "@/components/wizard/steps/AIDraftPreview";
 import { FinalPreview } from "@/components/wizard/steps/FinalPreview";
+import { useLanguage } from "@/context/LanguageContext";
 
 export interface Step {
   id: string;
@@ -80,6 +81,7 @@ interface Translations {
 export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [currentLanguage, setCurrentLanguage] = useState<Language>("en");
+  const { lang, setLang } = useLanguage();
   const [contractData, setContractData] = useState<Partial<ContractData>>({});
   const [isCheckingComplexity, setIsCheckingComplexity] = useState(false);
 
@@ -192,7 +194,8 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   };
 
   const handleLanguageToggle = () => {
-    setCurrentLanguage((prev) => (prev === "en" ? "am" : "en"));
+    setLang(lang === "en" ? "am" : "en");
+    setCurrentLanguage(currentLanguage === "en" ? "am" : "en");
   };
 
   const validateAndGetStepData = (): Partial<ContractData> | null => {
@@ -303,30 +306,33 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
 
   return (
     <div
-      className={`h-full flex flex-col bg-gray-100 ${
+      className={`h-full p-5 flex flex-col bg-gray-50 ${
         currentLanguage === "am" ? "font-ethiopic" : ""
       }`}
     >
       {/* Header */}
-      <div className="px-6 py-4 flex items-center justify-between">
-        <Button variant="ghost" size="sm" onClick={handleBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          {t[currentLanguage].back}
-        </Button>
-        <h1 className="text-xl font-semibold">{t[currentLanguage].title}</h1>
-        <Button variant="ghost" size="sm" onClick={handleLanguageToggle}>
+      <div className="flex py-10 items-center justify-between">
+        <h1 className=" text-xl px-10 font-semibold">
+          {t[currentLanguage].title}
+        </h1>
+        <Button
+          variant="ghost"
+          className="cursor-pointer"
+          size="sm"
+          onClick={handleLanguageToggle}
+        >
           <Globe className="h-4 w-4 mr-2" />
           {currentLanguage === "en" ? "አማርኛ" : "English"}
         </Button>
       </div>
 
       {/* Step indicator */}
-      <div className="px-6 py-4">
+      <div className="">
         <StepIndicator steps={steps} currentStep={currentStep} />
       </div>
 
       {/* Step Content */}
-      <div className="flex-1 overflow-auto px-6 py-4">
+      <div className="flex-1 overflow-auto">
         {currentStep === 0 && (
           <ChooseContractType
             currentLanguage={currentLanguage}
@@ -383,14 +389,19 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
 
       {/* Footer navigation */}
       <div className="px-6 py-4 flex justify-between">
-        <Button variant="ghost" size="sm" onClick={handleBack}>
+        <Button
+          className="cursor-pointer hover:bg-gray-200"
+          variant="ghost"
+          size="sm"
+          onClick={handleBack}
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
           {t[currentLanguage].back}
         </Button>
         {currentStep < steps.length - 1 ? (
           <Button
             onClick={handleFooterNext}
-            className="bg-gray-800 hover:bg-gray-700 text-white"
+            className="bg-gray-600 hover:bg-gray-700 text-white cursor-pointer"
           >
             {t[currentLanguage].next}
           </Button>

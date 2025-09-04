@@ -10,8 +10,8 @@ import {
   Menu,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { useRouter } from "next/navigation"; // ✅ App Router compatible
-import { sidebarTranslations } from "@/lib/sidebarTranslations";
+import { useRouter } from "next/navigation";
+import { sidebarTranslations } from "@/lib/translations/sidebarTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 import { useState } from "react";
 import { useDispatch } from "react-redux";

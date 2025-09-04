@@ -5,6 +5,7 @@ import '../../domain/entities/good.dart';
 import '../../domain/entities/milestone.dart';
 
 class IntakeModel {
+  String language;
   final ContractType contractType;
 
   // Common fields
@@ -39,6 +40,7 @@ class IntakeModel {
   IntakeModel({
     required this.contractType,
     required this.parties,
+    required this.language,
     required this.location,
     required this.currency,
     this.totalAmount,
@@ -77,10 +79,7 @@ class IntakeModel {
           'revisions': revisions,
         };
       case ContractType.salesOfGoods:
-        return {
-          'goods': goods,
-          'deliveryTerms': deliveryTerms,
-        };
+        return {'goods': goods, 'deliveryTerms': deliveryTerms};
       case ContractType.simpleLoan:
         return {
           'principal': principal,
@@ -135,6 +134,7 @@ class IntakeModel {
     bool? mutualConfidentiality,
   }) {
     return IntakeModel(
+      language: language ?? this.language,
       contractType: contractType ?? this.contractType,
       parties: parties ?? this.parties,
       location: location ?? this.location,
@@ -154,8 +154,42 @@ class IntakeModel {
       effectiveDate: effectiveDate ?? this.effectiveDate,
       confidentialityYears: confidentialityYears ?? this.confidentialityYears,
       purpose: purpose ?? this.purpose,
-      mutualConfidentiality: mutualConfidentiality ?? this.mutualConfidentiality,
+      mutualConfidentiality:
+          mutualConfidentiality ?? this.mutualConfidentiality,
     );
+  }
+
+  @override
+  String toString() {
+    return '''
+==== IntakeModel Data ====
+language Type: $language
+Contract Type: $contractType
+Parties: $parties
+Location: $location
+Currency: $currency
+Total Amount: $totalAmount
+Due Dates: $dueDates
+Start Date: $startDate
+End Date: $endDate
+
+Services: $services
+Milestones: $milestones
+Revisions: $revisions
+
+Goods: $goods
+Delivery Terms: $deliveryTerms
+
+Principal: $principal
+Installments: $installments
+Late Fee Percent: $lateFeePercent
+
+Effective Date: $effectiveDate
+Confidentiality Years: $confidentialityYears
+Purpose: $purpose
+Mutual Confidentiality: $mutualConfidentiality
+=========================
+''';
   }
 
   Object? toJson() {}

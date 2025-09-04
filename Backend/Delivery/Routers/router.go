@@ -48,6 +48,17 @@ func Router(uc domain.IUserController, ai domain.IAIController, ag domain.IAgree
 		aiRoutes.POST("/final-preview", ai.FinalPreview)
 	}
 
+	adminRoutes := mainRouter.Group("api/admin")
+
+	adminRoutes.Use(authMiddleware.JWTAuthMiddleware())
+	{
+		adminRoutes.GET("/users", uc.GetAllUsers)
+		// adminRoutes.GET("/agreements", uc.GetAllAgreements)
+
+		// adminRoutes.GET("/users/:id", uc.GetUserByID)
+		// adminRoutes.GET("/agreements/:id", uc.GetAgreement)
+	}
+
 	agreementRoutes := mainRouter.Group("/agreement")
 	// agreement.Use(authMiddleware.JWTAuthMiddleware())
 	{
@@ -60,5 +71,6 @@ func Router(uc domain.IUserController, ai domain.IAIController, ag domain.IAgree
 		// agreementRoutes.POST("", ag.SaveAgreement)
 	}
 	mainRouter.Run()
+
 }
 

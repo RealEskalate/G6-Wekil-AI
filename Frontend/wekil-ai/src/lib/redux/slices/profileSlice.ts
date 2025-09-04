@@ -49,14 +49,12 @@ export const fetchProfile = createAsyncThunk<
   string,
   { rejectValue: string }
 >("profile/fetchProfile", async (accessToken, { rejectWithValue }) => {
-  console.log("Fetching profile with access token:", accessToken);
 
   try {
     const response = await axios.get(`${API_URL}/api/users/profile`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     const data = response.data.data;
-    console.log("Fetched profile data:", data);
     return {
       id: data.id,
       email: data.email,
@@ -87,19 +85,7 @@ export const updateProfileApi = createAsyncThunk<
   "profile/updateProfileApi",
   async ({ accessToken, profileData }, { rejectWithValue }) => {
     try {
-      const payload = {
-        first_name: profileData.first_name,
-        middle_name: profileData.middle_name,
-        last_name: profileData.last_name,
-        telephone: profileData.telephone,
-        address: profileData.address,
-        profile_image: profileData.profileImage,
-        signature: profileData.signature,
-      };
-      
-      console.log("Updating profile with payload:", payload);
-      
-      const response = await axios.put(`${API_URL}/api/users/profile`, payload, {
+      const response = await axios.put(`${API_URL}/api/users/profile`, profileData, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 

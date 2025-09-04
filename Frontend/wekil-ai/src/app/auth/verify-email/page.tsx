@@ -4,7 +4,7 @@ import { useState } from "react";
 import { FaEnvelope } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/context/LanguageContext";
-import { authTranslations } from "@/lib/authTranslations";
+import { authTranslations } from "@/lib/translations/authTranslations";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/lib/redux/store";
 import { verifyOtp } from "@/lib/redux/slices/authSlice";

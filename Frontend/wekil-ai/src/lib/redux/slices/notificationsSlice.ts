@@ -22,7 +22,6 @@ const initialState: NotificationsState = {
 export const fetchNotifications = createAsyncThunk(
   "notifications/fetch",
   async ({ token }: { token: string }, { rejectWithValue }) => {
-    console.log("Fetching notifications with token:", token);
     try {
       const res = await fetch(
         "https://g6-wekil-ai-1.onrender.com/api/users/notification?page=1&limit=5",

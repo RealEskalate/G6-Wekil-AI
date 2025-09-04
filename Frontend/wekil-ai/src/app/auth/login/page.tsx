@@ -4,7 +4,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { FaEnvelope, FaLock, FaRobot } from "react-icons/fa";
 import { useLanguage } from "@/context/LanguageContext";
-import { authTranslations } from "@/lib/authTranslations";
+import { authTranslations } from "@/lib/translations/authTranslations";
 
 interface LoginPageProps {
   onLoginComplete: (

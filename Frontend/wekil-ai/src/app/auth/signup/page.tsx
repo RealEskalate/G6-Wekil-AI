@@ -14,7 +14,7 @@ import IndividualForm from "@/components/auth/IndividualForm";
 import VerifyEmail from "../verify-email/page";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/context/LanguageContext";
-import { authTranslations } from "@/lib/authTranslations";
+import { authTranslations } from "@/lib/translations/authTranslations";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/lib/redux/store";
 import { registerUser, clearState } from "@/lib/redux/slices/authSlice";

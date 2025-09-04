@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import {
   User,
   Settings as SettingsIcon,
-  ArrowLeft,
   Loader2,
   Bell,
   Shield,
@@ -19,16 +18,14 @@ import NotificationsCard from "@/components/settings/NotificationsCard";
 import PrivacyCard from "@/components/settings/PrivacyCard";
 import AboutCard from "@/components/settings/AboutCard";
 
-import { settingTranslations } from "@/lib/settingTranslations";
+import { settingTranslations } from "@/lib/translations/settingTranslations";
 import { useLanguage } from "@/context/LanguageContext";
-import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const { lang } = useLanguage();
   const t = settingTranslations[lang];
-  const router = useRouter();
 
   const handleSaveSettings = async () => {
     setIsSaving(true);
@@ -37,20 +34,13 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/dashboard")}
-            className="gap-2 cursor-pointer hover:bg-blue-100 transition-colors w-fit"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t.backToDashboard}
-          </Button>
-          <h1 className="text-3xl font-bold text-gray-900">{t.settings}</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 sm:mb-8">
+          <h1 className="pl-4 text-2xl sm:text-3xl font-semibold text-gray-900">
+            {t.settings}
+          </h1>
         </div>
 
         {/* Tabs */}
@@ -60,68 +50,74 @@ export default function SettingsPage() {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <div className="border-b border-gray-200 px-6">
-              <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full max-w-2xl mx-auto rounded-none bg-transparent p-0 h-14">
+            <div className="border-b border-gray-200 px-2 sm:px-6">
+              <TabsList className="grid grid-cols-3 sm:grid-cols-5 w-full max-w-full mx-auto rounded-none bg-transparent p-0 h-14">
                 <TabsTrigger
                   value="profile"
-                  className="flex-col cursor-pointer md:flex-row gap-1.5 md:gap-2 font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent py-4 px-2 h-full transition-all"
+                  className="flex-col sm:flex-row gap-1 sm:gap-2 data-[state=inactive]:text-black cursor-pointer font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent py-3 sm:py-4 px-1 sm:px-2 h-full transition-all text-xs sm:text-sm"
                 >
                   <User className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-xs md:text-sm">{t.profile}</span>
+                  <span>{t.profile}</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="preferences"
-                  className="flex-col cursor-pointer md:flex-row gap-1.5 md:gap-2 font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent py-4 px-2 h-full transition-all"
+                  className="flex-col sm:flex-row gap-1 data-[state=inactive]:text-black cursor-pointer sm:gap-2 font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent py-3 sm:py-4 px-1 sm:px-2 h-full transition-all text-xs sm:text-sm"
                 >
                   <SettingsIcon className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-xs md:text-sm">{t.preferences}</span>
+                  <span>{t.preferences}</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="notifications"
-                  className="flex-col cursor-pointer md:flex-row gap-1.5 md:gap-2 font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent py-4 px-2 h-full transition-all"
+                  className="flex-col sm:flex-row gap-1 data-[state=inactive]:text-black cursor-pointer sm:gap-2 font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent py-3 sm:py-4 px-1 sm:px-2 h-full transition-all text-xs sm:text-sm"
                 >
                   <Bell className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-xs md:text-sm">{t.notifications}</span>
+                  <span>{t.notifications}</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="privacy"
-                  className="flex-col cursor-pointer md:flex-row gap-1.5 md:gap-2 font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent py-4 px-2 h-full transition-all"
+                  className="flex-col sm:flex-row gap-1 data-[state=inactive]:text-black cursor-pointer sm:gap-2 font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent py-3 sm:py-4 px-1 sm:px-2 h-full transition-all text-xs sm:text-sm"
                 >
                   <Shield className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-xs md:text-sm">{t.privacy}</span>
+                  <span>{t.privacy}</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="about"
-                  className="flex-col cursor-pointer md:flex-row gap-1.5 md:gap-2 font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent py-4 px-2 h-full transition-all"
+                  className="flex-col sm:flex-row gap-1  data-[state=inactive]:text-black cursor-pointer sm:gap-2 font-medium rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent py-3 sm:py-4 px-1 sm:px-2 h-full transition-all text-xs sm:text-sm"
                 >
                   <Info className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-xs md:text-sm">{t.about}</span>
+                  <span>{t.about}</span>
                 </TabsTrigger>
               </TabsList>
             </div>
 
-            {/* Tab Contents (already dynamic) */}
-            <TabsContent value="profile" className="m-0 p-6 focus:outline-none">
+            {/* Tab Contents */}
+            <TabsContent
+              value="profile"
+              className="m-0 p-4 sm:p-6 focus:outline-none"
+            >
               <ProfileCard />
             </TabsContent>
 
             <TabsContent
               value="preferences"
-              className="m-0 p-6 focus:outline-none"
+              className="m-0 p-4 sm:p-6 focus:outline-none"
             >
               <PreferencesCard />
             </TabsContent>
 
             <TabsContent
               value="notifications"
-              className="m-0 p-6 focus:outline-none"
+              className="m-0 p-4 sm:p-6 focus:outline-none"
             >
               <NotificationsCard />
             </TabsContent>
 
-            <TabsContent value="privacy" className="m-0 p-6 focus:outline-none">
+            <TabsContent
+              value="privacy"
+              className="m-0 p-4 sm:p-6 focus:outline-none"
+            >
               <PrivacyCard />
-              <div className="flex justify-end pt-6 mt-6 border-t border-gray-100">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 pt-6 mt-6 border-t border-gray-100">
                 <Button
                   onClick={handleSaveSettings}
                   disabled={isSaving}
@@ -138,7 +134,10 @@ export default function SettingsPage() {
               </div>
             </TabsContent>
 
-            <TabsContent value="about" className="m-0 p-6 focus:outline-none">
+            <TabsContent
+              value="about"
+              className="m-0 p-4 sm:p-6 focus:outline-none"
+            >
               <AboutCard />
             </TabsContent>
           </Tabs>

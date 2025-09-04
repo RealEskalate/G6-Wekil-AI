@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/lib/redux/store";
 import { fetchAdminUsers } from "@/lib/redux/slices/adminSlice";
 import { User } from "@/types/auth";
+import WeKilAILoader from "@/components/ui/WekilAILoader";
 
 export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -162,7 +163,7 @@ export default function AdminDashboard() {
   if (status === "loading" || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500 dark:text-gray-300">Loading...</p>
+        <WeKilAILoader />
       </div>
     );
   }

@@ -24,6 +24,7 @@ import { useSession, signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 import { translations } from "@/lib/translations/generalTranslations";
 import { useLanguage } from "@/context/LanguageContext";
+import WeKilAILoader from "@/components/ui/WekilAILoader";
 
 export default function HomePage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -109,6 +110,14 @@ export default function HomePage() {
       }
     }
   }, [status, accessToken, accountType]);
+
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <WeKilAILoader />
+      </div>
+    );
+  }
 
   const handleAuthComplete = async (
     email: string,

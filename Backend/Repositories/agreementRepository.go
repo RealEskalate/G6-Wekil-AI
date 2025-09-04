@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
 
@@ -15,23 +14,70 @@ import (
 )
 
 const (
-	ITEM_PER_PAGE = 5
+	ITEM_PER_PAGE = 7
 )
 
 type AgreementRepository struct {
 	collection *mongo.Collection
 }
 
-// SoftDeleteAgreement implements domain.IAgreementRepo.
-func (a *AgreementRepository) SoftDeleteAgreement(ctx context.Context, agreementID primitive.ObjectID) error {
-	resAgree, err := a.GetAgreement(ctx, agreementID)
-	if err != nil {
-		return err
+// GetAgreementsByFilterAndPartyID implements domain.IAgreementRepo.
+func (a *AgreementRepository) GetAgreementsByFilterAndPartyID(ctx context.Context, ownerID primitive.ObjectID, pageNumber int, filter *domain.AgreementFilter) ([]*domain.Agreement, error) {
+	query := bson.D{
+		{
+			Key: "$and",
+			Value: bson.A{
+				bson.D{
+					{
+						Key: "$or",
+						Value: bson.A{
+							bson.D{{Key: "creator_id", Value: ownerID}},
+							bson.D{{Key: "acceptor_id", Value: ownerID}},
+						},
+					},
+				},
+				bson.D{
+					{
+						Key: "$or",
+						Value: bson.A{
+							bson.D{{Key: "status", Value: filter.AgreementStatus}},
+							bson.D{{Key: "agreement_type", Value: filter.AgreementType}},
+						},
+					},
+				},
+			},
+		},
 	}
-	resAgree.DeletedAt = time.Now()
-	resAgree.IsDeleted = true
-	_, err = a.UpdateAgreement(ctx, resAgree.ID, resAgree)
-	return err
+	pageSize := ITEM_PER_PAGE
+	skip := int64((pageNumber - 1) * pageSize)
+	limit := int64(pageSize)
+
+	log.Println(" 👈 ", filter)
+	findOptions := options.Find().SetSkip(skip).SetLimit(limit).SetSort(bson.D{{Key: "updated_at", Value: -1}})
+	log.Println("✅ filtering finished")
+
+	cursor, err := a.collection.Find(ctx, query, findOptions)
+	if err != nil {
+		return nil, fmt.Errorf("error getting filtered agreements: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var agreements []*domain.Agreement
+	for cursor.Next(ctx) {
+		var agreement domain.Agreement // Change target type to DTO for decoding
+		if err := cursor.Decode(&agreement); err != nil {
+			return nil, fmt.Errorf("error decoding filtered agreement: %w", err)
+		}
+
+		agreements = append(agreements, &agreement)
+
+	}
+
+	if err = cursor.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating through filtered agreement cursor: %w", err)
+	}
+	log.Println("✅ Returning from GetAgreementsByFilterAndPartyID")
+	return agreements, nil
 }
 
 // GetAgreementsByPartyID implements domain.IAgreementRepo.
@@ -62,9 +108,9 @@ func (a *AgreementRepository) GetAgreementsByPartyID(ctx context.Context, ownerI
 		if err := cursor.Decode(&agreement); err != nil {
 			return nil, fmt.Errorf("error decoding filtered agreement: %w", err)
 		}
-		if !agreement.IsDeleted {
-			agreements = append(agreements, &agreement)
-		}
+
+		agreements = append(agreements, &agreement)
+
 	}
 
 	if err = cursor.Err(); err != nil {
@@ -80,9 +126,6 @@ func (a *AgreementRepository) GetAgreement(ctx context.Context, agreementID prim
 	var singleAgreement domain.Agreement
 	if err := a.collection.FindOne(ctx, filter).Decode(&singleAgreement); err != nil {
 		return nil, err
-	}
-	if singleAgreement.IsDeleted{
-		return nil, fmt.Errorf("this agreement was deleted ✅")
 	}
 	return &singleAgreement, nil
 }
@@ -102,15 +145,16 @@ func (a *AgreementRepository) UpdateAgreement(ctx context.Context, agreementID p
 	// update := bson.M{"$set": updates}
 	filter := bson.M{"_id": agreementID}
 	updateMapping := bson.M{"$set": map[string]interface{}{
-		"acceptor_id": agreement.AcceptorID,
-		"created_at":  agreement.CreatedAt,
-		"deleted_at":  agreement.DeletedAt,
-		"creator_id":  agreement.CreatorID,
-		"intake_id":   agreement.IntakeID,
-		"is_deleted":  agreement.IsDeleted,
-		"pdf_url":     agreement.PDFURL,
-		"status":      agreement.Status,
-		"updated_at":  agreement.UpdatedAt,
+		"acceptor_id":            agreement.AcceptorID,
+		"created_at":             agreement.CreatedAt,
+		"deleted_at":             agreement.DeletedAt,
+		"creator_id":             agreement.CreatorID,
+		"intake_id":              agreement.IntakeID,
+		"is_deleted_by_creator":  agreement.IsDeletedByCreator,
+		"is_deleted_by_acceptor": agreement.IsDeletedByAcceptor,
+		"pdf_url":                agreement.PDFURL,
+		"status":                 agreement.Status,
+		"updated_at":             agreement.UpdatedAt,
 	},
 	}
 	updateResult, err := a.collection.UpdateOne(ctx, filter, updateMapping)

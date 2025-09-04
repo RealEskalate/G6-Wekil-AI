@@ -157,6 +157,7 @@ class _CreateStep1State extends State<CreateStep1> {
                   child: ElevatedButton(
                     onPressed: () {
                       final intake = IntakeModel(
+                        language: selectedLanguage,
                         contractType: widget.contractType,
                         parties: [],
                         location: '',

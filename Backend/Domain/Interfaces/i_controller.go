@@ -18,4 +18,6 @@ type IUserController interface {
 	HandleNotifications(ctx *gin.Context)
 	ChangePasswordHandler(ctx *gin.Context)
 	ResendOTPHandler(ctx *gin.Context)
+	GetAllUsers(ctx *gin.Context)
+	
 }

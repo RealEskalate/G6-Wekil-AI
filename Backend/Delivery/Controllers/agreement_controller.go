@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	domain "wekil_ai/Domain"
@@ -12,6 +13,7 @@ import (
 
 type AgreementController struct {
 	AgreementUseCase domainInter.IAgreementUseCase
+	AIInteraction    domainInter.IAIInteraction
 }
 
 // CreateAgreementRequest represents the expected JSON payload for creating an agreement.
@@ -32,6 +34,7 @@ type DuplicateAgreementRequest struct {
 }
 
 // GetAgreementByFilter implements domain.IAgreementController.
+// ?
 func (a *AgreementController) GetAgreementByFilter(ctx *gin.Context) {
 	pageNumber, err := strconv.Atoi(ctx.Query("page"))
 	if err != nil {
@@ -168,7 +171,7 @@ func (a *AgreementController) DeleteAgreement(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
-			"message": "Agreement signed successfully.",
+			"message": "Agreement deleted successfully.",
 		},
 	})
 }
@@ -216,7 +219,6 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 
 // GetAgreementByID implements domain.IAgreementController.
 func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
-	//? implement this one
 
 	var getID domain.GetAgreementID
 	userId := ctx.GetString("user_id")
@@ -231,12 +233,21 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 	}
 	userPrimitiveID, err := primitive.ObjectIDFromHex(userId)
 
-	agreementID, err := primitive.ObjectIDFromHex(getID.AgreementID)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"data": gin.H{
 				"message": "Invalid request payload (the ID wasn't correct format) / Unauthorized User",
+			},
+		})
+		return
+	}
+	agreementID, err := primitive.ObjectIDFromHex(getID.AgreementID)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Invalid request payload (the ID wasn't correct format) / invalid agreement ID",
 			},
 		})
 		return
@@ -261,6 +272,7 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 }
 
 // GetAgreementByUserID implements domain.IAgreementController.
+// ? this one is only for pagination purpose
 func (a *AgreementController) GetAgreementByUserID(ctx *gin.Context) {
 	userId := ctx.GetString("user_id")
 	var agreementFilter domain.AgreementFilter
@@ -303,7 +315,65 @@ func (a *AgreementController) GetAgreementByUserID(ctx *gin.Context) {
 
 // SaveAgreement implements domain.IAgreementController.
 func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
-	panic("unimplemented")
+	var aR domain.AgreementRequest
+	if err := ctx.ShouldBindJSON(&aR); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Invalid request payload",
+			},
+		})
+		return
+	}
+	userId := ctx.GetString("user_id")
+	ownerEmail := ctx.GetString("email")
+	userID, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(400, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Unautorized user",
+			},
+		})
+		return
+	}
+	// create the intake form the draft
+	intake, err := a.AIInteraction.GenerateIntake(context.Background(), aR.DraftText, domain.EnglishLang)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Unable to create an Intake on your Draft",
+			},
+		})
+		return
+	}
+	// manual selection on the email of party b
+	email_to_send := ""
+	if ownerEmail == aR.AgrementInfo.PartyA.Email {
+		email_to_send = aR.AgrementInfo.PartyB.Email
+	} else {
+		email_to_send = aR.AgrementInfo.PartyA.Email
+	}
+
+	// pass the intake to the CreateAgreement
+	agreement, err := a.AgreementUseCase.CreateAgreement(intake, aR.AgrementInfo.Status, aR.AgrementInfo.PDFURL, userID, email_to_send, aR.AgrementInfo.CreatorSigned)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Unable to create an Agreement",
+			},
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"message":      "Agreement draft saved successfully.",
+			"agreement_id": agreement.ID.Hex(),
+		},
+	})
 }
 
 // SendAgreement implements domain.IAgreementController.

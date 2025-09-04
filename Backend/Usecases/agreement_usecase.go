@@ -11,10 +11,11 @@ import (
 )
 
 type AgreementUseCase struct {
-	IntakeRepo    domainInter.IIntakeRepo
-	AgreementRepo domainInter.IAgreementRepo
-	PendingRepo   domainInter.IPendingAgreementRepo
-	AIInteraction domainInter.IAIInteraction
+	IntakeRepo       domainInter.IIntakeRepo
+	AgreementRepo    domainInter.IAgreementRepo
+	PendingRepo      domainInter.IPendingAgreementRepo
+	AIInteraction    domainInter.IAIInteraction
+	NotificatoinRepo domainInter.INotification
 }
 
 // GetAgreementsByUserIDAndFilter implements domain.IAgreementUseCase.
@@ -30,6 +31,17 @@ func (a *AgreementUseCase) SendAgreement(receiverEmail string, agreement *domain
 		AcceptorEmail: receiverEmail,
 	}
 	_, err := a.PendingRepo.CreatePendingAgreement(context.Background(), &pendingAgreement)
+	if err != nil {
+		return err
+	}
+	// send the notification to the user also
+	signRequestNotification := domain.Notification{
+		SenderID:    agreement.CreatorID,
+		Title:       "Signature Request: New Document to Sign",
+		Message:     "You have a new agreement to review and sign. ",
+		AgreementID: agreement.ID,
+	}
+	_, err = a.NotificatoinRepo.CreateNotification(context.Background(), &signRequestNotification)
 	return err
 }
 

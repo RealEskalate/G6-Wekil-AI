@@ -58,7 +58,7 @@ export default function LoginPage({
     }
 
     try {
-      onLoginComplete(email, password, rememberMe);
+      await onLoginComplete(email, password, rememberMe);
     } catch (err) {
       console.log(err);
       setErrors({

@@ -278,6 +278,32 @@ export const refreshToken = createAsyncThunk<
   }
 });
 
+// Google Login
+export const loginWithGoogle = createAsyncThunk<
+  { data: User & { message: string }; success: boolean },
+  void,
+  { rejectValue: string }
+>("auth/loginWithGoogle", async (_, { rejectWithValue }) => {
+  try {
+    const response = await fetch(`${API_URL}/auth/google`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const responseData = await response.json();
+    return responseData;
+  } catch (error: unknown) {
+    return rejectWithValue(error instanceof Error ? error.message : String(error));
+  }
+});
+
+
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -342,6 +368,20 @@ const authSlice = createSlice({
       state.error = action.payload || "Login failed";
       state.success = false;
     });
+
+    // Google Login
+    builder.addCase(loginWithGoogle.fulfilled, (state, action) => {
+      state.loading = false;
+      state.user = action.payload.data; // store user info
+      state.message = action.payload.data.message;
+      state.success = action.payload.success;
+    });
+    builder.addCase(loginWithGoogle.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload || "Google login failed";
+      state.success = false;
+    });
+
 
     // Logout
     builder.addCase(logoutUser.fulfilled, (state) => {

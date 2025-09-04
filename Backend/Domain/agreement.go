@@ -48,3 +48,8 @@ type SignitureRequest struct {
 type GetAgreementID struct {
 	AgreementID string `json:"agreement_id"`
 }
+type AgreementFilter struct {
+	AgreementType       string `json:"agreement_type"`
+	AgreementStatus     string `json:"agreement_status"`
+	AgreementPageNumber int    `json:"agreement_page_number"`
+}

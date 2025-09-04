@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 	domain "wekil_ai/Domain"
 	domainInter "wekil_ai/Domain/Interfaces"
 
@@ -15,12 +16,12 @@ type AgreementController struct {
 
 // CreateAgreementRequest represents the expected JSON payload for creating an agreement.
 type CreateAgreementRequest struct {
-	Intake          *domain.Intake     `json:"intake"`
-	Status          string             `json:"status"`
-	PDFURL          string             `json:"pdf_url"`
-	CreatorID       primitive.ObjectID `json:"creator_id"`
-	AcceptorEmail   string             `json:"acceptor_email"`
-	CreatorSigned   bool               `json:"creator_signed"`
+	Intake        *domain.Intake     `json:"intake"`
+	Status        string             `json:"status"`
+	PDFURL        string             `json:"pdf_url"`
+	CreatorID     primitive.ObjectID `json:"creator_id"`
+	AcceptorEmail string             `json:"acceptor_email"`
+	CreatorSigned bool               `json:"creator_signed"`
 }
 
 // DuplicateAgreementRequest represents the expected JSON payload for duplicating an agreement.
@@ -28,6 +29,56 @@ type DuplicateAgreementRequest struct {
 	OriginalAgreementID string `json:"original_agreement_id"`
 	NewAcceptorEmail    string `json:"new_acceptor_email"`
 	CallerID            string `json:"caller_id"`
+}
+
+// GetAgreementByFilter implements domain.IAgreementController.
+func (a *AgreementController) GetAgreementByFilter(ctx *gin.Context) {
+	pageNumber, err := strconv.Atoi(ctx.Query("page"))
+	if err != nil {
+		ctx.AbortWithStatusJSON(
+			http.StatusBadRequest,
+			gin.H{
+				"success": false,
+				"data": gin.H{
+					"message": "Invalid request payload, | invalid page number",
+				},
+			},
+		)
+		return
+	}
+	userId := ctx.GetString("user_id")
+	userPrimitiveID, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Invalid request payload (the ID wasn't correct format) / unautorized user access",
+			},
+		})
+		return
+	}
+
+	agreementFilter := domain.AgreementFilter{
+		AgreementType:       ctx.Query("type"),
+		AgreementStatus:     ctx.Query("status"),
+		AgreementPageNumber: pageNumber,
+	}
+	resList, err := a.AgreementUseCase.GetAgreementsByUserIDAndFilter(userPrimitiveID, agreementFilter.AgreementPageNumber, &agreementFilter)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": err.Error(),
+			},
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    resList,
+	},
+	)
+
 }
 
 // CreateAgreement implements domain.IAgreementController.
@@ -165,12 +216,89 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 
 // GetAgreementByID implements domain.IAgreementController.
 func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
-	panic("unimplemented")
+	//? implement this one
+
+	var getID domain.GetAgreementID
+	userId := ctx.GetString("user_id")
+	if err := ctx.ShouldBindJSON(&getID); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Invalid request payload",
+			},
+		})
+		return
+	}
+	userPrimitiveID, err := primitive.ObjectIDFromHex(userId)
+
+	agreementID, err := primitive.ObjectIDFromHex(getID.AgreementID)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Invalid request payload (the ID wasn't correct format) / Unauthorized User",
+			},
+		})
+		return
+	}
+	res, err := a.AgreementUseCase.GetAgreementByID(agreementID, userPrimitiveID)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": err.Error(),
+			},
+		})
+		return
+	}
+	ctx.JSON(
+		http.StatusOK,
+		gin.H{
+			"success": true,
+			"data":    res,
+		},
+	)
 }
 
 // GetAgreementByUserID implements domain.IAgreementController.
 func (a *AgreementController) GetAgreementByUserID(ctx *gin.Context) {
-	panic("unimplemented")
+	userId := ctx.GetString("user_id")
+	var agreementFilter domain.AgreementFilter
+	if err := ctx.ShouldBindJSON(&agreementFilter); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Invalid request payload",
+			},
+		})
+		return
+	}
+	userPrimitiveID, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Invalid request payload (the ID wasn't correct format) / Unauthorized User",
+			},
+		})
+		return
+	}
+
+	listAgr, err := a.AgreementUseCase.GetAgreementsByUserID(userPrimitiveID, agreementFilter.AgreementPageNumber)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": err.Error(),
+			},
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"succes": true,
+		"data":   listAgr,
+	})
+
 }
 
 // SaveAgreement implements domain.IAgreementController.

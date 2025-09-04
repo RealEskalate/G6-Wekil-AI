@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
 
@@ -15,36 +14,70 @@ import (
 )
 
 const (
-	ITEM_PER_PAGE = 5
+	ITEM_PER_PAGE = 7
 )
 
 type AgreementRepository struct {
 	collection *mongo.Collection
 }
 
-// SoftDeleteAgreement implements domain.IAgreementRepo.
-func (a *AgreementRepository) SoftDeleteAgreement(ctx context.Context, agreementID primitive.ObjectID, userID primitive.ObjectID) (*domain.Agreement, error) {
-	resAgree, err := a.GetAgreement(ctx, agreementID)
+// GetAgreementsByFilterAndPartyID implements domain.IAgreementRepo.
+func (a *AgreementRepository) GetAgreementsByFilterAndPartyID(ctx context.Context, ownerID primitive.ObjectID, pageNumber int, filter *domain.AgreementFilter) ([]*domain.Agreement, error) {
+	query := bson.D{
+		{
+			Key: "$and",
+			Value: bson.A{
+				bson.D{
+					{
+						Key: "$or",
+						Value: bson.A{
+							bson.D{{Key: "creator_id", Value: ownerID}},
+							bson.D{{Key: "acceptor_id", Value: ownerID}},
+						},
+					},
+				},
+				bson.D{
+					{
+						Key: "$or",
+						Value: bson.A{
+							bson.D{{Key: "status", Value: filter.AgreementStatus}},
+							bson.D{{Key: "agreement_type", Value: filter.AgreementType}},
+						},
+					},
+				},
+			},
+		},
+	}
+	pageSize := ITEM_PER_PAGE
+	skip := int64((pageNumber - 1) * pageSize)
+	limit := int64(pageSize)
+
+	log.Println(" 👈 ", filter)
+	findOptions := options.Find().SetSkip(skip).SetLimit(limit).SetSort(bson.D{{Key: "updated_at", Value: -1}})
+	log.Println("✅ filtering finished")
+
+	cursor, err := a.collection.Find(ctx, query, findOptions)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting filtered agreements: %w", err)
 	}
-	// if unathorized user wants to delete it by mistake
-	if resAgree.CreatorID != userID && resAgree.AcceptorID != userID {
-		return nil, fmt.Errorf("unauthorized access")
+	defer cursor.Close(ctx)
+
+	var agreements []*domain.Agreement
+	for cursor.Next(ctx) {
+		var agreement domain.Agreement // Change target type to DTO for decoding
+		if err := cursor.Decode(&agreement); err != nil {
+			return nil, fmt.Errorf("error decoding filtered agreement: %w", err)
+		}
+
+		agreements = append(agreements, &agreement)
+
 	}
-	
-	// one of the IsDeleted will become true when either party wants to delete their agreement
-	if resAgree.CreatorID == userID {
-		resAgree.IsDeletedByCreator = true
-	} else {
-		resAgree.IsDeletedByAcceptor = true
+
+	if err = cursor.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating through filtered agreement cursor: %w", err)
 	}
-	// if both parties want to delete the agreement then the deletedAt will have the time stamp of now
-	if resAgree.IsDeletedByAcceptor && resAgree.IsDeletedByCreator {
-		resAgree.DeletedAt = time.Now()
-	}
-		
-	return a.UpdateAgreement(ctx, resAgree.ID, resAgree)
+	log.Println("✅ Returning from GetAgreementsByFilterAndPartyID")
+	return agreements, nil
 }
 
 // GetAgreementsByPartyID implements domain.IAgreementRepo.

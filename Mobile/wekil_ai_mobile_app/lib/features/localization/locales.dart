@@ -134,6 +134,16 @@ mixin LocalesData {
     Optional_description_of_the_deal: 'Optional description of the deal',
     This_information_helps_us_pre_fill_your_contract:
         'This information helps us pre-fill your contract.',
+
+    // Added EN translations for dashboard UI
+    recentContracts: 'Recent Contracts',
+    viewAll: 'View All',
+    draftContracts: 'Draft Contracts',
+    exportedContracts: 'Exported Contracts',
+    allContracts: 'All Contracts',
+    noContractsYet: 'No contracts yet',
+    createFirstContract: 'Create your first contract',
+    createContract: 'Create Contract',
   };
 
   static const Map<String, String> AM = {
@@ -185,7 +195,6 @@ mixin LocalesData {
     This_information_helps_us_pre_fill_your_contract:
         'ይህ መረጃ ውልዎን በቀድሞ ለመሙላት ይረዳናል።',
 
-    Overview: 'አጠቃላይ እይታ',
     // ...added AM translations...
     recentContracts: 'የቅርብ ውልዎች',
     viewAll: 'ሁሉንም ይመልከቱ',

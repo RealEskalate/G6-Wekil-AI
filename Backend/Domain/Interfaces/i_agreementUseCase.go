@@ -14,7 +14,8 @@ type IAgreementUseCase interface {
 	UpdateAgreement(agreementID primitive.ObjectID, newAgreement *domain.Agreement) (*domain.Agreement, error)
 	SignAgreement(agreementID primitive.ObjectID, userID primitive.ObjectID) error    //? for the time being, only making the boolean TRUE or FALSE for both side
 	DeclineAgreement(agreementID primitive.ObjectID, userID primitive.ObjectID) error // change the status to DECLINED	
-	GetAgreementByID(agreementID primitive.ObjectID) (*domain.Agreement, error)
+	GetAgreementByID(agreementID primitive.ObjectID, userID primitive.ObjectID) (*domain.Agreement, error)
 	GetAgreementsByUserID(userID primitive.ObjectID, pageNumber int) ([]*domain.Agreement, error) // pagination
+	GetAgreementsByUserIDAndFilter(userID primitive.ObjectID, pageNumber int, filter *domain.AgreementFilter) ([]*domain.Agreement, error) // pagination
 	DuplicateAgreement(originalAgreementID primitive.ObjectID, newAcceptorEmail string, callerID primitive.ObjectID) (*domain.Intake, *domain.Draft, error)
 }

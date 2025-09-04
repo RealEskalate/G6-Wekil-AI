@@ -4,15 +4,16 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Shield, ShoppingCart, CreditCard, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Language } from "@/components/wizard/ContractWizard";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ChooseContractTypeProps {
-  currentLanguage: Language;
   contractType: string;
   setContractType: (type: string) => void;
 }
 
-export default function ChooseContractType({ currentLanguage, contractType, setContractType }: ChooseContractTypeProps) {
+export default function ChooseContractType({ contractType, setContractType }: ChooseContractTypeProps) {
+  const { lang } = useLanguage();
+
   const t = {
     en: {
       title: "Choose Contract Type",
@@ -38,7 +39,7 @@ export default function ChooseContractType({ currentLanguage, contractType, setC
       nda: "የሚስጥር ጥበቃ ስምምነት",
       ndaDesc: "ሚስጥራዊ መረጃን ለመጠበቅ",
     },
-  }[currentLanguage];
+  }[lang];
 
   const contractTypes = [
     { id: "service", title: t.service, desc: t.serviceDesc, icon: Shield },

@@ -124,7 +124,7 @@ export default function HomePage() {
         toast.success("Login Successful!");
         setShowAuthModal(false);
         document.body.style.overflow = "unset";
-        window.location.href = "/dashboard"; // Redirect manually
+        window.location.href = "/dashboard";
       }
     } catch (err) {
       console.log(err);

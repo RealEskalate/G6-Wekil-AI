@@ -86,38 +86,42 @@ class ContractsTypesPages extends StatelessWidget {
     required Color cardColor,
     required ContractType type,
   }) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CreateStep1(contractType: type),
-            
-          ),
-        );
-      },
-      child: Card(
-        color: cardColor,
-        margin: const EdgeInsets.symmetric(vertical: 8.0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: iconColor.withOpacity(0.5), width: 1.5),
-        ),
+    return Card(
+      color: cardColor,
+      elevation: 3, // subtle shadow
+      shadowColor: iconColor.withOpacity(0.3),
+      margin: const EdgeInsets.symmetric(vertical: 12.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: iconColor, width: 0.5),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        splashColor: iconColor.withOpacity(0.1), // ripple effect
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateStep1(contractType: type),
+            ),
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Icon container
               Container(
-                padding: const EdgeInsets.all(12),
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.textLight,
+                  color: iconColor.withOpacity(0.1),
                   shape: BoxShape.circle,
-                  border: Border.all(color: iconColor.withOpacity(0.5)),
                 ),
                 child: Icon(icon, color: iconColor, size: 28),
               ),
               const SizedBox(width: 16),
+              // Text
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +130,7 @@ class ContractsTypesPages extends StatelessWidget {
                       title,
                       style: AppTypography.body().copyWith(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.textDark,
                       ),
                     ),
@@ -141,6 +145,7 @@ class ContractsTypesPages extends StatelessWidget {
                   ],
                 ),
               ),
+              const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
             ],
           ),
         ),
@@ -199,7 +204,6 @@ class ContractsTypesPages extends StatelessWidget {
               color: AppColors.textDark.withOpacity(0.7),
             ),
           ],
-          
         ),
       ),
     );

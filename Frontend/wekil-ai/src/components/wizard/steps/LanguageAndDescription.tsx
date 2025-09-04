@@ -4,10 +4,10 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { useLanguage } from "@/context/LanguageContext";
 import { Language } from "@/components/wizard/ContractWizard";
 
 interface LanguageAndDescriptionProps {
-  currentLanguage: Language;
   agreementLanguage: Language;
   setAgreementLanguage: (lang: Language) => void;
   description: string;
@@ -15,12 +15,13 @@ interface LanguageAndDescriptionProps {
 }
 
 export function LanguageAndDescription({
-  currentLanguage,
   agreementLanguage,
   setAgreementLanguage,
   description,
   setDescription,
 }: LanguageAndDescriptionProps) {
+  const { lang } = useLanguage();
+
   const t = {
     en: {
       title: "Language & Description",
@@ -34,7 +35,7 @@ export function LanguageAndDescription({
       languageLabel: "የስምምነት ቋንቋ",
       descriptionLabel: "መግለጫ",
     },
-  }[currentLanguage];
+  }[lang];
 
   return (
     <Card className="max-w-4xl mx-auto">

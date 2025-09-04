@@ -11,11 +11,11 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.6
+  flutter_localization: ^0.3.3
   equatable: ^2.0.7
   get_it: ^7.7.0
-  intl: ^0.19.0
+  intl: ^0.20.2             # ✅ Match version required by Flutter
   http: ^1.2.2
-
   syncfusion_flutter_pdfviewer: ^30.2.7
 
 dev_dependencies:

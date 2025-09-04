@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/create_start_page.dart';
+import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../core/di/injection.dart';
@@ -85,7 +87,9 @@ class DashboardPage extends StatelessWidget {
           builder: (context, state) {
             final user = state.user;
             final first = (user?.firstName ?? '').trim();
-            final name = first.isNotEmpty ? first : 'there';
+            final name = first.isNotEmpty
+                ? first
+                : LocalesData.there.getString(context);
             final verified = user?.isVerified == true;
 
             return SingleChildScrollView(
@@ -97,8 +101,10 @@ class DashboardPage extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
+                        //Text(LocalesData.title.getString(context))
                         child: Text(
-                          'Welcome back, $name!',
+                          context.formatString(LocalesData.welcome, [name]),
+                          // 'Welcome back, $name!',
                           style: AppTypography.heading(
                             fontSize: 26,
                             fontWeight: FontWeight.w600,
@@ -121,7 +127,8 @@ class DashboardPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Overview',
+                    // 'Overview',
+                    LocalesData.Overview.getString(context),
                     style: AppTypography.body(color: AppColors.textDark),
                   ),
                   const SizedBox(height: 10),

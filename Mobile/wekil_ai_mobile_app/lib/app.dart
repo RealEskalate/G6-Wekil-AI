@@ -1,15 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
 import 'package:wekil_ai_mobile_app/history.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 
 import 'features/dashboard/presentation/dashboard.dart';
 import 'features/contacts/presentations/pages/create_start_page.dart';
 import 'features/widget/bottom_nav.dart';
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final FlutterLocalization localization = FlutterLocalization.instance;
+  @override
+  void initState() {
+    configlocalization();
+    super.initState();
+    
+  }
   @override
   Widget build(BuildContext context) {
     final base = ThemeData(
@@ -22,16 +37,36 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      
       theme: base.copyWith(
         textTheme: GoogleFonts.interTextTheme(base.textTheme),
         hoverColor: hover,
         highlightColor: hover,
         splashColor: pressed,
       ),
+      supportedLocales: localization.supportedLocales,
+      localizationsDelegates: localization.localizationsDelegates,
       home: const MainScreen(),
+      
+      
+      
     );
+    
+  }
+  void configlocalization() {
+    localization.init(mapLocales: LOCALES, initLanguageCode: "en");
+    localization.onTranslatedLanguage = onTranslatedLanguage;
+  }
+  void onTranslatedLanguage(Locale? locale) {
+    setState(() {});
   }
 }
+
+
+
+
+
+
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -41,6 +76,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  
+  
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
@@ -72,5 +109,7 @@ class _MainScreenState extends State<MainScreen> {
         onCreatePressed: _onCreatePressed,
       ),
     );
+    
   }
+
 }

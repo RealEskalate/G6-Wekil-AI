@@ -17,6 +17,11 @@ type AgreementUseCase struct {
 	AIInteraction domainInter.IAIInteraction
 }
 
+// GetAgreementsByUserIDAndFilter implements domain.IAgreementUseCase.
+func (a *AgreementUseCase) GetAgreementsByUserIDAndFilter(userID primitive.ObjectID, pageNumber int, filter *domain.AgreementFilter) ([]*domain.Agreement, error) {
+	return a.AgreementRepo.GetAgreementsByFilterAndPartyID(context.Background(), userID, pageNumber, filter)
+}
+
 // SendAgreement implements domain.IAgreementUseCase.
 func (a *AgreementUseCase) SendAgreement(receiverEmail string, agreement *domain.Agreement) error {
 	pendingAgreement := domain.PendingAgreement{
@@ -89,11 +94,13 @@ func (a *AgreementUseCase) DeclineAgreement(agreementID primitive.ObjectID, user
 }
 
 // GetAgreementByID implements domain.IAgreementUseCase.
-func (a *AgreementUseCase) GetAgreementByID(agreementID primitive.ObjectID) (*domain.Agreement, error) {
+func (a *AgreementUseCase) GetAgreementByID(agreementID primitive.ObjectID, userID primitive.ObjectID) (*domain.Agreement, error) {
 	resAgree, err := a.AgreementRepo.GetAgreement(context.Background(), agreementID)
-	if err != nil{
+	if err != nil {
 		return nil, err
-	}else if ! (resAgree.IsDeletedByAcceptor || resAgree.IsDeletedByCreator){
+	} else if resAgree.AcceptorID != userID && resAgree.CreatorID != userID {
+		return nil, fmt.Errorf("unauthorized access")
+	} else if !(resAgree.IsDeletedByAcceptor || resAgree.IsDeletedByCreator) {
 		return nil, fmt.Errorf("trying to access deleted agreement")
 	}
 	return resAgree, nil
@@ -143,8 +150,27 @@ func (a *AgreementUseCase) SignAgreement(agreementID primitive.ObjectID, userID 
 
 // SoftDeleteAgreement implements domain.IAgreementUseCase.
 func (a *AgreementUseCase) SoftDeleteAgreement(agreementID primitive.ObjectID, userID primitive.ObjectID) error {
-	_, err := a.AgreementRepo.SoftDeleteAgreement(context.Background(), agreementID, userID)
-	
+	resAgree, err := a.AgreementRepo.GetAgreement(context.Background(), agreementID)
+	if err != nil {
+		return err
+	}
+	// if unathorized user wants to delete it by mistake
+	if resAgree.CreatorID != userID && resAgree.AcceptorID != userID {
+		return fmt.Errorf("unauthorized access")
+	}
+
+	// one of the IsDeleted will become true when either party wants to delete their agreement
+	if resAgree.CreatorID == userID {
+		resAgree.IsDeletedByCreator = true
+	} else {
+		resAgree.IsDeletedByAcceptor = true
+	}
+	// if both parties want to delete the agreement then the deletedAt will have the time stamp of now
+	if resAgree.IsDeletedByAcceptor && resAgree.IsDeletedByCreator {
+		resAgree.DeletedAt = time.Now()
+	}
+	_, err = a.AgreementRepo.UpdateAgreement(context.Background(), resAgree.ID, resAgree)
+
 	return err
 }
 
@@ -166,12 +192,12 @@ func (a *AgreementUseCase) DuplicateAgreement(originalAgreementID primitive.Obje
 	if callerID != originalAgreement.CreatorID && callerID != originalAgreement.AcceptorID {
 		return nil, nil, fmt.Errorf("unauthorized access: only the original parties can duplicate this agreement")
 	}
-	
+
 	originalIntake, err := a.IntakeRepo.GetIntake(context.Background(), originalAgreement.IntakeID)
 	if err != nil {
 		return nil, nil, err
 	}
-	
+
 	// 3. Create a new intake object (a deep copy) and update the parties.
 	newIntake := *originalIntake // Shallow copy
 	if newIntake.Parties != nil {
@@ -191,7 +217,7 @@ func (a *AgreementUseCase) DuplicateAgreement(originalAgreementID primitive.Obje
 			} else { // callerID == originalAgreement.AcceptorID
 				originalCallerEmail = newParties[1].Email
 			}
-			
+
 			// Simple party swap logic.
 			newParties[0].Email = newAcceptorEmail
 			newParties[1].Email = originalCallerEmail

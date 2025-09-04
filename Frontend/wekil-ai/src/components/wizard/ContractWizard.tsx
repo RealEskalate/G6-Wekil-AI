@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -24,6 +24,9 @@ import SpecificDetails from "@/components/wizard/steps/SpecificDetails";
 import { AIDraftPreview } from "@/components/wizard/steps/AIDraftPreview";
 import { FinalPreview } from "@/components/wizard/steps/FinalPreview";
 import { useLanguage } from "@/context/LanguageContext";
+import WeKilAILoader from "../ui/WekilAILoader";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export interface Step {
   id: string;
@@ -84,6 +87,7 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   const { lang, setLang } = useLanguage();
   const [contractData, setContractData] = useState<Partial<ContractData>>({});
   const [isCheckingComplexity, setIsCheckingComplexity] = useState(false);
+  const { status } = useSession();
 
   // Step-specific state
   const [contractType, setContractType] = useState<string>("");
@@ -93,6 +97,8 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
     { fullName: "", phone: "", email: "" },
     { fullName: "", phone: "", email: "" },
   ]);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const router = useRouter();
   const [agreementLanguage, setAgreementLanguage] = useState<Language>("en");
   const [description, setDescription] = useState<string>("");
   const [commonDetails, setCommonDetails] = useState<
@@ -108,6 +114,22 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   const [specificDetails, setSpecificDetails] = useState<
     NonNullable<ContractData["specificDetails"]>
   >({});
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/");
+    } else if (status === "authenticated") {
+      setIsAuthChecked(true);
+    }
+  }, [status, router]);
+
+  if (status === "loading" || !isAuthChecked) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <WeKilAILoader />
+      </div>
+    );
+  }
 
   const steps: Step[] = [
     {

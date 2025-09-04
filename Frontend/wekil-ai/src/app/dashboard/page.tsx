@@ -13,9 +13,32 @@ import { DashBoardContract } from "@/components/dashboard/DashBoardContract";
 import Link from "next/link";
 import { Globe } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import WeKilAILoader from "@/components/ui/WekilAILoader";
 
 const Dashboard = () => {
   const { lang, setLang } = useLanguage();
+  const { status } = useSession();
+  const router = useRouter();
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/");
+    } else if (status === "authenticated") {
+      setIsAuthChecked(true);
+    }
+  }, [status, router]);
+
+  if (status === "loading" || !isAuthChecked) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <WeKilAILoader />
+      </div>
+    );
+  }
   return (
     <div className="bg-gray-50 sm:pl-6 lg:pl-8 h-full">
       <div className="p-4 sm:p-6 lg:p-8 w-auto">

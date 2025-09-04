@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -22,8 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/Button";
-import { Search, Eye, Edit, Trash2 } from "lucide-react";
+import { Search } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { adminTranslation } from "@/lib/translations/adminTranslation";
 import { User } from "@/types/auth";
@@ -35,6 +34,7 @@ interface UsersTabProps {
   setUserFilter: (filter: string) => void;
   filteredUsers: User[];
   getStatusColor: (status: string) => string;
+  itemsPerPage?: number;
 }
 
 const UsersTab: React.FC<UsersTabProps> = ({
@@ -44,9 +44,21 @@ const UsersTab: React.FC<UsersTabProps> = ({
   setUserFilter,
   filteredUsers,
   getStatusColor,
+  itemsPerPage = 10,
 }) => {
   const { lang } = useLanguage();
   const t = adminTranslation[lang];
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+
+  const currentUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, userFilter]);
 
   return (
     <Card className="shadow-2xl rounded-3xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 transition-all duration-500 overflow-visible">
@@ -68,37 +80,34 @@ const UsersTab: React.FC<UsersTabProps> = ({
               className="w-full pl-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
             />
           </div>
-          {/* Filter by Status */}
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full sm:w-[180px] cursor-pointer h-10 rounded-xl bg-gray-100 dark:bg-gray-800 border-gray-200 text-sm dark:border-gray-700 transition-colors"
-              >
+              <button className="w-full sm:w-[180px] cursor-pointer h-10 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 text-sm dark:border-gray-700 transition-colors">
                 {t.filterByStatus}:{" "}
                 {userFilter === "all"
                   ? t.allStatuses
                   : t[userFilter as keyof typeof t]}
-              </Button>
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               className="rounded-xl shadow-lg z-50 w-full sm:w-[180px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-1"
               sideOffset={5}
             >
               <DropdownMenuItem
-                className="cursor-pointer rounded-lg px-2 py-1.5 text-sm outline-none transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                className="cursor-pointer"
                 onClick={() => setUserFilter("all")}
               >
                 {t.allStatuses}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer rounded-lg px-2 py-1.5 text-sm outline-none transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                className="cursor-pointer"
                 onClick={() => setUserFilter("active")}
               >
                 {t.active}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer rounded-lg px-2 py-1.5 text-sm outline-none transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                className="cursor-pointer"
                 onClick={() => setUserFilter("inactive")}
               >
                 {t.inactive}
@@ -107,34 +116,25 @@ const UsersTab: React.FC<UsersTabProps> = ({
           </DropdownMenu>
         </div>
       </CardHeader>
+
       <CardContent className="p-6 md:p-8 pt-0">
         <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <Table className="w-full">
             <TableHeader className="bg-gray-50 dark:bg-gray-800">
               <TableRow className="border-gray-200 dark:border-gray-700">
-                <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
-                  {t.name}
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
-                  {t.email}
-                </TableHead>
-                <TableHead className="font-semibold text-gray-70 dark:text-gray-300">
-                  {t.status}
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
-                  {t.contractsCount}
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
-                  {t.joinDate}
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 dark:text-gray-300 text-right">
-                  {t.actions}
-                </TableHead>
+                <TableHead>{t.name}</TableHead>
+                <TableHead>{t.email}</TableHead>
+                <TableHead>{t.status}</TableHead>
+                <TableHead>{t.contractsCount}</TableHead>
+                <TableHead>{t.joinDate}</TableHead>
+                <TableHead>{t.phoneNumber}</TableHead>
+                <TableHead>{t.lastActivity}</TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
+              {currentUsers.length > 0 ? (
+                currentUsers.map((user) => (
                   <TableRow
                     key={user.id}
                     className="hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
@@ -158,30 +158,11 @@ const UsersTab: React.FC<UsersTabProps> = ({
                     <TableCell className="text-gray-500 dark:text-gray-400">
                       {new Date(user.joinDate).toLocaleDateString()}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="rounded-full w-8 h-8 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="rounded-full w-8 h-8 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="rounded-full w-8 h-8 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                    <TableCell className="text-gray-500 dark:text-gray-400">
+                      {user.telephone || "N/A"}
+                    </TableCell>
+                    <TableCell className="text-gray-500 dark:text-gray-400">
+                      {new Date(user.lastActivity).toLocaleDateString()}
                     </TableCell>
                   </TableRow>
                 ))
@@ -197,6 +178,31 @@ const UsersTab: React.FC<UsersTabProps> = ({
               )}
             </TableBody>
           </Table>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center mt-4 gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="px-4 py-2">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

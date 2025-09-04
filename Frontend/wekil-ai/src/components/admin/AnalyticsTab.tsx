@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { AnalyticsData, Contract } from "@/types/auth";
 import { useLanguage } from "@/context/LanguageContext";
-import { adminTranslation } from "@/lib/adminTranslation";
+import { adminTranslation } from "@/lib/translations/adminTranslation";
 
 interface AnalyticsTabProps {
   chartType: "bar" | "line" | "pie" | "area";

@@ -12,7 +12,7 @@ import { Label } from "../ui/Label";
 import { Button } from "../ui/Button";
 import { Shield, Loader2, Download, Trash2, UserX, X } from "lucide-react";
 import toast from "react-hot-toast";
-import { settingTranslations } from "@/lib/settingTranslations";
+import { settingTranslations } from "@/lib/translations/settingTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function PrivacyCard() {

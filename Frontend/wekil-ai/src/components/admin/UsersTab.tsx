@@ -25,7 +25,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Search, Eye, Edit, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { adminTranslation } from "@/lib/adminTranslation";
+import { adminTranslation } from "@/lib/translations/adminTranslation";
 import { User } from "@/types/auth";
 
 interface UsersTabProps {

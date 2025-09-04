@@ -8,7 +8,7 @@ import AnalyticsTab from "@/components/admin/AnalyticsTab";
 import ContractsTab from "@/components/admin/ContractsTab";
 import UsersTab from "@/components/admin/UsersTab";
 import { useLanguage } from "@/context/LanguageContext";
-import { adminTranslation } from "@/lib/adminTranslation";
+import { adminTranslation } from "@/lib/translations/adminTranslation";
 import { AnalyticsData, Contract, User } from "@/types/auth";
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";

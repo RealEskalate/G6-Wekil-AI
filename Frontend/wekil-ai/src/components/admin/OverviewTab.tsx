@@ -14,7 +14,7 @@ import {
 import { Users, FileText, DollarSign, Activity } from "lucide-react";
 import { AnalyticsData } from "@/types/auth";
 import { useLanguage } from "@/context/LanguageContext";
-import { adminTranslation } from "@/lib/adminTranslation";
+import { adminTranslation } from "@/lib/translations/adminTranslation";
 
 interface OverviewTabProps {
   stats: {

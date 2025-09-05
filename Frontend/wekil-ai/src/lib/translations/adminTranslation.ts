@@ -53,10 +53,10 @@ export const adminTranslation = {
     status: "Status",
     created: "Created",
     amount: "Amount",
-    actions: "Actions",
     joinDate: "Join Date",
     lastActivity: "Last Activity",
     contractsCount: "Contracts",
+    phoneNumber: "Phone Number",
 
     // Status
     draft: "Draft",
@@ -145,6 +145,7 @@ export const adminTranslation = {
     joinDate: "የመቀላቀል ቀን",
     lastActivity: "የመጨረሻ እንቅስቃሴ",
     contractsCount: "ውሎች",
+    phoneNumber: "ስልክ ቁጥር",
 
     // Status
     draft: "ረቂቅ",

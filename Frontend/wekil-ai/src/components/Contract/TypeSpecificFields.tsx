@@ -11,7 +11,7 @@ const TypeSpecificFields: React.FC<TypeSpecificFieldsProps> = ({
   contract,
 }) => {
   return (
-    <div className="m-4 p-4 border border-gray-200 rounded-2xl shadow-lg shadow-gray-200 ">
+    <div className="m-4 p-4 border border-gray-200 bg-white  rounded-2xl shadow-lg shadow-gray-200 ">
       <p className="text-lg text-blue-900 font-semibold">Additional Clauses</p>
       {(() => {
         switch (contract.type) {

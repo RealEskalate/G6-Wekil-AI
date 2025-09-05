@@ -4,7 +4,7 @@ import { MdDriveFileRenameOutline } from "react-icons/md";
 import { FaEnvelope, FaPhone, FaLock } from "react-icons/fa";
 import { SignupFormData, FormErrors } from "@/types/auth";
 import { useLanguage } from "@/context/LanguageContext";
-import { authTranslations } from "@/lib/authTranslations";
+import { authTranslations } from "@/lib/translations/authTranslations";
 
 interface IndividualFormProps {
   formData: SignupFormData;

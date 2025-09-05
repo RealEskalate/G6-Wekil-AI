@@ -12,7 +12,7 @@ type IAgreementRepo interface { //! don't forget to add a DeleteAgreement() for 
 	GetAgreement(ctx context.Context, agreementID primitive.ObjectID) (*domain.Agreement, error)
 	UpdateAgreement(ctx context.Context, agreementID primitive.ObjectID, agreement *domain.Agreement) (*domain.Agreement, error)
 	GetAgreementsByPartyID(ctx context.Context, ownerID primitive.ObjectID, pageNumber int) ([]*domain.Agreement, error)
-	SoftDeleteAgreement(ctx context.Context, agreementID primitive.ObjectID) error
+	GetAgreementsByFilterAndPartyID(ctx context.Context, ownerID primitive.ObjectID, pageNumber int, filter *domain.AgreementFilter) ([]*domain.Agreement, error)
 }
 
 type IPendingAgreementRepo interface {

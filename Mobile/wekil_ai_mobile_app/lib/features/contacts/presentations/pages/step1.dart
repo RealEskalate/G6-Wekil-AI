@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step2.dart';
+import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
 import 'package:wekil_ai_mobile_app/features/widget/progress_bar.dart';
 import '../../domain/entities/contract_type.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 
-class ContractsTypesPages extends StatelessWidget {
+class ContractsTypesPages extends StatefulWidget {
   const ContractsTypesPages({Key? key}) : super(key: key);
 
+  @override
+  State<ContractsTypesPages> createState() => _ContractsTypesPagesState();
+}
+
+class _ContractsTypesPagesState extends State<ContractsTypesPages> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,13 +29,13 @@ class ContractsTypesPages extends StatelessWidget {
             const StepProgressBar(currentStep: 1, totalSteps: 7),
             const SizedBox(height: 24),
             Text(
-              'Select Contract Type',
+              LocalesData.Select_Contract_Type.getString(context),
               style: AppTypography.heading().copyWith(fontSize: 24),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'Choose the type of contract you want to create',
+              LocalesData.Choose_the_type_of_contract_you_want_to_create.getString(context),
               style: AppTypography.body().copyWith(color: Colors.grey),
               textAlign: TextAlign.center,
             ),
@@ -36,8 +43,8 @@ class ContractsTypesPages extends StatelessWidget {
             _buildContractTypeCard(
               context,
               icon: Icons.business_center,
-              title: 'Service Agreement',
-              subtitle: 'Freelance work, design, photography, consulting',
+              title: LocalesData.Service_Agreement.getString(context),
+              subtitle: LocalesData.Freelance_work_design_photography_consulting.getString(context),
               iconColor: Colors.blue,
               cardColor: Colors.blue.shade50,
               type: ContractType.serviceAgreement,
@@ -45,8 +52,8 @@ class ContractsTypesPages extends StatelessWidget {
             _buildContractTypeCard(
               context,
               icon: Icons.shopping_bag,
-              title: 'Sale of Goods',
-              subtitle: 'Small item sales, product delivery terms',
+              title:LocalesData.Sale_of_Goods.getString(context), 
+              subtitle:LocalesData.Small_item_sales_product_delivery_terms.getString(context), 
               iconColor: Colors.green.shade800,
               cardColor: Colors.green.shade50,
               type: ContractType.salesOfGoods,
@@ -54,8 +61,8 @@ class ContractsTypesPages extends StatelessWidget {
             _buildContractTypeCard(
               context,
               icon: Icons.groups,
-              title: 'Simple Loan (IOU)',
-              subtitle: 'Personal loans with repayment schedule',
+              title: LocalesData.Simple_Loan_IOU.getString(context), 
+              subtitle: LocalesData.Personal_loans_with_repayment_schedule.getString(context),
               iconColor: Colors.orange.shade800,
               cardColor: Colors.orange.shade50,
               type: ContractType.simpleLoan,
@@ -63,8 +70,8 @@ class ContractsTypesPages extends StatelessWidget {
             _buildContractTypeCard(
               context,
               icon: Icons.security,
-              title: 'Basic NDA',
-              subtitle: 'Simple confidentiality agreement',
+              title:LocalesData.Basic_NDA.getString(context),
+              subtitle:LocalesData.Simple_confidentiality_agreement.getString(context) ,
               iconColor: Colors.purple.shade800,
               cardColor: Colors.purple.shade50,
               type: ContractType.basicNDA,
@@ -86,38 +93,42 @@ class ContractsTypesPages extends StatelessWidget {
     required Color cardColor,
     required ContractType type,
   }) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CreateStep1(contractType: type),
-            
-          ),
-        );
-      },
-      child: Card(
-        color: cardColor,
-        margin: const EdgeInsets.symmetric(vertical: 8.0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: iconColor.withOpacity(0.5), width: 1.5),
-        ),
+    return Card(
+      color: cardColor,
+      elevation: 3, // subtle shadow
+      shadowColor: iconColor.withOpacity(0.3),
+      margin: const EdgeInsets.symmetric(vertical: 12.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: iconColor, width: 0.5),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        splashColor: iconColor.withOpacity(0.1), // ripple effect
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateStep1(contractType: type),
+            ),
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Icon container
               Container(
-                padding: const EdgeInsets.all(12),
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.textLight,
+                  color: iconColor.withOpacity(0.1),
                   shape: BoxShape.circle,
-                  border: Border.all(color: iconColor.withOpacity(0.5)),
                 ),
                 child: Icon(icon, color: iconColor, size: 28),
               ),
               const SizedBox(width: 16),
+              // Text
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +137,7 @@ class ContractsTypesPages extends StatelessWidget {
                       title,
                       style: AppTypography.body().copyWith(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.textDark,
                       ),
                     ),
@@ -141,6 +152,7 @@ class ContractsTypesPages extends StatelessWidget {
                   ],
                 ),
               ),
+              const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
             ],
           ),
         ),
@@ -165,7 +177,7 @@ class ContractsTypesPages extends StatelessWidget {
                 Icon(Icons.info_outline, color: Colors.amber.shade800),
                 const SizedBox(width: 8),
                 Text(
-                  'Not for Complex Agreements',
+                  LocalesData.Not_for_Complex_Agreements.getString(context),
                   style: AppTypography.body().copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.textDark,
@@ -175,7 +187,7 @@ class ContractsTypesPages extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'This tool is designed for basic agreements only. Please consult a lawyer for:',
+              LocalesData.This_tool_is_designed_for_basic_agreements_only_Please_consult_a_lawyer_for.getString(context),
               style: AppTypography.body().copyWith(
                 fontSize: 14,
                 color: AppColors.textDark.withOpacity(0.7),
@@ -183,23 +195,22 @@ class ContractsTypesPages extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             _buildBulletedText(
-              'Employment contracts',
+              LocalesData.Employment_contracts.getString(context),
               color: AppColors.textDark.withOpacity(0.7),
             ),
             _buildBulletedText(
-              'Real estate or land transfers',
+              LocalesData.Real_estate_or_land_transfers.getString(context),
               color: AppColors.textDark.withOpacity(0.7),
             ),
             _buildBulletedText(
-              'Corporate or shareholder agreements',
+              LocalesData.Corporate_or_shareholder_agreements.getString(context),
               color: AppColors.textDark.withOpacity(0.7),
             ),
             _buildBulletedText(
-              'Government tenders or regulated industries',
+              LocalesData.Government_tenders_or_regulated_industries.getString(context),
               color: AppColors.textDark.withOpacity(0.7),
             ),
           ],
-          
         ),
       ),
     );

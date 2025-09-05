@@ -424,6 +424,44 @@ func (uc *UserController) Success(c *gin.Context) {
   `))
 }
 
+func (uc *UserController) GoogleAuthHandler(c *gin.Context) {
+  var profile domain.GoogleProfile
+  if err := c.ShouldBindJSON(&profile); err != nil {
+    c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+    return
+  }
+user, accessToken, refreshToken, err := uc.userUseCase.GoogleNextJS(c.Request.Context(), profile)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to login with Google"})
+		return
+	}
+
+	// Set refresh token cookie
+	c.SetCookie(
+		"WEKIL-API-REFRESH-TOKEN",
+		refreshToken,
+		60*60*24*7, // 7 days
+		"/",
+		"",
+		true,  // secure
+		true,  // httpOnly
+	)
+
+	// Set access token in header
+	c.Header("Authorization", "Bearer "+accessToken)
+
+	// Return JSON response
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"message":      "Google login successful",
+			"account_type": user.AccountType,
+			"access_token": accessToken,
+			"user":user,
+		},
+	})
+}
+
 func (uc *UserController) HandleNotifications(ctx *gin.Context) {
 	userId := ctx.GetString("user_id")
 

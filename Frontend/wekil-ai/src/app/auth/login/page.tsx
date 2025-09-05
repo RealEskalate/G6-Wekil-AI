@@ -5,6 +5,9 @@ import toast from "react-hot-toast";
 import { FaEnvelope, FaLock, FaRobot } from "react-icons/fa";
 import { useLanguage } from "@/context/LanguageContext";
 import { authTranslations } from "@/lib/translations/authTranslations";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/redux/store";
+import { loginWithGoogle } from "@/lib/redux/slices/authSlice";
 
 interface LoginPageProps {
   onLoginComplete: (
@@ -31,6 +34,7 @@ export default function LoginPage({
 
   const { lang } = useLanguage();
   const t = authTranslations[lang];
+  const dispatch = useDispatch<AppDispatch>();
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -70,8 +74,10 @@ export default function LoginPage({
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
+  const handleGoogleLogin = async () => {
+    const res = await dispatch(loginWithGoogle());
+    console.log(res);
+    // window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
   };
 
   return (

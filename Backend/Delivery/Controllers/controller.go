@@ -373,15 +373,16 @@ func (uc *UserController) CallbackHandler(c *gin.Context) {
 	)
 
 	c.Header("Authorization", "Bearer " + accessToken)
-	redirectURL := "http://localhost:3000/"
-	c.Redirect(http.StatusFound, redirectURL)
-	// c.JSON(http.StatusOK, gin.H{
-	// 	"success": true,
-	// 	"data": gin.H{
-	// 		"message":      "login successful",
-	// 		"account_type": domain.,
-	// 	},
-	// })
+	// redirectURL := "http://localhost:3000/"
+	// c.Redirect(http.StatusFound, redirectURL)
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"message":      "login successful",
+			"account_type": domain.User,
+			"access_token": accessToken,
+		},
+	})
 
 	// c.JSON(http.StatusOK, gin.H{
 	// 	"success": true,

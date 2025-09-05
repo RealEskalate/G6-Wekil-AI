@@ -60,8 +60,9 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  joinDate: string;
-  contractsCount: number;
   status: "active" | "inactive";
+  contractsCount: number;
+  joinDate: string;
   lastActivity: string;
-}
+  telephone: string
+};

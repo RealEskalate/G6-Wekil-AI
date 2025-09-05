@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { BarChart3, Globe, RefreshCw, ChevronDown, Check } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { adminTranslation } from "@/lib/adminTranslation";
+import { adminTranslation } from "@/lib/translations/adminTranslation";
 import {
   DropdownMenu,
   DropdownMenuContent,

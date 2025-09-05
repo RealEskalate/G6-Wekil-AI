@@ -22,8 +22,9 @@ import LoginPage from "./auth/login/page";
 import SignupPage from "./auth/signup/page";
 import { useSession, signIn } from "next-auth/react";
 import toast from "react-hot-toast";
-import { translations } from "@/lib/generalTranslations";
+import { translations } from "@/lib/translations/generalTranslations";
 import { useLanguage } from "@/context/LanguageContext";
+import WeKilAILoader from "@/components/ui/WekilAILoader";
 
 export default function HomePage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -33,6 +34,7 @@ export default function HomePage() {
   const t = translations[lang];
   const { data: session, status } = useSession();
   const accessToken = session?.user?.accessToken;
+  const accountType = session?.user?.account_type;
 
   const sectionRefs = {
     hero: useRef<HTMLElement>(null),
@@ -98,12 +100,24 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    if (accessToken && status === "authenticated") {
+    if (status === "authenticated" && accessToken) {
       setShowAuthModal(false);
       document.body.style.overflow = "unset";
-      window.location.href = "/dashboard";
+      if (accountType === "admin") {
+        window.location.href = "/dashboard/admin";
+      } else {
+        window.location.href = "/dashboard";
+      }
     }
-  }, [status, accessToken]);
+  }, [status, accessToken, accountType]);
+
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <WeKilAILoader />
+      </div>
+    );
+  }
 
   const handleAuthComplete = async (
     email: string,
@@ -122,9 +136,10 @@ export default function HomePage() {
         toast.error(result.error || "Login Failed!");
       } else {
         toast.success("Login Successful!");
+        console.log(result, "result");
         setShowAuthModal(false);
         document.body.style.overflow = "unset";
-        window.location.href = "/dashboard"; // Redirect manually
+        window.location.href = "/dashboard";
       }
     } catch (err) {
       console.log(err);

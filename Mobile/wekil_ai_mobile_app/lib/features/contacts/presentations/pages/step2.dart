@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step3.dart';
+import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import '../../../widget/progress_bar.dart';
 import '../../data/models/contact_data.dart';
 import '../../domain/entities/contract_type.dart';
@@ -34,8 +36,10 @@ class _CreateStep1State extends State<CreateStep1> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Title
+            
             Text(
               "Create ${_getContractTitle(widget.contractType)}",
+              
               style: AppTypography.heading().copyWith(fontSize: 20),
             ),
             const SizedBox(height: 4),
@@ -67,7 +71,7 @@ class _CreateStep1State extends State<CreateStep1> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Basic Info",
+                    LocalesData.Basic_Info.getString(context),
                     style: AppTypography.body().copyWith(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -76,7 +80,7 @@ class _CreateStep1State extends State<CreateStep1> {
                   const SizedBox(height: 16),
 
                   // Contract Language Dropdown
-                  Text("Contract Language", style: AppTypography.body()),
+                  Text(LocalesData.Contract_Language.getString(context), style: AppTypography.body()),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
                     value: selectedLanguage,
@@ -101,10 +105,10 @@ class _CreateStep1State extends State<CreateStep1> {
                   // Quick Description (Type-specific)
                   Text(
                     widget.contractType == ContractType.serviceAgreement
-                        ? "Describe your services"
+                        ? LocalesData.Describe_your_services.getString(context)
                         : widget.contractType == ContractType.salesOfGoods
-                            ? "Describe your goods / delivery terms"
-                            : "Quick Description (Optional)",
+                            ? LocalesData.Describe_your_goods_delivery_terms.getString(context)
+                            : LocalesData.Quick_Description_Optional.getString(context),
                     style: AppTypography.body(),
                   ),
                   const SizedBox(height: 6),
@@ -114,10 +118,10 @@ class _CreateStep1State extends State<CreateStep1> {
                     decoration: InputDecoration(
                       hintText: widget.contractType ==
                               ContractType.serviceAgreement
-                          ? "e.g. Logo design, 5000 birr, 2 weeks"
+                          ? LocalesData.eg_Logo_design_5000_birr_2_weeks.getString(context)
                           : widget.contractType == ContractType.salesOfGoods
-                              ? "e.g. 100 items, delivery in 3 days"
-                              : "Optional description of the deal",
+                              ? LocalesData.eg_100_items_delivery_in_3_days.getString(context)
+                              : LocalesData.Optional_description_of_the_deal.getString(context),
                       border: const OutlineInputBorder(),
                       fillColor: Colors.grey[50],
                       filled: true,
@@ -125,7 +129,7 @@ class _CreateStep1State extends State<CreateStep1> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    "This information helps us pre-fill your contract.",
+                    LocalesData.This_information_helps_us_pre_fill_your_contract.getString(context),
                     style: AppTypography.body().copyWith(
                       color: Colors.grey[600],
                       fontSize: 12,
@@ -155,6 +159,7 @@ class _CreateStep1State extends State<CreateStep1> {
                   child: ElevatedButton(
                     onPressed: () {
                       final intake = IntakeModel(
+                        language: selectedLanguage,
                         contractType: widget.contractType,
                         parties: [],
                         location: '',
@@ -206,6 +211,7 @@ class _CreateStep1State extends State<CreateStep1> {
   }
 
   String _getContractTitle(ContractType type) {
+
     switch (type) {
       case ContractType.serviceAgreement:
         return "Service Agreement";

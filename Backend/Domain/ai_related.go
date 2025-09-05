@@ -17,6 +17,13 @@ const (
 	EnglishLang = "engish"
 )
 
+const (
+	SALE    = "sale"
+	SERVICE = "service"
+	LOAN    = "loan"
+	NDA     = "nda"
+)
+
 type ClassifierResult struct {
 	Category string   `json:"category"`
 	Reasons  []string `json:"reasons"`
@@ -34,14 +41,13 @@ type Intake struct {
 	ID primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 
 	// Common fields
-	AgreementType string      `json:"agreement_type,omitempty" bson:"agreement_type,omitempty"` // "sale" | "service" | "loan" | "nda"
-	Parties       []Party     `json:"parties" bson:"parties"`                                   // 0 disclosing party | 1 reciving party
-	Location      string      `json:"location" bson:"location"`
-	Currency      string      `json:"currency" bson:"currency"`
-	TotalAmount   float64     `json:"total_amount,omitempty" bson:"total_amount,omitempty"`
-	DueDates      []time.Time `json:"due_dates" bson:"due_dates"`
-	StartDate     time.Time   `json:"start_date" bson:"start_date"`
-	EndDate       time.Time   `json:"end_date" bson:"end_date"`
+	AgreementType string    `json:"agreement_type,omitempty" bson:"agreement_type,omitempty"` // "sale" | "service" | "loan" | "nda"
+	Parties       []Party   `json:"parties" bson:"parties"`                                   // 0 disclosing party | 1 reciving party
+	Location      string    `json:"location" bson:"location"`
+	Currency      string    `json:"currency" bson:"currency"`
+	TotalAmount   float64   `json:"total_amount,omitempty" bson:"total_amount,omitempty"`
+	StartDate     time.Time `json:"start_date" bson:"start_date"`
+	EndDate       time.Time `json:"end_date" bson:"end_date"`
 
 	// Service-specific fields
 	Services   string      `json:"services,omitempty" bson:"services,omitempty"`
@@ -52,18 +58,19 @@ type Intake struct {
 	Goods         []Goods `json:"goods,omitempty" bson:"goods,omitempty"`
 	DeliveryTerms string  `json:"delivery_terms,omitempty" bson:"delivery_terms,omitempty"`
 
-  // Loan-specific fields
-  Principal      float64       `json:"principal,omitempty"`
-  Installments   []Installment `json:"installments,omitempty"`
-  LateFeePercent float64       `json:"late_fee_percent,omitempty"`
-  
-  // NDA fields
-  DisclosingParty     *Party     `json:"disclosingParty,omitempty"`     // The one spilling the beans.
-  ReceivingParty      *Party     `json:"receivingParty,omitempty"`      // The one promising to keep quiet.
-  IsMutual            bool      `json:"isMutual"`            // If true, everyone's sharing secrets.
-  EffectiveDate       time.Time `json:"effectiveDate"`       // When the promise to be quiet officially starts.
-  ConfidentialityTerm int       `json:"confidentialityTerm"` // How many years the secrets must be kept.
-  Purpose             string    `json:"purpose"`             // Why are we sharing secrets? e.g., "To see if we can work together".
+	// Loan-specific fields
+	Principal      float64       `json:"principal,omitempty" bson:"principal,omitempty"`
+	Installments   []Installment `json:"installments,omitempty" bson:"installments,omitempty"`
+	LateFeePercent float64       `json:"late_fee_percent,omitempty" bson:"late_fee_percent,omitempty"`
+
+	// NDA fields
+	//! the below two should be deleted, but since they are creating  error in ai_usecase.go they are here for the time being
+	DisclosingParty     *Party    `json:"disclosing_party,omitempty" bson:"disclosing_party,omitempty"` // The one spilling the beans.
+	ReceivingParty      *Party    `json:"receiving_party,omitempty" bson:"receiving_party,omitempty"`   // The one promising to keep quiet.
+	IsMutual            bool      `json:"is_mutual,omitempty" bson:"is_mutual,omitempty"`
+	EffectiveDate       time.Time `json:"effective_date,omitempty" bson:"effective_date,omitempty"`
+	ConfidentialityTerm int       `json:"confidentiality_term,omitempty" bson:"confidentiality_term,omitempty"`
+	Purpose             string    `json:"purpose,omitempty" bson:"purpose,omitempty"`
 }
 
 // Party represents a party involved in the agreement.
@@ -89,8 +96,9 @@ type Goods struct {
 
 // Installment represents a single payment in a loan agreement.
 type Installment struct {
-	Amount  float64   `json:"amount" bson:"amount"`
-	DueDate time.Time `json:"due_date" bson:"due_date"`
+	Amount      float64   `json:"amount"`
+	PaymentTerm string    `json:"payment_term"`
+	DueDate     time.Time `json:"due_date"`
 }
 
 // --- Model C: Draft Fill Prompt ---

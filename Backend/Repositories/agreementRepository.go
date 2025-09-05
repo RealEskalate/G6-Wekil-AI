@@ -136,6 +136,8 @@ func (a *AgreementRepository) GetAgreementIntake(ctx context.Context, agreementI
 	if err := a.collection.FindOne(ctx, filter).Decode(&singleAgreement); err != nil {
 		return nil, err
 	}
+		log.Print("data------------------------:-", singleAgreement)
+
 	intakeFilter := bson.M{"_id": singleAgreement.IntakeID}
 	var intake domain.Intake
 	intakeCollection := a.collection.Database().Collection("intake")

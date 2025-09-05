@@ -23,12 +23,14 @@ import CommonDetails from "@/components/wizard/steps/CommonDetails";
 import SpecificDetails from "@/components/wizard/steps/SpecificDetails";
 import { AIDraftPreview } from "@/components/wizard/steps/AIDraftPreview";
 import { FinalPreview } from "@/components/wizard/steps/FinalPreview";
-import { ContractDraft, IntialDraftdata } from "../ContractPreview/ContractPreview";
+import {
+  ContractDraft,
+  IntialDraftdata,
+} from "../ContractPreview/ContractPreview";
 import { useLanguage } from "@/context/LanguageContext";
 import WeKilAILoader from "../ui/WekilAILoader";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-
 
 export interface Step {
   id: string;
@@ -64,6 +66,7 @@ export interface ContractData {
     effectiveDate?: string;
     confidentialityPeriod?: number;
     purpose?: string;
+    isMutual?: boolean;
   };
   aiDraft?: Record<string, unknown>;
 }
@@ -85,7 +88,6 @@ interface Translations {
 
 export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [currentLanguage, setCurrentLanguage] = useState<Language>("en");
   const { lang, setLang } = useLanguage();
   const [contractData, setContractData] = useState<Partial<ContractData>>({});
   const [isCheckingComplexity, setIsCheckingComplexity] = useState(false);
@@ -102,7 +104,8 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const router = useRouter();
   const [agreementLanguage, setAgreementLanguage] = useState<Language>("en");
-  const [intialDraftdata,setIntialDraftdata] = useState<ContractDraft>(IntialDraftdata);
+  const [intialDraftdata, setIntialDraftdata] =
+    useState<ContractDraft>(IntialDraftdata);
   const [description, setDescription] = useState<string>("");
   const [commonDetails, setCommonDetails] = useState<
     ContractData["commonDetails"]
@@ -137,38 +140,33 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   const steps: Step[] = [
     {
       id: "type",
-      label: currentLanguage === "en" ? "Contract Type" : "የውል አይነት",
+      label: lang === "en" ? "Contract Type" : "የውል አይነት",
       icon: FileText,
     },
     {
       id: "language",
-      label:
-        currentLanguage === "en" ? "Language & Description" : "ቋንቋ እና መግለጫ",
+      label: lang === "en" ? "Language & Description" : "ቋንቋ እና መግለጫ",
       icon: Globe,
     },
-    {
-      id: "parties",
-      label: currentLanguage === "en" ? "Parties" : "ተዋዋዮች",
-      icon: Users,
-    },
+    { id: "parties", label: lang === "en" ? "Parties" : "ተዋዋዮች", icon: Users },
     {
       id: "common",
-      label: currentLanguage === "en" ? "Common Details" : "የጋራ ዝርዝሮች",
+      label: lang === "en" ? "Common Details" : "የጋራ ዝርዝሮች",
       icon: DollarSign,
     },
     {
       id: "specific",
-      label: currentLanguage === "en" ? "Specific Details" : "የተወሰኑ ዝርዝሮች",
+      label: lang === "en" ? "Specific Details" : "የተወሰኑ ዝርዝሮች",
       icon: Settings,
     },
     {
       id: "aiDraft",
-      label: currentLanguage === "en" ? "AI Draft Preview" : "AI ረቂቅ",
+      label: lang === "en" ? "AI Draft Preview" : "AI ረቂቅ",
       icon: Bot,
     },
     {
       id: "final",
-      label: currentLanguage === "en" ? "Final Preview" : "ፍጻሜ ቅድመ እይታ",
+      label: lang === "en" ? "Final Preview" : "ፍጻሜ ቅድመ እይታ",
       icon: Eye,
     },
   ];
@@ -206,21 +204,17 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
         //place to call Classify API
         setCurrentStep(currentStep + 1);
       }, 1000);
-    } 
-    else if(currentStep == 4){
+    } else if (currentStep == 4) {
       // place to call Draft API
-      
-      setCurrentStep(currentStep + 1);
-    }
-    else if(currentStep == 5){
 
+      setCurrentStep(currentStep + 1);
+    } else if (currentStep == 5) {
       // place to call FinalReview API
       setCurrentStep(currentStep + 1);
-    }
-    else if (currentStep < steps.length - 1) {
+    } else if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      toast.success(t[currentLanguage].finish);
+      toast.success(t[lang].finish);
       if (onBackToDashboard) onBackToDashboard();
     }
   };
@@ -232,20 +226,19 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
 
   const handleLanguageToggle = () => {
     setLang(lang === "en" ? "am" : "en");
-    setCurrentLanguage(currentLanguage === "en" ? "am" : "en");
   };
 
   const validateAndGetStepData = (): Partial<ContractData> | null => {
     switch (currentStep) {
       case 0: // ChooseContractType
         if (!contractType) {
-          toast.error(t[currentLanguage].error);
+          toast.error(t[lang].error);
           return null;
         }
         return { contractType };
       case 1: // LanguageAndDescription
         if (!description.trim()) {
-          toast.error(t[currentLanguage].error);
+          toast.error(t[lang].error);
           return null;
         }
         return { agreementLanguage, description };
@@ -255,12 +248,12 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
             (party) => !party.fullName || !party.phone || !party.email
           )
         ) {
-          toast.error(t[currentLanguage].error);
+          toast.error(t[lang].error);
           return null;
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (parties.some((party) => !emailRegex.test(party.email))) {
-          toast.error(t[currentLanguage].invalidEmail);
+          toast.error(t[lang].invalidEmail);
           return null;
         }
         return { parties };
@@ -271,7 +264,7 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
           !commonDetails?.startDate ||
           !commonDetails?.endDate
         ) {
-          toast.error(t[currentLanguage].error);
+          toast.error(t[lang].error);
           return null;
         }
         return { commonDetails };
@@ -280,22 +273,22 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
           contractType === "service" &&
           !specificDetails?.servicesDescription?.trim()
         ) {
-          toast.error(t[currentLanguage].error);
+          toast.error(t[lang].error);
           return null;
         }
         if (
           contractType === "goods" &&
           (!specificDetails?.items || specificDetails.items.length === 0)
         ) {
-          toast.error(t[currentLanguage].error);
+          toast.error(t[lang].error);
           return null;
         }
         if (contractType === "loan" && !specificDetails?.principalAmount) {
-          toast.error(t[currentLanguage].error);
+          toast.error(t[lang].error);
           return null;
         }
         if (contractType === "nda" && !specificDetails?.purpose?.trim()) {
-          toast.error(t[currentLanguage].error);
+          toast.error(t[lang].error);
           return null;
         }
         return { specificDetails };
@@ -315,22 +308,22 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
     return (
       <div
         className={`h-full flex flex-col bg-gray-100 ${
-          currentLanguage === "am" ? "font-ethiopic" : ""
+          lang === "am" ? "font-ethiopic" : ""
         }`}
       >
         <div className="px-6 py-4 flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={handleBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {t[currentLanguage].back}
+            {t[lang].back}
           </Button>
-          <h1 className="text-xl font-semibold">{t[currentLanguage].title}</h1>
+          <h1 className="text-xl font-semibold">{t[lang].title}</h1>
         </div>
         <div className="flex-1 flex items-center justify-center">
           <Card className="w-full max-w-md">
             <CardContent className="p-6 flex flex-col items-center">
               <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
               <p className="mt-4 text-lg text-gray-700">
-                {currentLanguage === "en"
+                {lang === "en"
                   ? "Checking complexity..."
                   : "ውስብስብነት በመፈተሽ ላይ..."}
               </p>
@@ -343,15 +336,13 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
 
   return (
     <div
-      className={`h-full p-5 flex flex-col bg-gray-50 ${
-        currentLanguage === "am" ? "font-ethiopic" : ""
+      className={`h-full p-2 sm:p-5 flex flex-col bg-gray-50 ${
+        lang === "am" ? "font-ethiopic" : ""
       }`}
     >
       {/* Header */}
-      <div className="flex py-10 items-center justify-between">
-        <h1 className=" text-xl px-10 font-semibold">
-          {t[currentLanguage].title}
-        </h1>
+      <div className="flex flex-col sm:flex-row py-6 sm:py-10 items-center justify-between gap-4">
+        <h1 className="text-lg sm:text-xl px-0 sm:px-10 font-semibold">{t[lang].title}</h1>
         <Button
           variant="ghost"
           className="cursor-pointer"
@@ -359,27 +350,27 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
           onClick={handleLanguageToggle}
         >
           <Globe className="h-4 w-4 mr-2" />
-          {currentLanguage === "en" ? "አማርኛ" : "English"}
+          {lang === "en" ? "አማርኛ" : "English"}
         </Button>
       </div>
 
       {/* Step indicator */}
-      <div className="">
+      <div className="w-full">
         <StepIndicator steps={steps} currentStep={currentStep} />
       </div>
 
       {/* Step Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto mt-4">
         {currentStep === 0 && (
           <ChooseContractType
-            currentLanguage={currentLanguage}
+            currentLanguage={lang}
             contractType={contractType}
             setContractType={setContractType}
           />
         )}
         {currentStep === 1 && (
           <LanguageAndDescription
-            currentLanguage={currentLanguage}
+            currentLanguage={lang}
             agreementLanguage={agreementLanguage}
             setAgreementLanguage={setAgreementLanguage}
             description={description}
@@ -388,7 +379,7 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
         )}
         {currentStep === 2 && (
           <PartiesInformation
-            currentLanguage={currentLanguage}
+            currentLanguage={lang}
             contractType={contractData.contractType}
             parties={parties}
             setParties={setParties}
@@ -396,7 +387,7 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
         )}
         {currentStep === 3 && (
           <CommonDetails
-            currentLanguage={currentLanguage}
+            currentLanguage={lang}
             contractType={contractData.contractType}
             commonDetails={commonDetails}
             setCommonDetails={setCommonDetails}
@@ -404,55 +395,54 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
         )}
         {currentStep === 4 && (
           <SpecificDetails
-            currentLanguage={currentLanguage}
+            currentLanguage={lang}
             contractType={contractData.contractType}
             specificDetails={specificDetails}
             setSpecificDetails={setSpecificDetails}
-            contract = {contractData}
+            contract={contractData}
           />
         )}
         {currentStep === 5 && (
           <AIDraftPreview
-            currentLanguage={currentLanguage}
+            currentLanguage={lang}
             contractData={contractData}
-            draftedData = {intialDraftdata}
-            setDraftedData = {setIntialDraftdata}
+            draftedData={intialDraftdata}
+            setDraftedData={setIntialDraftdata}
           />
         )}
         {currentStep === 6 && (
-          <FinalPreview
-            currentLanguage={currentLanguage}
-            draftedData = {intialDraftdata}
-          />
+          <FinalPreview currentLanguage={lang} draftedData={intialDraftdata} />
         )}
       </div>
 
       {/* Footer navigation */}
-      <div className="px-6 py-4 flex justify-between">
-        <Button
-          className="cursor-pointer hover:bg-gray-200"
-          variant="ghost"
-          size="sm"
-          onClick={handleBack}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          {t[currentLanguage].back}
-        </Button>
-        {currentStep < steps.length - 1 ? (
+      <div className="px-2 sm:px-6 py-4 flex flex-col sm:flex-row gap-2 sm:gap-0 sm:justify-between">
+        <div className="flex flex-row gap-2 sm:gap-0 w-full sm:w-auto">
           <Button
-            onClick={handleFooterNext}
-            className="bg-gray-600 hover:bg-gray-700 text-white cursor-pointer"
+            className="cursor-pointer hover:bg-gray-200 w-1/2 sm:w-auto"
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
           >
-            {t[currentLanguage].next}
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {t[lang].back}
           </Button>
-        ) : (
-          <Button
-            onClick={() => handleNext({})}
-            className="bg-slate-800 hover:bg-slate-700 text-white"
-          >
-            {t[currentLanguage].finish}
-          </Button>
-        )}
+          {currentStep < steps.length - 1 ? (
+            <Button
+              onClick={handleFooterNext}
+              className="bg-gray-600 hover:bg-gray-700 text-white cursor-pointer w-1/2 sm:w-auto"
+            >
+              {t[lang].next}
+            </Button>
+          ) : (
+            <Button
+              onClick={() => handleNext({})}
+              className="bg-slate-800 hover:bg-slate-700 text-white w-1/2 sm:w-auto"
+            >
+              {t[lang].finish}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

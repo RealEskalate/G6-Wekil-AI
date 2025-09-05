@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
@@ -11,7 +11,8 @@ import 'features/contacts/presentations/pages/create_start_page.dart';
 import 'features/widget/bottom_nav.dart';
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final GoRouter router;
+  const MyApp({Key? key, required this.router}) : super(key: key);
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -35,9 +36,8 @@ class _MyAppState extends State<MyApp> {
     final hover = brand.withOpacity(0.10);
     final pressed = brand.withOpacity(0.16);
 
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      
       theme: base.copyWith(
         textTheme: GoogleFonts.interTextTheme(base.textTheme),
         hoverColor: hover,
@@ -46,10 +46,7 @@ class _MyAppState extends State<MyApp> {
       ),
       supportedLocales: localization.supportedLocales,
       localizationsDelegates: localization.localizationsDelegates,
-      home: const MainScreen(),
-      
-      
-      
+      routerConfig: widget.router,
     );
     
   }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
+	// "strings"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
 	"wekil_ai/config"
@@ -36,11 +36,11 @@ func (r *NotificationRepo) FindByReceiverID(ctx context.Context, individualID st
 	var notifs []domain.Notification
 
 	// extract hex ID (assuming individualID is like `"68b19fcdd54bbaf7f6e6fbaa"`)
-	start := strings.Index(individualID, "\"")
-	end := strings.LastIndex(individualID, "\"")
-	hexID := individualID[start+1 : end]
+	// start := strings.Index(individualID, "\"")
+	// end := strings.LastIndex(individualID, "\"")
+	// hexID := individualID[start+1 : end]
 
-	objID, err := primitive.ObjectIDFromHex(hexID)
+	objID, err := primitive.ObjectIDFromHex(individualID)
 	if err != nil {
 		return nil, err
 	}

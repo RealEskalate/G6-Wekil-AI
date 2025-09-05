@@ -1,5 +1,4 @@
 import 'package:flutter_localization/flutter_localization.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
 const List<MapLocale> LOCALES = [
   MapLocale('en', LocalesData.EN),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -6,8 +7,40 @@ import '../../../../injection_container.dart' as di;
 import '../../domain/entities/user_profile.dart';
 import '../bloc/setting_bloc.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  bool _isRefreshing = false;
+  Future<void> _onRefresh() async {
+    final bloc = context.read<SettingBloc>();
+    final completer = Completer<void>();
+    late final StreamSubscription sub;
+    var finished = false;
+    sub = bloc.stream.listen((state) {
+      if (state is SettingLoaded || state is SettingError) {
+        if (!completer.isCompleted) completer.complete();
+        finished = true;
+        sub.cancel();
+      }
+    });
+    setState(() => _isRefreshing = true);
+    bloc.add(GetProfileEvent());
+    try {
+      await completer.future.timeout(const Duration(seconds: 10));
+    } catch (_) {
+      // ignore timeout, indicator will stop below
+    } finally {
+      if (!finished) {
+        try { await sub.cancel(); } catch (_) {}
+      }
+      if (mounted) setState(() => _isRefreshing = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +51,10 @@ class SettingsPage extends StatelessWidget {
           if (state is SettingLoggedOut) {
             // Navigate to login page using GoRouter
             GoRouter.of(context).go('/sign-in');
+          }
+          if (state is SettingUpdated) {
+            // Immediately refetch to reflect latest server values
+            context.read<SettingBloc>().add(GetProfileEvent());
           }
         },
         child: Builder(
@@ -39,74 +76,93 @@ class SettingsPage extends StatelessWidget {
                 ),
               ],
             ),
-            body: BlocBuilder<SettingBloc, SettingState>(
-              builder: (context, state) {
-                if (state is SettingLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (state is SettingError) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.error_outline, color: Colors.redAccent),
-                        const SizedBox(height: 8),
-                        Text(
-                          state.message,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.redAccent),
-                        ),
-                        const SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: () => context.read<SettingBloc>().add(GetProfileEvent()),
-                          child: const Text('Retry'),
-                        )
-                      ],
-                    ),
+      body: BlocBuilder<SettingBloc, SettingState>(
+        builder: (context, state) {
+          return RefreshIndicator(
+            color: const Color(0xFF1AC9A2),
+            onRefresh: _onRefresh,
+            child: () {
+              if (state is SettingLoading || state is SettingInitial) {
+                if (_isRefreshing) {
+                  // During pull-to-refresh, avoid showing a second spinner
+                  return ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [SizedBox(height: 200)],
                   );
                 }
-                UserProfile? profile;
-                if (state is SettingLoaded) {
-                  profile = state.profile;
-                }
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Center(
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 8),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
-                              ),
-                              padding: const EdgeInsets.all(16),
-                              child: const Icon(Icons.settings, size: 40, color: Color(0xFF1A2B3C)),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text('Settings', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1A2B3C))),
-                            const SizedBox(height: 16),
-                          ],
-                        ),
-                      ),
-                      _ProfileSection(profile: profile),
-                      const SizedBox(height: 16),
-                      _PreferencesSection(),
-                      const SizedBox(height: 16),
-                      _PrivacySection(),
-                      const SizedBox(height: 16),
-                      _SupportSection(),
-                      const SizedBox(height: 24),
-                      _SignOutButton(),
-                    ],
-                  ),
+                // Initial load or route-triggered load
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
+                    SizedBox(height: 200),
+                    Center(child: CircularProgressIndicator()),
+                    SizedBox(height: 200),
+                  ],
                 );
-              },
-            ),
+              }
+              if (state is SettingError) {
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.redAccent),
+                    const SizedBox(height: 8),
+                    Text(
+                      state.message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => context.read<SettingBloc>().add(GetProfileEvent()),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                );
+              }
+              // Loaded content
+              final profile = (state is SettingLoaded) ? state.profile : null;
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
+                            ),
+                            padding: const EdgeInsets.all(16),
+                            child: const Icon(Icons.settings, size: 40, color: Color(0xFF1A2B3C)),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text('Settings', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1A2B3C))),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                    _ProfileSection(profile: profile),
+                    const SizedBox(height: 16),
+                    _PreferencesSection(),
+                    const SizedBox(height: 16),
+                    _PrivacySection(),
+                    const SizedBox(height: 16),
+                    _SupportSection(),
+                    const SizedBox(height: 24),
+                    _SignOutButton(),
+                  ],
+                ),
+              );
+            }(),
+          );
+        },
+      ),
             bottomNavigationBar: _BottomNavBar(),
           ),
         ),

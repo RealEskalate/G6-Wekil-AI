@@ -34,14 +34,24 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $accessToken',
+      // Cache-busting to avoid stale responses on some backends/CDNs
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
     };
 
   // On web, avoid credentials to bypass CORS wildcard-credentials constraint.
   final http.Client eff = kIsWeb ? createWebClientNoCreds() : client;
+  Uri _withTs(String path) {
+    final nowTs = DateTime.now().millisecondsSinceEpoch.toString();
+    final u = Uri.parse('$baseUrl$path');
+    final qp = Map<String, String>.from(u.queryParameters);
+    qp['ts'] = nowTs; // cache-buster
+    return u.replace(queryParameters: qp);
+  }
   Future<http.Response> _doGet(String path) => eff.get(
-          Uri.parse('$baseUrl$path'),
-          headers: headers,
-        );
+        _withTs(path),
+        headers: headers,
+      );
 
     // Try primary endpoint, fall back to an alternate if needed
     http.Response response;

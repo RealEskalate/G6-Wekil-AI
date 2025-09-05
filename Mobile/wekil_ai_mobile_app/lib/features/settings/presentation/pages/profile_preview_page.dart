@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +21,46 @@ class _ProfilePreviewPageState extends State<ProfilePreviewPage> {
   bool _obOld = true;
   bool _obNew = true;
   bool _obConfirm = true;
+  bool _isRefreshing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-refresh profile when entering the page
+    // Safe because a SettingBloc provider wraps this page via routing
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final bloc = context.read<SettingBloc?>();
+      bloc?.add(GetProfileEvent());
+    });
+  }
+
+  Future<void> _refresh() async {
+    if (!mounted) return;
+    final bloc = context.read<SettingBloc>();
+    final completer = Completer<void>();
+    late final StreamSubscription sub;
+    var finished = false;
+    sub = bloc.stream.listen((state) {
+      if (state is SettingLoaded || state is SettingError) {
+        if (!completer.isCompleted) completer.complete();
+        finished = true;
+        sub.cancel();
+      }
+    });
+    setState(() => _isRefreshing = true);
+    bloc.add(GetProfileEvent());
+    try {
+      await completer.future.timeout(const Duration(seconds: 10));
+    } catch (_) {
+      // ignore timeout to avoid hanging the indicator
+    } finally {
+      if (!finished) {
+        try { await sub.cancel(); } catch (_) {}
+      }
+      if (mounted) setState(() => _isRefreshing = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -31,45 +72,64 @@ class _ProfilePreviewPageState extends State<ProfilePreviewPage> {
 
   @override
   Widget build(BuildContext context) {
-  return Scaffold(
-        backgroundColor: const Color(0xFFF7F9FB),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF1A2B3C)),
-            onPressed: () => context.pop(),
-          ),
-          centerTitle: true,
-          title: const Text(
-            'Edit Profile',
-            style: TextStyle(color: Color(0xFF1A2B3C), fontWeight: FontWeight.bold),
-          ),
-    ),
-    body: BlocConsumer<SettingBloc, SettingState>(
-          listener: (context, state) {
-            if (state is ChangePasswordSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message), backgroundColor: Colors.green),
-              );
-              _oldCtrl.clear();
-              _newCtrl.clear();
-              _confirmCtrl.clear();
-            }
-            if (state is ChangePasswordFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message), backgroundColor: Colors.redAccent),
-              );
-            }
-          },
-          builder: (context, state) {
-            if (state is SettingLoading || state is SettingInitial) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state is SettingError) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F9FB),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A2B3C)),
+          onPressed: () => context.pop(),
+        ),
+        centerTitle: true,
+        title: const Text(
+          'Edit Profile',
+          style: TextStyle(color: Color(0xFF1A2B3C), fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: BlocConsumer<SettingBloc, SettingState>(
+        listener: (context, state) {
+          if (state is ChangePasswordSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message), backgroundColor: Colors.green),
+            );
+            _oldCtrl.clear();
+            _newCtrl.clear();
+            _confirmCtrl.clear();
+          }
+          if (state is ChangePasswordFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message), backgroundColor: Colors.redAccent),
+            );
+          }
+        },
+        builder: (context, state) {
+          return RefreshIndicator(
+            color: const Color(0xFF1AC9A2),
+            onRefresh: _refresh,
+            child: () {
+              if (state is SettingLoading || state is SettingInitial) {
+                if (_isRefreshing) {
+                  // During pull-to-refresh, avoid a second content spinner
+                  return ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [SizedBox(height: 200)],
+                  );
+                }
+                // Initial or route-triggered load
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
+                    SizedBox(height: 200),
+                    Center(child: CircularProgressIndicator()),
+                    SizedBox(height: 200),
+                  ],
+                );
+              }
+              if (state is SettingError) {
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                   children: [
                     const Icon(Icons.error_outline, color: Colors.redAccent),
                     const SizedBox(height: 8),
@@ -84,16 +144,16 @@ class _ProfilePreviewPageState extends State<ProfilePreviewPage> {
                       child: const Text('Retry'),
                     )
                   ],
-                ),
-              );
-            }
+                );
+              }
 
-            final UserProfile? profile = state is SettingLoaded ? state.profile : null;
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+              final UserProfile? profile = state is SettingLoaded ? state.profile : null;
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                   Card(
                     elevation: 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -113,9 +173,12 @@ class _ProfilePreviewPageState extends State<ProfilePreviewPage> {
                                 tooltip: 'Edit profile',
                                 onPressed: () async {
                                   final bloc = context.read<SettingBloc>();
-                                  final ok = await GoRouter.of(context).push<bool>('/edit-profile', extra: bloc);
+                                  final ok = await GoRouter.of(context)
+                                      .push<bool>('/edit-profile', extra: bloc);
                                   if (ok == true) {
-                                    if (context.mounted) context.read<SettingBloc>().add(GetProfileEvent());
+                                    if (context.mounted) {
+                                      context.read<SettingBloc>().add(GetProfileEvent());
+                                    }
                                   }
                                 },
                                 icon: const Icon(Icons.edit),
@@ -296,12 +359,14 @@ class _ProfilePreviewPageState extends State<ProfilePreviewPage> {
                       ),
                     ),
                   ),
-                ],
-              ),
-            );
-          },
-    ),
-  );
+                  ],
+                ),
+              );
+            }(),
+          );
+        },
+      ),
+    );
   }
 
   Widget _labelValue(String label, String value) {

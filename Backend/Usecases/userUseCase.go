@@ -134,6 +134,7 @@ func (u *UserUseCase) ReSendAccessToken(jwtToken string) (string, string, error)
 	if userClaim.TokenType != domainInterface.RefreshToken {
 		return "", "", fmt.Errorf("invalid token type")
 	}
+	
 	//? Even thoug the current User claim has the tokenType == refreshToken inside genereateToken it will be changed
 	accessTokenString, err := u.auth.GenerateToken(userClaim, domainInterface.AccessToken)
 	if err != nil {

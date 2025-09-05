@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 	domain "wekil_ai/Domain"
@@ -14,7 +15,11 @@ import (
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
 )
-
+const (
+	_GEMINI_FLASH_2_5 = "gemini-2.5-flash"
+	_GEMINI_FLASH_1_5 = "gemini-1.5-flash"
+)
+var _CURR_GEMINI_MODEL_USING = _GEMINI_FLASH_2_5
 // domain.ClassifierResult represents the structured JSON response from the classifier prompt.
 
 // domain.Draft represents the structured JSON response for the document template.
@@ -56,7 +61,7 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 	}
 
 	// 1. Initialize and configure the client for the Intake task.
-	intakeModel := baseClient.GenerativeModel("gemini-2.5-flash")
+	intakeModel := baseClient.GenerativeModel(_CURR_GEMINI_MODEL_USING)
 	intakeModel.GenerationConfig = genai.GenerationConfig{
 		ResponseMIMEType: "application/json",
 		ResponseSchema: &genai.Schema{
@@ -254,7 +259,7 @@ func (ai *AIInteraction) GenerateIntake(ctx context.Context, prompt string, lang
 	if err != nil {
 		return nil, fmt.Errorf("failed to extract JSON: %w", err)
 	}
-
+	log.Println("🤖 ", _CURR_GEMINI_MODEL_USING ,"\n" , cleanJSON)
 	// Unmarshal into Intake struct.
 	var intakeResponse domain.Intake
 	if err := json.Unmarshal([]byte(cleanJSON), &intakeResponse); err != nil {

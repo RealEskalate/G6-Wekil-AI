@@ -101,29 +101,30 @@ func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 		return
 	}
 
-	userIDValue, exists := ctx.Get("user_id")
-	if !exists {
+	userIDValue := ctx.GetString("user_id")
+	if userIDValue == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
-			"data": gin.H{"message": "User not authenticated"},
+			"data":    gin.H{"message": "User not authenticated"},
 		})
 		return
 	}
 
-	creatorID, ok := userIDValue.(primitive.ObjectID) // Assuming you use MongoDB ObjectID
-	if !ok || creatorID.IsZero() {
+	creatorID_, err := primitive.ObjectIDFromHex(userIDValue)
+	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
-			"data": gin.H{"message": "Invalid user ID"},
+			"data":    gin.H{"message": "Invalid user ID"},
 		})
 		return
 	}
-
+	req.CreatorID = creatorID_ // ASSIGN THE USER IT'S ID
 	// Validate other required fields
+	log.Println("‼️\n", req)
 	if req.Intake == nil || req.Status == "" || req.PDFURL == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"data": gin.H{"message": "Missing required fields"},
+			"data":    gin.H{"message": "Missing required fields"},
 		})
 		return
 	}
@@ -145,7 +146,7 @@ func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 		}
 		ctx.JSON(status, gin.H{
 			"success": false,
-			"data": gin.H{"message": msg},
+			"data":    gin.H{"message": msg},
 		})
 		return
 	}
@@ -230,7 +231,7 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"data": gin.H{"message": "Invalid original_agreement_id format"},
+			"data":    gin.H{"message": "Invalid original_agreement_id format"},
 		})
 		return
 	}
@@ -238,7 +239,7 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 	if !exists {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
-			"data": gin.H{"message": "User not authenticated"},
+			"data":    gin.H{"message": "User not authenticated"},
 		})
 		return
 	}
@@ -246,7 +247,7 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 	if !ok || callerID.IsZero() {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
-			"data": gin.H{"message": "Invalid user ID"},
+			"data":    gin.H{"message": "Invalid user ID"},
 		})
 		return
 	}
@@ -262,7 +263,7 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 		}
 		ctx.JSON(status, gin.H{
 			"success": false,
-			"data": gin.H{"message": msg},
+			"data":    gin.H{"message": msg},
 		})
 		return
 	}
@@ -271,9 +272,9 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
-			"message":     "Agreement duplicated successfully",
-			"new_intake":  newIntake,
-			"new_draft":   newDraft,
+			"message":    "Agreement duplicated successfully",
+			"new_intake": newIntake,
+			"new_draft":  newDraft,
 		},
 	})
 }
@@ -293,7 +294,7 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 		return
 	}
 	userPrimitiveID, err := primitive.ObjectIDFromHex(userStringID)
-
+	log.Println("⚡", userPrimitiveID, err, "from userStringId", userStringID)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -414,6 +415,7 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 
 	// create the intake form the draft
 	intake, err := a.AIInteraction.GenerateIntake(context.Background(), aR.DraftText, domain.EnglishLang)
+	log.Printf("✅ INTAKE RESULT \n%#v\n ERROR \n %#v\n", intake, err)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,
@@ -423,7 +425,6 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 		})
 		return
 	}
-	log.Printf("✅ INTAKE RESULT \n%#v\n ERROR \n %#v\n", intake, err)
 	// manual selection on the email of party b
 	email_to_send := ""
 	if ownerEmail == aR.AgrementInfo.PartyA.Email {
@@ -528,6 +529,6 @@ func (a *AgreementController) UpdateAgreement(ctx *gin.Context) {
 func NewAgreementController(agreementUseCase domainInter.IAgreementUseCase, aiInterface domainInter.IAIInteraction) domainInter.IAgreementController {
 	return &AgreementController{
 		AgreementUseCase: agreementUseCase,
-		AIInteraction: aiInterface,
+		AIInteraction:    aiInterface,
 	}
 }

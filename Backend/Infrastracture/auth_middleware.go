@@ -39,7 +39,7 @@ func (a *AuthMiddleware) JWTAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 		log.Println("------------------------")
-		log.Printf("%+v\n", *claims)
+		log.Printf("%+v\n", claims)
 		log.Println()
 		log.Println("------------------------")
 		c.Set("user_id", claims.UserID)

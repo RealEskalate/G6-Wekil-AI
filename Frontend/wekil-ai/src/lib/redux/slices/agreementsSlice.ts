@@ -1,50 +1,220 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk} from "@reduxjs/toolkit";
 
-export interface ContractDraft {
-  id: string;
-  type: "service" | "sale" | "loan" | "nda";
-  language: "am" | "en";
-  created_at: string;
-  updated_at: string;
-  parties: { name: string; phone?: string; email?: string }[];
-  money?: { currency: string; total: number; payment_plan?: { amount: number; due_date: string }[] };
-  dates?: { start_date?: string; end_date?: string; sign_date?: string };
-  terms?: {
-    scope?: string;
-    services?: string;
-    goods?: { item: string; qty: number; unit_price: number }[];
-    location?: string;
-    extras?: { late_fee?: number; revisions?: number; confidentiality?: boolean };
-  };
-  status: "draft" | "exported";
-  storage_paths?: { pdf?: string; docx?: string };
+const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+
+interface DraftSection {
+  heading: string;
+  text: string;
 }
 
-interface AgreementsState {
-  list: ContractDraft[];
+interface Draft {
+  title: string;
+  sections: DraftSection[];
 }
 
-const initialState: AgreementsState = { list: [] };
+interface Party {
+  name: string;
+  email: string;
+  phone: string;
+}
 
-const agreementsSlice = createSlice({
-  name: "agreements",
+interface Agreement {
+  id?: string;
+  pdf_url: string;
+  status: string;
+  draft: Draft;
+  party_a: Party;
+  party_b: Party;
+}
+
+interface AgreementState {
+  loading: boolean;
+  error: string | null;
+  message: string | null;
+  draft: Draft | null;
+}
+
+const initialState: AgreementState = {
+  loading: false,
+  error: null,
+  message: null,
+  draft: null,
+};
+
+const getErrorMessage = async (response: Response, defaultMsg: string) => {
+  try {
+    const data = await response.json();
+    return data?.data?.message ?? defaultMsg;
+  } catch {
+    return defaultMsg;
+  }
+};
+
+
+// 1. Create Agreement
+export const createAgreement = createAsyncThunk<
+  { message: string },
+  Agreement,
+  { rejectValue: string }
+>("agreement/create", async (agreementData, { rejectWithValue }) => {
+  try {
+    const response = await fetch(`${API_URL}/api/agreements/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(agreementData),
+    });
+
+    if (!response.ok) throw new Error(await getErrorMessage(response, "Error creating agreement"));
+
+    const data = await response.json();
+    return { message: data.data.message };
+  } catch (err: unknown) {
+    return rejectWithValue(err instanceof Error ? err.message : "Error creating agreement");
+  }
+});
+
+// 2. Delete Agreement
+export const deleteAgreement = createAsyncThunk<
+  { message: string },
+  { agreement_id: string },
+  { rejectValue: string }
+>("agreement/delete", async ({ agreement_id }, { rejectWithValue }) => {
+  try {
+    const response = await fetch(`${API_URL}/api/agreements/delete`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ agreement_id }),
+    });
+
+    if (!response.ok) throw new Error(await getErrorMessage(response, "Error deleting agreement"));
+
+    const data = await response.json();
+    return { message: data.data.message };
+  } catch (err: unknown) {
+    return rejectWithValue(err instanceof Error ? err.message : "Error deleting agreement");
+  }
+});
+
+// 3. Duplicate Agreement
+export const duplicateAgreement = createAsyncThunk<
+  Draft,
+  { agreement_id: string },
+  { rejectValue: string }
+>("agreement/duplicate", async ({ agreement_id }, { rejectWithValue }) => {
+  try {
+    const response = await fetch(`${API_URL}/api/agreements/duplicate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ agreement_id }),
+    });
+
+    if (!response.ok) throw new Error(await getErrorMessage(response, "Error duplicating agreement"));
+
+    const data = await response.json();
+    return data.data.draft;
+  } catch (err: unknown) {
+    return rejectWithValue(err instanceof Error ? err.message : "Error duplicating agreement");
+  }
+});
+
+// 4. Handle Signature
+export const handleSignature = createAsyncThunk<
+  { message: string },
+  { agreement_id: string; decline_request: boolean; sign_request: boolean },
+  { rejectValue: string }
+>("agreement/handleSignature", async (payload, { rejectWithValue }) => {
+  try {
+    const response = await fetch(`${API_URL}/api/agreements/handle-signature`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error(await getErrorMessage(response, "Error handling signature"));
+
+    const data = await response.json();
+    return { message: data.data.message };
+  } catch (err: unknown) {
+    return rejectWithValue(err instanceof Error ? err.message : "Error handling signature");
+  }
+});
+
+// --- Slice ---
+const agreementSlice = createSlice({
+  name: "agreement",
   initialState,
   reducers: {
-    setAgreements: (state, action: PayloadAction<ContractDraft[]>) => {
-      state.list = action.payload;
+    resetAgreementState: (state) => {
+      state.loading = false;
+      state.error = null;
+      state.message = null;
+      state.draft = null;
     },
-    addAgreement: (state, action: PayloadAction<ContractDraft>) => {
-      state.list.push(action.payload);
-    },
-    updateAgreement: (state, action: PayloadAction<ContractDraft>) => {
-      const idx = state.list.findIndex(a => a.id === action.payload.id);
-      if (idx !== -1) state.list[idx] = action.payload;
-    },
-    removeAgreement: (state, action: PayloadAction<string>) => {
-      state.list = state.list.filter(a => a.id !== action.payload);
-    },
+  },
+  extraReducers: (builder) => {
+    // Create
+    builder.addCase(createAgreement.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+      state.message = null;
+    });
+    builder.addCase(createAgreement.fulfilled, (state, action) => {
+      state.loading = false;
+      state.message = action.payload.message;
+    });
+    builder.addCase(createAgreement.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload ?? "Error creating agreement";
+    });
+
+    // Delete
+    builder.addCase(deleteAgreement.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+      state.message = null;
+    });
+    builder.addCase(deleteAgreement.fulfilled, (state, action) => {
+      state.loading = false;
+      state.message = action.payload.message;
+    });
+    builder.addCase(deleteAgreement.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload ?? "Error deleting agreement";
+    });
+
+    // Duplicate
+    builder.addCase(duplicateAgreement.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+      state.message = null;
+      state.draft = null;
+    });
+    builder.addCase(duplicateAgreement.fulfilled, (state, action) => {
+      state.loading = false;
+      state.draft = action.payload;
+      state.message = "Agreement duplicated successfully";
+    });
+    builder.addCase(duplicateAgreement.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload ?? "Error duplicating agreement";
+    });
+
+    // Signature
+    builder.addCase(handleSignature.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+      state.message = null;
+    });
+    builder.addCase(handleSignature.fulfilled, (state, action) => {
+      state.loading = false;
+      state.message = action.payload.message;
+    });
+    builder.addCase(handleSignature.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload ?? "Error handling signature";
+    });
   },
 });
 
-export const { setAgreements, addAgreement, updateAgreement, removeAgreement } = agreementsSlice.actions;
-export default agreementsSlice.reducer;
+export const { resetAgreementState } = agreementSlice.actions;
+export default agreementSlice.reducer;

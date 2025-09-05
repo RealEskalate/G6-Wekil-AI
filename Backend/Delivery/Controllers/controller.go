@@ -356,7 +356,6 @@ func (uc *UserController) CallbackHandler(c *gin.Context) {
 	// fmt.Println("^^^^^",provider)
 	// req = req.WithContext(context.WithValue(c.Request.Context(), "provider", provider))
 
-
 	_,accessToken,refreshToken, err := uc.OAuthUseCase.HandleOAuthLogin(c.Request, c.Writer)
 
 	if err != nil {
@@ -373,10 +372,17 @@ func (uc *UserController) CallbackHandler(c *gin.Context) {
 		true,       // httpOnly
 	)
 
-	c.Header("Authorization", "Bearer "+accessToken)
-	redirectURL := "http://localhost:3000/dashboard"
-	c.Redirect(http.StatusFound, redirectURL)
-
+	c.Header("Authorization", "Bearer " + accessToken)
+	// redirectURL := "http://localhost:3000/"
+	// c.Redirect(http.StatusFound, redirectURL)
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"message":      "login successful",
+			"account_type": domain.User,
+			"access_token": accessToken,
+		},
+	})
 
 	// c.JSON(http.StatusOK, gin.H{
 	// 	"success": true,

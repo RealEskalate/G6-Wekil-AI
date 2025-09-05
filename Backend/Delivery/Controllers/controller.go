@@ -15,9 +15,8 @@ import (
 )
 
 type UserController struct {
-	userUseCase domainInterface.IUserUseCase
+	userUseCase  domainInterface.IUserUseCase
 	OAuthUseCase domainInterface.IOAuthUsecase
-
 }
 
 // RegisterIndividual implements domain.IUserController.
@@ -31,8 +30,6 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 		})
 		return
 	}
-
-
 
 	// Validate email format
 	if !infrastracture.NewPasswordService().IsValidEmail(unverifiedUser.Email) {
@@ -54,9 +51,8 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 		return
 	}
 
-
 	// Store in OTP collection
-	err := u.userUseCase.StoreUserInOTPColl(ctx,&unverifiedUser)
+	err := u.userUseCase.StoreUserInOTPColl(ctx, &unverifiedUser)
 
 	if err != nil {
 		parts := strings.SplitN(err.Error(), ":", 2)
@@ -108,11 +104,10 @@ func (u *UserController) ResendOTPHandler(ctx *gin.Context) {
 	})
 }
 
-
 // VerfiyOTPRequest implements domain.IUserController.
 func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
 	var emailOTP domain.EmailOTP
-	
+
 	if err := ctx.ShouldBindJSON(&emailOTP); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -147,15 +142,13 @@ func (u *UserController) VerfiyOTPRequest(ctx *gin.Context) {
 		})
 		return
 	}
-	
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"code":    "OTP_VERIFIED",
 		"message": "Email successfully verified.",
 	})
 }
-
-
 
 func (uc *UserController) ChangePasswordHandler(ctx *gin.Context) {
 	var req domain.ChangePasswordRequestDTO
@@ -180,8 +173,6 @@ func (uc *UserController) ChangePasswordHandler(ctx *gin.Context) {
 	})
 }
 
-
-
 func (u *UserController) RefreshTokenHandler(ctx *gin.Context) {
 	// get refresh token from cookie
 	refreshToken, err := ctx.Cookie("WEKIL-API-REFRESH-TOKEN") //! don't forget to make the string in the cookie to a const
@@ -190,7 +181,7 @@ func (u *UserController) RefreshTokenHandler(ctx *gin.Context) {
 		return
 	}
 	// validate refresh token and if the refresh token is valid then
-	accessToken,AccountType, err := u.userUseCase.ReSendAccessToken(refreshToken)
+	accessToken, AccountType, err := u.userUseCase.ReSendAccessToken(refreshToken)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -201,8 +192,8 @@ func (u *UserController) RefreshTokenHandler(ctx *gin.Context) {
 	ctx.IndentedJSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
-			"account_type":AccountType,
-			"message": "Refreshed successfully. Tokens sent in header and cookie.",
+			"account_type": AccountType,
+			"message":      "Refreshed successfully. Tokens sent in header and cookie.",
 		},
 	})
 
@@ -213,15 +204,15 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 	var user *domain.LoginDTO
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{
-			"error": "Invalid request payload","success": false,
+			"error": "Invalid request payload", "success": false,
 		})
 		return
 	}
 	if user.Email == "" || user.Password == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request payload","success": false,})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request payload", "success": false})
 		return
 	}
-	accessToken,refreshToken,accountType, err := uc.userUseCase.Login(user.Email, user.Password)
+	accessToken, refreshToken, accountType, err := uc.userUseCase.Login(user.Email, user.Password)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -232,11 +223,11 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 	ctx.SetCookie(
 		"WEKIL-API-REFRESH-TOKEN",
 		refreshToken,
-		60*60*24*7,      // 7 days in seconds
-		"/",      // cookie path
-		"",              // domain ("" means current domain)
-		true,            // secure
-		true,            // httpOnly
+		60*60*24*7, // 7 days in seconds
+		"/",        // cookie path
+		"",         // domain ("" means current domain)
+		true,       // secure
+		true,       // httpOnly
 	)
 
 	ctx.Header("Authorization", "Bearer "+accessToken)
@@ -244,8 +235,8 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
-			"message": "login successful",
-			"account_type":accountType,
+			"message":      "login successful",
+			"account_type": accountType,
 		},
 	})
 }
@@ -254,17 +245,17 @@ func (uc *UserController) UpdateProfile(ctx *gin.Context) {
 	var updateReq domain.UpdateProfileRequestDTO
 
 	if err := ctx.ShouldBindJSON(&updateReq); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input","success": false,})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "success": false})
 		return
 	}
 
 	email := ctx.GetString("email")
 	err := uc.userUseCase.UpdateProfile(ctx, email, &updateReq)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile","success": false,})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile", "success": false})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully","success": true,})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully", "success": true})
 }
 
 func (uc *UserController) GetProfile(ctx *gin.Context) {
@@ -272,7 +263,7 @@ func (uc *UserController) GetProfile(ctx *gin.Context) {
 	log.Println("id============---------:", email)
 	profile, err := uc.userUseCase.GetProfile(ctx, email)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve profile!!","success": false,})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve profile!!", "success": false})
 		return
 	}
 
@@ -283,27 +274,26 @@ func (uc *UserController) GetProfile(ctx *gin.Context) {
 }
 
 func (uc UserController) Logout(ctx *gin.Context) {
-		userID := ctx.GetString("user_id")
-		log.Println("id============:", userID)
+	userID := ctx.GetString("user_id")
+	log.Println("id============:", userID)
 
-		err := uc.userUseCase.Logout(ctx, userID)
-			if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "logout failed*****","success": false,})
-			return
-		}
-		ctx.JSON(http.StatusOK, gin.H{
-			"success": true,
+	err := uc.userUseCase.Logout(ctx, userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "logout failed*****", "success": false})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
 		"data": gin.H{
 			"message": "logged out successfully",
 		},
 	})
-	}
-
+}
 
 func (u *UserController) SendResetOTP(c *gin.Context) {
 	var req domain.ForgotPasswordRequestDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),"success": false,})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "success": false})
 		return
 	}
 
@@ -312,29 +302,28 @@ func (u *UserController) SendResetOTP(c *gin.Context) {
 	err := u.userUseCase.SendResetOTP(c, req.Email)
 	if err != nil {
 		log.Println("SendResetOTP error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send reset OTP","success": false,})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send reset OTP", "success": false})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-			"success": true,
+		"success": true,
 		"data": gin.H{
 			"message": "Reset OTP sent to your email address",
 		},
 	})
 }
 
-
 func (uc *UserController) ResetPassword(c *gin.Context) {
 	var req domain.ResetPasswordRequestDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input","success": false,})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "success": false})
 		return
 	}
 
 	err := uc.userUseCase.ResetPassword(c, req.Email, req.OTP, req.NewPassword)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),"success": false,})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "success": false})
 		return
 	}
 
@@ -343,10 +332,8 @@ func (uc *UserController) ResetPassword(c *gin.Context) {
 		"data": gin.H{
 			"message": "Password reset successfully",
 		},
-		})
+	})
 }
-
-
 
 func (uc *UserController) SignInWithProvider(c *gin.Context) {
 
@@ -369,7 +356,9 @@ func (uc *UserController) CallbackHandler(c *gin.Context) {
 	// fmt.Println("^^^^^",provider)
 	// req = req.WithContext(context.WithValue(c.Request.Context(), "provider", provider))
 
+
 	_,accessToken,refreshToken, err := uc.OAuthUseCase.HandleOAuthLogin(c.Request, c.Writer)
+
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -377,16 +366,17 @@ func (uc *UserController) CallbackHandler(c *gin.Context) {
 	c.SetCookie(
 		"WEKIL-API-REFRESH-TOKEN",
 		refreshToken,
-		60*60*24*7,      // 7 days in seconds
-		"/",      // cookie path
-		"",              // domain ("" means current domain)
-		true,            // secure
-		true,            // httpOnly
+		60*60*24*7, // 7 days in seconds
+		"/",        // cookie path
+		"",         // domain ("" means current domain)
+		true,       // secure
+		true,       // httpOnly
 	)
 
 	c.Header("Authorization", "Bearer "+accessToken)
 	redirectURL := "http://localhost:3000/dashboard"
 	c.Redirect(http.StatusFound, redirectURL)
+
 
 	// c.JSON(http.StatusOK, gin.H{
 	// 	"success": true,
@@ -395,6 +385,7 @@ func (uc *UserController) CallbackHandler(c *gin.Context) {
 	// 		"user": user,
 	// 	},
 	// })
+
 
 	// c.JSON(http.StatusOK, gin.H{"message": "Logged in", "user": user})
 
@@ -454,11 +445,37 @@ func (uc *UserController) HandleNotifications(ctx *gin.Context) {
 	})
 }
 
+func (uc *UserController) GetAllUsers(ctx *gin.Context) {
+	// Read query params for pagination and sorting
+	pageStr := ctx.DefaultQuery("page", "1")
+	limitStr := ctx.DefaultQuery("limit", "10")
+	sort := ctx.DefaultQuery("sort", "asc")
 
+	page, _ := strconv.ParseInt(pageStr, 10, 64)
+	limit, _ := strconv.ParseInt(limitStr, 10, 64)
 
-func NewUserController(userUseCase_ domainInterface.IUserUseCase,OAuthUsecase domainInterface.IOAuthUsecase) domainInterface.IUserController {
+	// Fetch users and total count
+	users, totalUsers, err := uc.userUseCase.GetAllUsers(ctx, page, limit, sort)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"success": false,
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success":    true,
+		"page":       page,
+		"limit":      limit,
+		"totalUsers": totalUsers,
+		"data":       users,
+	})
+}
+
+func NewUserController(userUseCase_ domainInterface.IUserUseCase, OAuthUsecase domainInterface.IOAuthUsecase) domainInterface.IUserController {
 	return &UserController{
-		userUseCase: userUseCase_,
+		userUseCase:  userUseCase_,
 		OAuthUseCase: OAuthUsecase,
 	}
 }

@@ -14,7 +14,7 @@ import IndividualForm from "@/components/auth/IndividualForm";
 import VerifyEmail from "../verify-email/page";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/context/LanguageContext";
-import { authTranslations } from "@/lib/authTranslations";
+import { authTranslations } from "@/lib/translations/authTranslations";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/lib/redux/store";
 import { registerUser, clearState } from "@/lib/redux/slices/authSlice";
@@ -91,37 +91,44 @@ export default function SignupPage({ onBackToLogin }: SignupPageProps) {
 
     setIsSubmitting(true);
 
-    try {
-      const formDataToSend = {
-        first_name: individualForm.first_name,
-        middle_name: individualForm.middle_name,
-        last_name: individualForm.last_name,
-        email: individualForm.email,
-        telephone: individualForm.telephone,
-        password: individualForm.password,
-        accountType: "user", // or dynamic if needed
-      };
+    const formDataToSend = {
+      first_name: individualForm.first_name,
+      middle_name: individualForm.middle_name,
+      last_name: individualForm.last_name,
+      email: individualForm.email,
+      telephone: individualForm.telephone,
+      password: individualForm.password,
+      accountType: "user",
+    };
 
-      const resultAction = await dispatch(registerUser(formDataToSend));
+    const resultAction = await dispatch(registerUser(formDataToSend));
 
-      if (registerUser.rejected.match(resultAction)) {
-        setErrors({ general: resultAction.payload || "Registration failed" });
-        toast.error(resultAction.payload || "Registration failed");
-        return;
-      }
-
-      toast.success(
-        "OTP has been sent. check your spam and Please verify your email."
-      );
+    if (registerUser.fulfilled.match(resultAction)) {
+      // success
+      toast.success(resultAction.payload.message);
       setShowVerifyModal(true);
       dispatch(clearState());
-    } catch (error: unknown) {
-      console.log(error);
-      // setErrors({ general: `Error: ${error.message}` });
-      toast.error("Registration failed");
-    } finally {
-      setIsSubmitting(false);
+    } else if (registerUser.rejected.match(resultAction)) {
+      // handle different error codes
+      const { code, message } = resultAction.payload || {
+        code: "ERROR",
+        message: "Registration failed",
+      };
+
+      switch (code) {
+        case "USER_UNVERIFIED":
+          toast.success(message);
+          setShowVerifyModal(true);
+          break;
+        case "USER_EXISTS":
+        case "UNKNOWN_ERROR":
+        default:
+          toast.error(message);
+          break;
+      }
     }
+
+    setIsSubmitting(false);
   };
 
   return (

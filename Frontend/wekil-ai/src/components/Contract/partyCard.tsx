@@ -77,7 +77,7 @@ const PartyCard: React.FC<PartyCardProps> = ({ party1, party2, type }) => {
         {[party1, party2].map((party, index) => (
           <div
             key={index}
-            className="border border-gray-200 rounded-2xl p-4 m-4"
+            className="border border-gray-200 bg-white rounded-2xl p-4 m-4"
           >
             <p className="text-lg font-semibold text-gray-700 mb-4">
               {transition[lang][type][partyName[type][index]]}

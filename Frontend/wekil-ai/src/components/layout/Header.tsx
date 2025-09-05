@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FaRobot } from "react-icons/fa";
-import { translations } from "@/lib/generalTranslations";
+import { translations } from "@/lib/translations/generalTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 
 interface HeaderProps {

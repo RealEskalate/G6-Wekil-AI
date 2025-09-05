@@ -7,13 +7,13 @@ import (
 	routers "wekil_ai/Delivery/Routers"
 	infrastracture "wekil_ai/Infrastracture"
 	ai_interaction "wekil_ai/Infrastracture/ai_interaction"
-	"wekil_ai/Repositories"
+	repository "wekil_ai/Repositories"
 	usecases "wekil_ai/Usecases"
 	"wekil_ai/config"
 )
 
 func main() {
-	
+
 	config.InitEnv()
 	mongoClient, err := repository.Connect()
 	if err != nil {
@@ -26,7 +26,7 @@ func main() {
 	defer mongoClient.Disconnect()
 	oauth.InitOAuth()
 	password_service := infrastracture.NewPasswordService()
-	userRepo := repository.NewUserRepository(mongoClient.Client,config.MONGODB,"user")
+	userRepo := repository.NewUserRepository(mongoClient.Client, config.MONGODB, "user")
 	auth := infrastracture.NewJWTAuthentication(config.SigningKey)
 	unverifiedUserRepo := repository.NewUnverifiedUserRepository(mongoClient.Client)
 	NotifationRepo := repository.NewNotificationRepository(mongoClient.Client)
@@ -45,5 +45,11 @@ func main() {
 
 	oAuthusecase := usecases.NewOAuthUsecase(userRepo,auth)
 	userController := controllers.NewUserController(userUsecase,oAuthusecase)
-  routers.Router(userController, aiController)
+
+	pendingRepo := repository.NewPendingAgreementRepository(mongoClient.Client,config.MONGODB,"pending")
+	intakeRepo := repository.NewIntakeRepository(mongoClient.Client,config.MONGODB,"intake")
+	agreementRepo := repository.NewAgreementRepository(mongoClient.Client,config.MONGODB,"agreement")
+	agreementUsecase := usecases.NewAgreementUseCase(intakeRepo, agreementRepo, pendingRepo,aiInfra)
+	agreementController := controllers.NewAgreementController(agreementUsecase)
+    routers.Router(userController, aiController, agreementController)
 }

@@ -16,67 +16,28 @@ class BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      children: [
-        // Bottom navigation background
-        Container(
-          height: 70,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 6,
-              ),
-            ],
+    return Container(
+      height: 80,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem(
+            icon: Icons.dashboard_outlined,
+            label: 'Dashboard',
+            index: 0,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(
-                icon: Icons.dashboard_outlined,
-                label: 'Dashboard',
-                index: 0,
-              ),
-              SizedBox(width: 80), // Space for the floating create button
-              _buildNavItem(
-                icon: Icons.folder_outlined,
-                label: 'Contracts',
-                index: 2,
-              ),
-            ],
+          _buildCreateButton(), // middle button
+          _buildNavItem(
+            icon: Icons.folder_outlined,
+            label: 'Contracts',
+            index: 2,
           ),
-        ),
-
-        // Floating create button
-        Positioned(
-          bottom: 10,
-          child: GestureDetector(
-            onTap: onCreatePressed,
-            child: Container(
-              width: 70,
-              height: 70,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.4),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.add,
-                size: 36,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -89,12 +50,13 @@ class BottomNav extends StatelessWidget {
     return GestureDetector(
       onTap: () => onItemSelected(index),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             icon,
-            color: isActive ? AppColors.primary : AppColors.textDark.withOpacity(0.5),
+            color: isActive
+                ? AppColors.primary
+                : AppColors.textDark.withOpacity(0.5),
           ),
           const SizedBox(height: 4),
           Text(
@@ -102,7 +64,41 @@ class BottomNav extends StatelessWidget {
             style: AppTypography.body().copyWith(
               fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
               fontSize: 12,
-              color: isActive ? AppColors.primary : AppColors.textDark.withOpacity(0.5),
+              color: isActive
+                  ? AppColors.primary
+                  : AppColors.textDark.withOpacity(0.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCreateButton() {
+    bool isActive = currentIndex == 1;
+    return GestureDetector(
+      onTap: onCreatePressed,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: isActive ? AppColors.accentDark : AppColors.accent,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.add, color: Colors.white, size: 28),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Create',
+            style: AppTypography.body().copyWith(
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+              fontSize: 12,
+              color: isActive
+                  ? AppColors.primary
+                  : AppColors.textDark.withOpacity(0.5),
             ),
           ),
         ],

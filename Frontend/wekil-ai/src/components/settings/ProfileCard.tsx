@@ -14,7 +14,7 @@ import { Button } from "../ui/Button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { User, Camera, Loader2, Lock, Pencil } from "lucide-react";
 import toast from "react-hot-toast";
-import { settingTranslations } from "@/lib/settingTranslations";
+import { settingTranslations } from "@/lib/translations/settingTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 import type { FormData } from "@/types/auth";
 import Image from "next/image";
@@ -26,7 +26,6 @@ import {
 } from "@/lib/redux/slices/profileSlice";
 import { useSession } from "next-auth/react";
 import { changePassword } from "@/lib/redux/slices/authSlice";
-import { useRouter } from "next/navigation";
 
 export default function ProfileCard() {
   const profileState = useSelector((state: RootState) => state.profile);
@@ -49,26 +48,30 @@ export default function ProfileCard() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const profileInputRef = useRef<HTMLInputElement>(null);
   const [paths, setPaths] = useState<string[]>([]);
   const [drawing, setDrawing] = useState(false);
   const currentPath = useRef<string>("");
-  const router = useRouter();
 
   const { lang } = useLanguage();
   const t = settingTranslations[lang];
   const accessToken = session?.user?.accessToken;
+  const [isChanging, setIsChanging] = useState(false);
 
   useEffect(() => {
-    if (accessToken) {
-      dispatch(fetchProfile(accessToken));
+    if (accessToken && !profileState.loaded) {
+      dispatch(fetchProfile(accessToken!))
+        .unwrap()
+        .catch((err) => {
+          toast.error("Failed to load profile data");
+          console.error(err);
+        });
     }
-  }, [accessToken, dispatch, router, status]);
+  }, [accessToken, dispatch, profileState.loaded]);
 
   useEffect(() => {
     if (profileState.user) {
-      console.log("Profile fetched from backend:", profileState.user);
       setProfileData({
         profilePicture: profileState.user.profileImage || "",
         signatureImage: profileState.user.signature || "",
@@ -146,20 +149,12 @@ export default function ProfileCard() {
     key: K,
     value: FormData[K]
   ) => {
+    console.log(`Updating ${key} to`, value);
     setProfileData((prev) => ({ ...prev, [key]: value }));
   };
 
   const uploadToCloudinary = async (file: File) => {
     setIsUploading(true);
-    // console.log("Uploading file:", file);
-    // console.log(
-    //   "Using preset:",
-    //   process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
-    // );
-    // console.log(
-    //   "Using cloud name:",
-    //   process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-    // );
     const formData = new FormData();
 
     formData.append("file", file);
@@ -174,7 +169,6 @@ export default function ProfileCard() {
         { method: "POST", body: formData }
       );
       const data = await res.json();
-      console.log("Cloudinary response:", data);
       return data.secure_url;
     } catch (error) {
       toast.error("Failed to upload image");
@@ -203,7 +197,6 @@ export default function ProfileCard() {
     }
 
     const url = await uploadToCloudinary(file);
-    console.log("Uploaded URL:", url);
     if (url) {
       updateProfile(key, url);
       toast.success(
@@ -243,15 +236,11 @@ export default function ProfileCard() {
         signature: signatureUrl,
       };
 
-      // console.log("Profile update payload:", payload);
-      // console.log("signature url:", signatureUrl);
-
       const result = await dispatch(
         updateProfileApi({ accessToken, profileData: payload })
       ).unwrap();
 
       toast.success(result.message);
-      // Refetch profile after update
       dispatch(fetchProfile(accessToken));
     } catch (error: unknown) {
       console.log(error);
@@ -273,17 +262,27 @@ export default function ProfileCard() {
     }
 
     try {
+      setIsChanging(true);
       const result = await dispatch(
-        changePassword({ old_password: oldPassword, new_password: newPassword })
+        changePassword({
+          old_password: oldPassword,
+          new_password: newPassword,
+          token: accessToken!,
+        })
       ).unwrap();
-      toast.success(result.data.message);
+
+      toast.success(result.data?.message || "Password changed successfully");
+
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
       console.error(error);
-      toast.error("Failed to change password");
+      toast.error(
+        typeof error === "string" ? error : "Failed to change password"
+      );
     }
+    setIsChanging(false);
   };
 
   return (
@@ -464,7 +463,7 @@ export default function ProfileCard() {
               className="gap-2 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Lock className="w-4 h-4" />
-              {t.changePassword}
+              {isChanging ? "Changing..." : t.changePassword}
             </Button>
           </div>
         </div>

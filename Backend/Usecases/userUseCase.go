@@ -303,6 +303,68 @@ func (u *UserUseCase) GetAllUsers(ctx context.Context, page, limit int64, sort s
 	return users, totalUsers, nil
 }
 
+
+
+// OAuthLogin handles Google login/signup and token generation
+func (uc *UserUseCase) GoogleNextJS(ctx context.Context, profile domain.GoogleProfile) (*domain.Individual, string, string, error) {
+	// 1. Check if user exists
+	existingUser, _ := uc.userCollection.FindByEmail(ctx, profile.Email)
+	var user *domain.Individual
+	if existingUser != nil {
+		user = existingUser
+	} else {
+		// 2. Create new user
+		userData := &domain.Individual{
+			Email:       profile.Email,
+			FirstName:    profile.GivenName,
+			LastName: profile.FamilyName,
+			ProfileImage:  profile.Picture,
+			IsVerified:  true,
+			AccountType: domain.User,
+		}
+		newUser, err := uc.userCollection.CreateIndividual(ctx, userData)
+		if err != nil {
+			return nil, "", "", err
+		}
+		user = newUser
+	}
+
+	// 3. Generate access token
+	accessClaims := &domain.UserClaims{
+		UserID:      user.ID.Hex(),
+		Email:       user.Email,
+		IsVerified:  user.IsVerified,
+		AccountType: user.AccountType,
+		TokenType:   domainInterface.AccessToken,
+	}
+	accessToken, err := uc.auth.GenerateToken(accessClaims, domainInterface.AccessToken)
+	if err != nil {
+		return nil, "", "", err
+	}
+
+	// 4. Generate refresh token
+	refreshClaims := &domain.UserClaims{
+		UserID:      user.ID.Hex(),
+		Email:       user.Email,
+		IsVerified:  user.IsVerified,
+		AccountType: user.AccountType,
+		TokenType:   domainInterface.RefreshToken,
+	}
+	refreshToken, err := uc.auth.GenerateToken(refreshClaims, domainInterface.RefreshToken)
+	if err != nil {
+		return nil, "", "", err
+	}
+
+	// 5. Update user with refresh token
+	update := bson.M{"refresh_token": refreshToken}
+	user.RefreshToken = refreshToken
+	if err := uc.userCollection.UpdateIndividual(ctx, user.ID, update); err != nil {
+		return nil, "", "", err
+	}
+
+	return user, accessToken, refreshToken, nil
+}
+
 func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository, notify domainInterface.INotification,OtpService domainInterface.IOTPService) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
 	return &UserUseCase{
 		auth:                     AUTH,

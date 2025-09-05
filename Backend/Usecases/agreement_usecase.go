@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 	domain "wekil_ai/Domain"
 	domainInter "wekil_ai/Domain/Interfaces"
@@ -121,12 +122,13 @@ func (a *AgreementUseCase) GetAgreementByID(agreementID primitive.ObjectID, user
 // GetAgreementsByUserID implements domain.IAgreementUseCase.
 func (a *AgreementUseCase) GetAgreementsByUserID(userID primitive.ObjectID, pageNumber int) ([]*domain.Agreement, error) {
 	listOfAgreement, err := a.AgreementRepo.GetAgreementsByPartyID(context.Background(), userID, pageNumber)
+	log.Println("☑️", listOfAgreement)
 	if err != nil {
 		return nil, err
 	}
 	undeletedAgreements := []*domain.Agreement{}
 	for _, agreement := range listOfAgreement {
-		if agreement.IsDeletedByAcceptor || agreement.IsDeletedByCreator {
+		if !(agreement.IsDeletedByAcceptor || agreement.IsDeletedByCreator) {
 			undeletedAgreements = append(undeletedAgreements, agreement)
 		}
 	}

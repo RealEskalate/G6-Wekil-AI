@@ -6,6 +6,7 @@ import authReducer from "./slices/authSlice";
 import { setupListeners } from '@reduxjs/toolkit/query'
 import { AgreementGetApi } from "./slices/AgreementAPI/AgreementGetById";
 import adminReducer from "./slices/adminSlice";
+import aiSlice from "./slices/aiSlice";
 
 export const store  = configureStore({
     reducer: {
@@ -14,7 +15,10 @@ export const store  = configureStore({
         agreement: agreementReducer,
         notification: notificationReducer,
         [AgreementGetApi.reducerPath]: AgreementGetApi.reducer,
-        admin: adminReducer
+        admin: adminReducer,
+        ai: aiSlice,
+
+
     },
     middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(AgreementGetApi.middleware)

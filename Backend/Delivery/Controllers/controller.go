@@ -369,7 +369,7 @@ func (uc *UserController) CallbackHandler(c *gin.Context) {
 	// fmt.Println("^^^^^",provider)
 	// req = req.WithContext(context.WithValue(c.Request.Context(), "provider", provider))
 
-	user,accessToken,refreshToken, err := uc.OAuthUseCase.HandleOAuthLogin(c.Request, c.Writer)
+	_,accessToken,refreshToken, err := uc.OAuthUseCase.HandleOAuthLogin(c.Request, c.Writer)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
@@ -385,14 +385,16 @@ func (uc *UserController) CallbackHandler(c *gin.Context) {
 	)
 
 	c.Header("Authorization", "Bearer "+accessToken)
+	redirectURL := "http://localhost:3000/dashboard"
+	c.Redirect(http.StatusFound, redirectURL)
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
-			"message": "login successful",
-			"user": user,
-		},
-	})
+	// c.JSON(http.StatusOK, gin.H{
+	// 	"success": true,
+	// 	"data": gin.H{
+	// 		"message": "login successful",
+	// 		"user": user,
+	// 	},
+	// })
 
 	// c.JSON(http.StatusOK, gin.H{"message": "Logged in", "user": user})
 
@@ -403,7 +405,7 @@ func (uc *UserController) CallbackHandler(c *gin.Context) {
 	// 	return
 	// }
 
-	c.Redirect(http.StatusTemporaryRedirect, "/success")
+	// c.Redirect(http.StatusTemporaryRedirect, "/success")
 }
 func (uc *UserController) Success(c *gin.Context) {
 

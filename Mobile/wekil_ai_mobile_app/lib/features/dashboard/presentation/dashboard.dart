@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/create_start_page.dart';
+import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../core/di/injection.dart';
@@ -21,10 +23,10 @@ class DashboardPage extends StatelessWidget {
   final VoidCallback? onCreate;
   const DashboardPage({super.key, this.onCreate});
 
-  static Widget provider() {
+  static Widget provider({VoidCallback? onCreate}) {
     return BlocProvider(
       create: (_) => getIt<DashboardCubit>()..load(),
-      child: const DashboardPage(),
+      child: DashboardPage(onCreate: onCreate),
     );
   }
 
@@ -85,7 +87,9 @@ class DashboardPage extends StatelessWidget {
           builder: (context, state) {
             final user = state.user;
             final first = (user?.firstName ?? '').trim();
-            final name = first.isNotEmpty ? first : 'there';
+            final name = first.isNotEmpty
+                ? first
+                : LocalesData.there.getString(context);
             final verified = user?.isVerified == true;
 
             return SingleChildScrollView(
@@ -97,8 +101,10 @@ class DashboardPage extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
+                        //Text(LocalesData.title.getString(context))
                         child: Text(
-                          'Welcome back, $name!',
+                          context.formatString(LocalesData.welcome, [name]),
+                          // 'Welcome back, $name!',
                           style: AppTypography.heading(
                             fontSize: 26,
                             fontWeight: FontWeight.w600,
@@ -121,7 +127,8 @@ class DashboardPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Overview',
+                    // 'Overview',
+                    LocalesData.Overview.getString(context),
                     style: AppTypography.body(color: AppColors.textDark),
                   ),
                   const SizedBox(height: 10),
@@ -130,7 +137,8 @@ class DashboardPage extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        'Recent Contracts',
+                        // 'Recent Contracts'
+                        LocalesData.recentContracts.getString(context),
                         style: AppTypography.body(
                           fontWeight: FontWeight.w600,
                           color: AppColors.textDark,
@@ -146,7 +154,8 @@ class DashboardPage extends StatelessWidget {
                           }
                         },
                         child: Text(
-                          'View All',
+                          // 'View All'
+                          LocalesData.viewAll.getString(context),
                           style: AppTypography.body(
                             fontWeight: FontWeight.w600,
                             color: AppColors.accent,
@@ -214,7 +223,7 @@ class _OverviewRow extends StatelessWidget {
           child: isLoading
               ? const _SkeletonCard()
               : StatCard(
-                  label: 'Draft Contracts',
+                  label: LocalesData.draftContracts.getString(context),
                   value: summary?.draftCount ?? 0,
                   color: Colors.blue,
                   labelColor: Colors.blue,
@@ -225,7 +234,7 @@ class _OverviewRow extends StatelessWidget {
           child: isLoading
               ? const _SkeletonCard()
               : StatCard(
-                  label: 'Exported Contracts',
+                  label: LocalesData.exportedContracts.getString(context),
                   value: summary?.exportedCount ?? 0,
                   color: Colors.green,
                   labelColor: Colors.green,
@@ -236,7 +245,7 @@ class _OverviewRow extends StatelessWidget {
           child: isLoading
               ? const _SkeletonCard()
               : StatCard(
-                  label: 'All Contracts',
+                  label: LocalesData.allContracts.getString(context),
                   value: summary?.allCount ?? 0,
                   color: Colors.deepPurple,
                   labelColor: Colors.deepPurple,
@@ -289,7 +298,7 @@ class _RecentContracts extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'No contracts yet',
+              LocalesData.noContractsYet.getString(context),
               style: AppTypography.body(
                 fontWeight: FontWeight.w600,
                 color: AppColors.primary,
@@ -297,14 +306,17 @@ class _RecentContracts extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Create your first contract',
+              LocalesData.createFirstContract.getString(context),
               style: AppTypography.small(color: AppColors.textDark),
             ),
             const SizedBox(height: 12),
             FilledButton.icon(
               onPressed: onCreate, // make sure to call your function
               icon: const Icon(Icons.add),
-              label: Text('Create Contract', style: AppTypography.button()),
+              label: Text(
+                LocalesData.createContract.getString(context),
+                style: AppTypography.button(),
+              ),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accent,
                 shape: RoundedRectangleBorder(

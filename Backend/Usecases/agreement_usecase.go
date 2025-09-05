@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 	domain "wekil_ai/Domain"
@@ -11,10 +12,11 @@ import (
 )
 
 type AgreementUseCase struct {
-	IntakeRepo    domainInter.IIntakeRepo
-	AgreementRepo domainInter.IAgreementRepo
-	PendingRepo   domainInter.IPendingAgreementRepo
-	AIInteraction domainInter.IAIInteraction
+	IntakeRepo       domainInter.IIntakeRepo
+	AgreementRepo    domainInter.IAgreementRepo
+	PendingRepo      domainInter.IPendingAgreementRepo
+	AIInteraction    domainInter.IAIInteraction
+	NotificatoinRepo domainInter.INotification
 }
 
 // GetAgreementsByUserIDAndFilter implements domain.IAgreementUseCase.
@@ -30,6 +32,17 @@ func (a *AgreementUseCase) SendAgreement(receiverEmail string, agreement *domain
 		AcceptorEmail: receiverEmail,
 	}
 	_, err := a.PendingRepo.CreatePendingAgreement(context.Background(), &pendingAgreement)
+	if err != nil {
+		return err
+	}
+	// send the notification to the user also
+	signRequestNotification := domain.Notification{
+		SenderID:    agreement.CreatorID,
+		Title:       "Signature Request: New Document to Sign",
+		Message:     "You have a new agreement to review and sign. ",
+		AgreementID: agreement.ID,
+	}
+	_, err = a.NotificatoinRepo.CreateNotification(context.Background(), &signRequestNotification)
 	return err
 }
 
@@ -228,10 +241,14 @@ func (a *AgreementUseCase) DuplicateAgreement(originalAgreementID primitive.Obje
 		}
 		newIntake.Parties = newParties
 	}
+	intakeJSON, err := json.Marshal(newIntake)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal intake to JSON: %w", err)
+	}
 
 	// 4. Call the AI to generate a new draft from the modified intake.
 	// We're using the AI's GenerateDocumentDraft function as it's designed for this.
-	newDraft, err := a.AIInteraction.GenerateDocumentDraft(context.Background(), &newIntake, "en")
+	newDraft, err := a.AIInteraction.GenerateDocumentDraft(context.Background(), string(intakeJSON), "en")
 	if err != nil {
 		return nil, nil, err
 	}

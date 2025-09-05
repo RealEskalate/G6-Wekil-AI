@@ -6,9 +6,10 @@ export default function WeKilAILoader() {
       <Image
         src="/loader.gif"
         alt="Loading..."
-        width={200} // increase size
-        height={200} // increase size
+        width={200}
+        height={200}
         className="object-contain"
+        unoptimized
       />
     </div>
   );

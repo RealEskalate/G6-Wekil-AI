@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:intl/intl.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/entities/contract_type.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/entities/good.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/entities/installment.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/entities/milestone.dart';
+import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import '../contacts/data/models/contact_data.dart';
 import '../../core/theme/app_typography.dart';
 
@@ -48,7 +50,12 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
   final _purposeController = TextEditingController();
   bool _mutualConfidentiality = false;
 
-  final List<String> _frequencies = ['Weekly', 'Monthly', 'Quarterly', 'Annually'];
+  final List<String> _frequencies = [
+    'Weekly',
+    'Monthly',
+    'Quarterly',
+    'Annually',
+  ];
   final List<String> _frequencyValues = [];
 
   @override
@@ -59,50 +66,71 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
     _servicesController.text = widget.contractData.services ?? '';
     _revisionsController.text = widget.contractData.revisions?.toString() ?? '';
     _milestoneDescriptionControllers.addAll(
-      (widget.contractData.milestones ?? [])
-          .map((m) => TextEditingController(text: m.description)),
+      (widget.contractData.milestones ?? []).map(
+        (m) => TextEditingController(text: m.description),
+      ),
     );
     _milestoneAmountControllers.addAll(
-      (widget.contractData.milestones ?? [])
-          .map((m) => TextEditingController(text: m.amount?.toString() ?? '')),
+      (widget.contractData.milestones ?? []).map(
+        (m) => TextEditingController(text: m.amount?.toString() ?? ''),
+      ),
     );
     _milestoneDueDateControllers.addAll(
-      (widget.contractData.milestones ?? [])
-          .map((m) => TextEditingController(
-                text: m.dueDate != null ? DateFormat('dd/MM/yyyy').format(m.dueDate!) : '',
-              )),
+      (widget.contractData.milestones ?? []).map(
+        (m) => TextEditingController(
+          text: m.dueDate != null
+              ? DateFormat('dd/MM/yyyy').format(m.dueDate!)
+              : '',
+        ),
+      ),
     );
 
     // Sales of Goods
     _goodsControllers.addAll(
-      (widget.contractData.goods ?? []).map((g) => TextEditingController(text: g.item)),
+      (widget.contractData.goods ?? []).map(
+        (g) => TextEditingController(text: g.item),
+      ),
     );
     _quantityControllers.addAll(
-      (widget.contractData.goods ?? []).map((g) => TextEditingController(text: g.quantity?.toString() ?? '')),
+      (widget.contractData.goods ?? []).map(
+        (g) => TextEditingController(text: g.quantity?.toString() ?? ''),
+      ),
     );
     _unitPriceControllers.addAll(
-      (widget.contractData.goods ?? []).map((g) => TextEditingController(text: g.unitPrice?.toString() ?? '')),
+      (widget.contractData.goods ?? []).map(
+        (g) => TextEditingController(text: g.unitPrice?.toString() ?? ''),
+      ),
     );
     _deliveryController.text = widget.contractData.deliveryTerms ?? '';
 
     // Simple Loan
     _principalController.text = widget.contractData.principal?.toString() ?? '';
-    _lateFeeController.text = widget.contractData.lateFeePercent?.toString() ?? '';
+    _lateFeeController.text =
+        widget.contractData.lateFeePercent?.toString() ?? '';
     _installmentAmountControllers.addAll(
-      (widget.contractData.installments ?? []).map((i) => TextEditingController(text: i.amount?.toString() ?? '')),
+      (widget.contractData.installments ?? []).map(
+        (i) => TextEditingController(text: i.amount?.toString() ?? ''),
+      ),
     );
     _installmentDueDateControllers.addAll(
-      (widget.contractData.installments ?? []).map((i) => TextEditingController(
-            text: i.dueDate != null ? DateFormat('dd/MM/yyyy').format(i.dueDate!) : '',
-          )),
+      (widget.contractData.installments ?? []).map(
+        (i) => TextEditingController(
+          text: i.dueDate != null
+              ? DateFormat('dd/MM/yyyy').format(i.dueDate!)
+              : '',
+        ),
+      ),
     );
     _installmentDescriptionControllers.addAll(
-      (widget.contractData.installments ?? []).map((i) => TextEditingController(text: i.description ?? '')),
+      (widget.contractData.installments ?? []).map(
+        (i) => TextEditingController(text: i.description ?? ''),
+      ),
     );
 
     // Basic NDA
     _effectiveDateController.text = widget.contractData.effectiveDate ?? '';
-    _confidentialityYearsController.text = widget.contractData.confidentialityYears?.toString() ?? '';
+    _confidentialityYearsController.text =
+        widget.contractData.confidentialityYears?.toString() ?? '';
     _purposeController.text = widget.contractData.purpose ?? '';
     _mutualConfidentiality = widget.contractData.mutualConfidentiality ?? false;
   }
@@ -142,11 +170,14 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
             description: _milestoneDescriptionControllers[i].text,
             amount: double.tryParse(_milestoneAmountControllers[i].text),
             dueDate: _milestoneDueDateControllers[i].text.isNotEmpty
-                ? DateFormat('dd/MM/yyyy').parse(_milestoneDueDateControllers[i].text)
+                ? DateFormat(
+                    'dd/MM/yyyy',
+                  ).parse(_milestoneDueDateControllers[i].text)
                 : null,
           ),
         );
-        widget.contractData.revisions = int.tryParse(_revisionsController.text) ?? 0;
+        widget.contractData.revisions =
+            int.tryParse(_revisionsController.text) ?? 0;
         break;
 
       case ContractType.salesOfGoods:
@@ -163,31 +194,41 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
         break;
 
       case ContractType.simpleLoan:
-        widget.contractData.principal = double.tryParse(_principalController.text) ?? 0.0;
+        widget.contractData.principal =
+            double.tryParse(_principalController.text) ?? 0.0;
         widget.contractData.installments = List.generate(
           _installmentAmountControllers.length,
           (i) => Installment(
-            amount: double.tryParse(_installmentAmountControllers[i].text) ?? 0.0,
+            amount:
+                double.tryParse(_installmentAmountControllers[i].text) ?? 0.0,
             dueDate: _installmentDueDateControllers[i].text.isNotEmpty
-                ? DateFormat('dd/MM/yyyy').parse(_installmentDueDateControllers[i].text)
+                ? DateFormat(
+                    'dd/MM/yyyy',
+                  ).parse(_installmentDueDateControllers[i].text)
                 : null,
             description: _installmentDescriptionControllers[i].text,
           ),
         );
-        widget.contractData.lateFeePercent = double.tryParse(_lateFeeController.text) ?? 0.0;
+        widget.contractData.lateFeePercent =
+            double.tryParse(_lateFeeController.text) ?? 0.0;
         break;
 
       case ContractType.basicNDA:
         widget.contractData.effectiveDate = _effectiveDateController.text;
-        widget.contractData.confidentialityYears = int.tryParse(_confidentialityYearsController.text) ?? 0;
+        widget.contractData.confidentialityYears =
+            int.tryParse(_confidentialityYearsController.text) ?? 0;
         widget.contractData.purpose = _purposeController.text;
         widget.contractData.mutualConfidentiality = _mutualConfidentiality;
         break;
     }
   }
 
-  Widget labeledField(String label, TextEditingController controller,
-      {String? hint, TextInputType? type}) {
+  Widget labeledField(
+    String label,
+    TextEditingController controller, {
+    String? hint,
+    TextInputType? type,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
@@ -197,7 +238,10 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
           TextField(
             controller: controller,
             keyboardType: type,
-            decoration: InputDecoration(hintText: hint, border: const OutlineInputBorder()),
+            decoration: InputDecoration(
+              hintText: hint,
+              border: const OutlineInputBorder(),
+            ),
           ),
         ],
       ),
@@ -226,9 +270,15 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        labeledField("Services Description", _servicesController),
+        labeledField(
+          LocalesData.servicesDescription.getString(context),
+          _servicesController,
+        ),
         const SizedBox(height: 16),
-        Text("Milestones", style: AppTypography.label),
+        Text(
+          LocalesData.milestones.getString(context),
+          style: AppTypography.label,
+        ),
         const SizedBox(height: 8),
         ..._milestoneDescriptionControllers.asMap().entries.map((entry) {
           final i = entry.key;
@@ -238,25 +288,30 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
               padding: const EdgeInsets.all(12.0),
               child: Column(
                 children: [
-                  labeledField("Description", _milestoneDescriptionControllers[i]),
                   labeledField(
-                    "Amount (optional)",
+                    LocalesData.description.getString(context),
+                    _milestoneDescriptionControllers[i],
+                  ),
+                  labeledField(
+                    LocalesData.amountOptional.getString(context),
                     _milestoneAmountControllers[i],
                     type: TextInputType.number,
                   ),
                   TextFormField(
                     controller: _milestoneDueDateControllers[i],
                     readOnly: true,
-                    decoration: const InputDecoration(
-                      labelText: "Due Date",
-                      suffixIcon: Icon(Icons.calendar_today_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: LocalesData.dueDate.getString(context),
+                      suffixIcon: const Icon(Icons.calendar_today_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     onTap: () async {
                       DateTime initialDate = DateTime.now();
                       if (_milestoneDueDateControllers[i].text.isNotEmpty) {
                         try {
-                          initialDate = DateFormat('dd/MM/yyyy').parse(_milestoneDueDateControllers[i].text);
+                          initialDate = DateFormat(
+                            'dd/MM/yyyy',
+                          ).parse(_milestoneDueDateControllers[i].text);
                         } catch (_) {}
                       }
                       final picked = await showDatePicker(
@@ -267,7 +322,9 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
                       );
                       if (picked != null) {
                         setState(() {
-                          _milestoneDueDateControllers[i].text = DateFormat('dd/MM/yyyy').format(picked);
+                          _milestoneDueDateControllers[i].text = DateFormat(
+                            'dd/MM/yyyy',
+                          ).format(picked);
                         });
                       }
                     },
@@ -283,7 +340,9 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
                         });
                       },
                       style: TextButton.styleFrom(foregroundColor: Colors.red),
-                      child: const Text("Remove Milestone"),
+                      child: Text(
+                        LocalesData.removeMilestone.getString(context),
+                      ),
                     ),
                   ),
                 ],
@@ -299,10 +358,10 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
               _milestoneDueDateControllers.add(TextEditingController());
             });
           },
-          child: const Text("Add Milestone"),
+          child: Text(LocalesData.addMilestone.getString(context)),
         ),
         labeledField(
-          "Number of Revisions",
+          LocalesData.numberOfRevisions.getString(context),
           _revisionsController,
           type: TextInputType.number,
         ),
@@ -322,15 +381,26 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
               padding: const EdgeInsets.all(12.0),
               child: Column(
                 children: [
-                  labeledField("Item", _goodsControllers[i]),
+                  labeledField(
+                    LocalesData.item.getString(context),
+                    _goodsControllers[i],
+                  ),
                   Row(
                     children: [
                       Expanded(
-                        child: labeledField("Quantity", _quantityControllers[i], type: TextInputType.number),
+                        child: labeledField(
+                          LocalesData.quantity.getString(context),
+                          _quantityControllers[i],
+                          type: TextInputType.number,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: labeledField("Unit Price", _unitPriceControllers[i], type: TextInputType.number),
+                        child: labeledField(
+                          LocalesData.unitPrice.getString(context),
+                          _unitPriceControllers[i],
+                          type: TextInputType.number,
+                        ),
                       ),
                     ],
                   ),
@@ -345,7 +415,7 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
                         });
                       },
                       style: TextButton.styleFrom(foregroundColor: Colors.red),
-                      child: const Text("Remove Item"),
+                      child: Text(LocalesData.removeItem.getString(context)),
                     ),
                   ),
                 ],
@@ -361,9 +431,12 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
               _unitPriceControllers.add(TextEditingController());
             });
           },
-          child: const Text("Add Item"),
+          child: Text(LocalesData.addItem.getString(context)),
         ),
-        labeledField("Delivery Terms", _deliveryController),
+        labeledField(
+          LocalesData.deliveryTerms.getString(context),
+          _deliveryController,
+        ),
       ],
     );
   }
@@ -372,9 +445,16 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        labeledField("Principal Amount", _principalController, type: TextInputType.number),
+        labeledField(
+          LocalesData.principalAmount.getString(context),
+          _principalController,
+          type: TextInputType.number,
+        ),
         const SizedBox(height: 16),
-        Text("Installments", style: AppTypography.label),
+        Text(
+          LocalesData.installments.getString(context),
+          style: AppTypography.label,
+        ),
         ..._installmentAmountControllers.asMap().entries.map((entry) {
           final i = entry.key;
           return Card(
@@ -383,14 +463,18 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
               padding: const EdgeInsets.all(12.0),
               child: Column(
                 children: [
-                  labeledField("Amount", _installmentAmountControllers[i], type: TextInputType.number),
+                  labeledField(
+                    LocalesData.amount.getString(context),
+                    _installmentAmountControllers[i],
+                    type: TextInputType.number,
+                  ),
                   TextFormField(
                     controller: _installmentDueDateControllers[i],
                     readOnly: true,
-                    decoration: const InputDecoration(
-                      labelText: "Due Date",
-                      suffixIcon: Icon(Icons.calendar_today_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: LocalesData.dueDate.getString(context),
+                      suffixIcon: const Icon(Icons.calendar_today_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                     onTap: () async {
                       final picked = await showDatePicker(
@@ -401,12 +485,18 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
                       );
                       if (picked != null) {
                         setState(() {
-                          _installmentDueDateControllers[i].text = DateFormat('dd/MM/yyyy').format(picked);
+                          _installmentDueDateControllers[i].text = DateFormat(
+                            'dd/MM/yyyy',
+                          ).format(picked);
                         });
                       }
                     },
                   ),
-                  labeledField("Description", _installmentDescriptionControllers[i], hint: "Monthly, Every 3 months, etc."),
+                  labeledField(
+                    LocalesData.description.getString(context),
+                    _installmentDescriptionControllers[i],
+                    hint: LocalesData.frequencyHint.getString(context),
+                  ),
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -418,7 +508,9 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
                         });
                       },
                       style: TextButton.styleFrom(foregroundColor: Colors.red),
-                      child: const Text("Remove Installment"),
+                      child: Text(
+                        LocalesData.removeInstallment.getString(context),
+                      ),
                     ),
                   ),
                 ],
@@ -434,9 +526,13 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
               _installmentDescriptionControllers.add(TextEditingController());
             });
           },
-          child: const Text("Add Installment"),
+          child: Text(LocalesData.addInstallment.getString(context)),
         ),
-        labeledField("Late Fee Percentage", _lateFeeController, type: TextInputType.number),
+        labeledField(
+          LocalesData.lateFeePercentage.getString(context),
+          _lateFeeController,
+          type: TextInputType.number,
+        ),
       ],
     );
   }
@@ -445,9 +541,20 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        labeledField("Effective Date", _effectiveDateController, hint: "YYYY-MM-DD"),
-        labeledField("Confidentiality Terms (years)", _confidentialityYearsController, type: TextInputType.number),
-        labeledField("Purpose", _purposeController),
+        labeledField(
+          LocalesData.effectiveDate.getString(context),
+          _effectiveDateController,
+          hint: 'YYYY-MM-DD',
+        ),
+        labeledField(
+          LocalesData.confidentialityTermsYears.getString(context),
+          _confidentialityYearsController,
+          type: TextInputType.number,
+        ),
+        labeledField(
+          LocalesData.purpose.getString(context),
+          _purposeController,
+        ),
         Row(
           children: [
             Switch(
@@ -455,7 +562,7 @@ class ContractSpecificDetailsState extends State<ContractSpecificDetails> {
               onChanged: (val) => setState(() => _mutualConfidentiality = val),
             ),
             const SizedBox(width: 8),
-            const Text("Mutual Confidentiality"),
+            Text(LocalesData.mutualConfidentiality.getString(context)),
           ],
         ),
       ],

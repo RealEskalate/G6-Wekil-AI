@@ -13,6 +13,7 @@ export interface ContractFormat {
   Description: string;
   party1: Party;
   party2: Party;
+  pdfURl: string;
 
   // Service-specific fields
   services?: string;
@@ -53,6 +54,7 @@ export interface Goods {
 
 export interface Installment {
   amount: number;
+  paymentTerm: string;
   due_date: string;
 }
 
@@ -82,6 +84,7 @@ export const data1: ContractFormat = {
   startDate: "2024-01-15",
   endDate: "2024-06-15",
   createdAt: "2024-01-01",
+  pdfURl: "",
   Description:
     "This contract outlines the terms and conditions for website development services provided by John Doe to ABC Company.",
   services:
@@ -98,7 +101,7 @@ export const data1: ContractFormat = {
   ],
   delivery_terms: "Delivery within 30 days of contract signing.",
   principal: 10000,
-  installments: [{ amount: 2500, due_date: "2024-02-15" }],
+  installments: [{ amount: 2500, due_date: "2024-02-15",paymentTerm: "Twice per week"}],
   late_fee_percent: 5,
   effectiveDate: "2024-01-15",
   confidentialityTerm: 3,

@@ -32,12 +32,6 @@ type Agreement struct {
 	// IsDeleted           bool               `json:"is_deleted,omitempty" bson:"is_deleted,omitempty"` //? I don't know for sure if we need this one anymore. since we can achive the same logic by using IsDeletedByCreator && IsDeletedByAcceptor
 }
 
-type PendingAgreement struct {
-	AgreementID   primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	CreatorID     primitive.ObjectID `json:"creator_id" bson:"creator_id"`
-	AcceptorEmail string             `json:"email" bson:"email"`
-}
-
 // ? Blow this the data_modles are going to be helper of the agreement concept
 type SignitureRequest struct {
 	AgreementID    string `json:"agreement_id"`
@@ -52,4 +46,33 @@ type AgreementFilter struct {
 	AgreementType       string `json:"agreement_type"`
 	AgreementStatus     string `json:"agreement_status"`
 	AgreementPageNumber int    `json:"agreement_page_number"`
+}
+
+type PendingAgreement struct {
+	AgreementID   primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	CreatorID     primitive.ObjectID `json:"creator_id" bson:"creator_id"`
+	AcceptorEmail string             `json:"email" bson:"email"`
+}
+
+// Party represents a person or entity involved in an agreement.
+type PartyDTO struct {
+	Name  string `json:"name" bson:"name"`
+	Email string `json:"email" bson:"email"`
+	Phone string `json:"phone,omitempty" bson:"phone,omitempty"`
+}
+
+// AgreementRequestDTO holds the metadata for an agreement.
+type AgreementRequestDTO struct {
+	AgreementType string   `json:"agreement_type" bson:"agreement_type"`
+	PDFURL        string   `json:"pdf_url,omitempty" bson:"pdf_url,omitempty"`
+	CreatorSigned bool     `json:"creator_signed,omitempty" bson:"creator_signed,omitempty"`
+	Status        string   `json:"status,omitempty" bson:"status,omitempty"`
+	PartyA        PartyDTO `json:"party_a,omitempty" bson:"party_a,omitempty"`
+	PartyB        PartyDTO `json:"party_b,omitempty" bson:"party_b,omitempty"`
+}
+
+// AgreementSaveRequest combines the agreement metadata and the draft text for saving.
+type AgreementRequest struct {
+	AgrementInfo AgreementRequestDTO `json:"agreement"`
+	DraftText    string              `json:"draft_text"`
 }

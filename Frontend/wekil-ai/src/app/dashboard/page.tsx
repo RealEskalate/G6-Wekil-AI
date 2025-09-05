@@ -13,7 +13,6 @@ import { DashBoardContract } from "@/components/dashboard/DashBoardContract";
 import Link from "next/link";
 import { Globe } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-
 const Dashboard = () => {
   const { lang, setLang } = useLanguage();
   return (

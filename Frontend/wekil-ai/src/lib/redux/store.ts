@@ -19,7 +19,7 @@ export const store  = configureStore({
     middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(AgreementGetApi.middleware)
     }
-})
+)
 
 
 export type RootState = ReturnType<typeof store.getState>;

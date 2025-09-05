@@ -47,3 +47,7 @@ func main() {
 	userController := controllers.NewUserController(userUsecase,oAuthusecase)
   routers.Router(userController, aiController)
 }
+
+
+
+

@@ -88,26 +88,41 @@ func (a *AgreementController) GetAgreementByFilter(ctx *gin.Context) {
 func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 	var req CreateAgreementRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Invalid request body",
+				"details": err.Error(),
+			},
+		})
 		// log.Printf("Error binding request body: %v", err)
 		return
 	}
 
 	userIDValue, exists := ctx.Get("user_id")
 	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"success": false,
+			"data": gin.H{"message": "User not authenticated"},
+		})
 		return
 	}
 
 	creatorID, ok := userIDValue.(primitive.ObjectID) // Assuming you use MongoDB ObjectID
 	if !ok || creatorID.IsZero() {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"success": false,
+			"data": gin.H{"message": "Invalid user ID"},
+		})
 		return
 	}
 
 	// Validate other required fields
 	if req.Intake == nil || req.Status == "" || req.PDFURL == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Missing required fields"})
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{"message": "Missing required fields"},
+		})
 		return
 	}
 
@@ -120,17 +135,26 @@ func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 		req.CreatorSigned,
 	)
 	if err != nil {
-		// Map use case errors to appropriate HTTP status codes
+		msg := "Internal server error"
+		status := http.StatusInternalServerError
 		if err.Error() == "invalid agreement status" || err.Error() == "empty acceptor email found" {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		} else {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-			// log.Printf("Error creating agreement: %v", err)
+			msg = err.Error()
+			status = http.StatusBadRequest
 		}
+		ctx.JSON(status, gin.H{
+			"success": false,
+			"data": gin.H{"message": msg},
+		})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, newAgreement)
+	ctx.JSON(http.StatusCreated, gin.H{
+		"success": true,
+		"data": gin.H{
+			"message":       "Agreement created successfully",
+			"new_agreement": newAgreement,
+		},
+	})
 }
 
 // DeleteAgreement implements domain.IAgreementController.

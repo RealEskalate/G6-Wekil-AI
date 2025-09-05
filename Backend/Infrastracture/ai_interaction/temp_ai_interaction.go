@@ -26,6 +26,25 @@ type AIInteraction struct {
 	DocumentClient   *genai.GenerativeModel
 }
 
+func extractJSON(raw string) (string, error) {
+	raw = strings.TrimSpace(raw)
+
+	// Strip Markdown fences if present
+	raw = strings.TrimPrefix(raw, "```json")
+	raw = strings.TrimPrefix(raw, "```")
+	raw = strings.TrimSuffix(raw, "```")
+	raw = strings.TrimSpace(raw)
+
+	// Ensure we only take the valid JSON object
+	start := strings.Index(raw, "{")
+	end := strings.LastIndex(raw, "}")
+	if start == -1 || end == -1 || start >= end {
+		return "", fmt.Errorf("no valid JSON object found in response: %s", raw)
+	}
+
+	return raw[start : end+1], nil
+}
+
 // NewAIInteraction creates and initializes clients for the Gemini API.
 func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 	ctx := context.Background()
@@ -203,11 +222,15 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 		DocumentClient:   documentModel,
 	}, nil
 }
-
 // GenerateIntake sends a request with a prompt and expects a structured
 // JSON response. It then unmarshals the response into the desired Go struct.
 func (ai *AIInteraction) GenerateIntake(ctx context.Context, prompt string, language string) (*domain.Intake, error) {
-	fullPrompt := fmt.Sprintf("Extract the agreement details from the following text in %s language. Include an explicit field `agreement_type` with value 'sale', 'service', 'loan', or 'nda' based on the text." + "Today is %s. Text: %s", language, time.Now().Format("2006-01-02"), prompt)
+	fullPrompt := fmt.Sprintf(
+		"Extract the agreement details from the following text in %s language. "+
+			"Include an explicit field `agreement_type` with value 'sale', 'service', 'loan', or 'nda' based on the text. "+
+			"Today is %s. Text: %s",
+		language, time.Now().Format("2006-01-02"), prompt)
+
 	parts := []genai.Part{genai.Text(fullPrompt)}
 
 	// Send the request and get the response. The SDK handles all HTTP details.
@@ -221,15 +244,22 @@ func (ai *AIInteraction) GenerateIntake(ctx context.Context, prompt string, lang
 		return nil, fmt.Errorf("received an empty response from the API")
 	}
 
-	// The SDK returns the raw JSON string as Text. Unmarshal it directly.
+	// Extract the raw JSON text from the response.
 	jsonString, ok := resp.Candidates[0].Content.Parts[0].(genai.Text)
 	if !ok {
 		return nil, fmt.Errorf("response part is not of type genai.Text")
 	}
 
+	// Clean it (strip ```json fences etc.)
+	cleanJSON, err := extractJSON(string(jsonString))
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract JSON: %w", err)
+	}
+
+	// Unmarshal into Intake struct.
 	var intakeResponse domain.Intake
-	if err := json.Unmarshal([]byte(jsonString), &intakeResponse); err != nil {
-		return nil, fmt.Errorf("error unmarshaling response JSON: %w\nRaw JSON: %s", err, jsonString)
+	if err := json.Unmarshal([]byte(cleanJSON), &intakeResponse); err != nil {
+		return nil, fmt.Errorf("error unmarshaling intake response JSON: %w\nRaw JSON: %s", err, cleanJSON)
 	}
 
 	return &intakeResponse, nil
@@ -272,70 +302,90 @@ func (ai *AIInteraction) ClassifyDeal(ctx context.Context, text string) (*domain
 
 // GenerateDocumentDraft takes a structured Intake object, transforms it into a JSON prompt,
 // and uses an AI client to generate a human-readable document draft.
-func (ai *AIInteraction) GenerateDocumentDraft(ctx context.Context, intake *domain.Intake, language string) (*domain.Draft, error) {
-	// Marshal the intake object into a JSON string to be included in the prompt.
-	intakeJSON, err := json.MarshalIndent(intake, "", "  ")
-	fmt.Println("=> json: ", string(intakeJSON)) //! remove in production
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal intake data to JSON: %w", err)
-	}
-
-	// Define the prompt for the AI.
+func (ai *AIInteraction) GenerateDocumentDraft(ctx context.Context, draftText string, language string) (*domain.Draft, error) {
+	// Define the prompt for the AI using the raw string
 	prompt := fmt.Sprintf(`
-		Fill this one-page template in simple %s language. Avoid legal jargon. Keep each section short (2–4 lines).
-		Include the agreement type in the draft: %s.
+	Fill this one-page template in simple %s language. Avoid legal jargon. Keep each section short (2–4 lines).
 
-		For all parties, do NOT use their actual names. Always use placeholders:
-		  - "<<Party A>>"
-		  - "<<Party B>>"
-		For signatures, always return placeholders:
-		  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
+	For all parties, do NOT use their actual names. Always use placeholders:
+	  - "<<Party A>>"
+	  - "<<Party B>>"
+	For signatures, always return placeholders:
+	  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
 
-		Always include this footer:
-		  "This document is for information only and is not legal advice. Consult a qualified lawyer."
+	Always include this footer:
+	  "This document is for information only and is not legal advice. Consult a qualified lawyer."
 
-		Input JSON (sensitive fields ignored): <<%s>>
+	Input draft text: <<%s>>
 
-		Output format:
-		{
-		  "title": "...",
-		  "sections": [{ "heading": "...", "text": "..." }],
-		  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
-		}
-		Today is: %s`,
-		language, intake.AgreementType, string(intakeJSON), time.Now().Format("2006-01-02"))
+	Output format:
+	{
+	  "title": "...",
+	  "sections": [{ "heading": "...", "text": "..." }],
+	  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
+	}
+	Today is: %s`,
+		language, draftText, time.Now().Format("2006-01-02"))
 
 	parts := []genai.Part{genai.Text(prompt)}
 
-	// Send the request to the dedicated document client.
+	// Send the request to the dedicated document client
 	resp, err := ai.DocumentClient.GenerateContent(ctx, parts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate document draft content: %w", err)
 	}
 
-	// Check for a valid response.
+	// Validate response
 	if resp == nil || len(resp.Candidates) == 0 || resp.Candidates[0].Content == nil || len(resp.Candidates[0].Content.Parts) == 0 {
 		return nil, fmt.Errorf("received an empty document draft response from the API")
 	}
 
-	// The SDK returns the raw JSON string as Text. Unmarshal it directly.
+	// Extract text from response
 	jsonString, ok := resp.Candidates[0].Content.Parts[0].(genai.Text)
 	if !ok {
 		return nil, fmt.Errorf("document draft response part is not of type genai.Text")
 	}
 
+	cleanJSON, err := extractJSON(string(jsonString))
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract JSON: %w", err)
+	}
+
 	var draft domain.Draft
-	if err := json.Unmarshal([]byte(strings.TrimSpace(string(jsonString))), &draft); err != nil {
-		return nil, fmt.Errorf("error unmarshaling document draft response JSON: %w\nRaw JSON: %s", err, jsonString)
+	if err := json.Unmarshal([]byte(cleanJSON), &draft); err != nil {
+		return nil, fmt.Errorf("error unmarshaling document draft response JSON: %w\nRaw JSON: %s", err, cleanJSON)
 	}
 
 	return &draft, nil
 }
 
-// GenerateDraftFromPrompt takes an initial Draft object + a custom prompt,
-// and uses the AI client to generate a filled Draft in the same format.
 func (ai *AIInteraction) GenerateDraftFromPrompt(ctx context.Context, draft *domain.Draft, promptText, language string) (*domain.Draft, error) {
-	// Marshal the provided draft (may be partial/empty) into JSON for context
+	// Ensure the draft has a non-empty title
+	if draft.Title == "" {
+		draft.Title = "Draft Agreement"
+	}
+
+	// Ensure at least one section exists
+	if len(draft.Sections) == 0 {
+		draft.Sections = []domain.Section{
+			{
+				Heading: "Summary",
+				Text:    draft.Title, // fallback; ideally raw content if available
+			},
+		}
+	}
+
+	// Ensure signatures are initialized
+	if draft.Signatures.PartyA == "" || draft.Signatures.PartyB == "" {
+		draft.Signatures = domain.Signatures{
+			PartyA: "<<Signature>>",
+			PartyB: "<<Signature>>",
+			Place:  "<<Place>>",
+			Date:   "<<Date>>",
+		}
+	}
+
+	// Marshal the draft to JSON
 	draftJSON, err := json.MarshalIndent(draft, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal draft to JSON: %w", err)
@@ -343,32 +393,30 @@ func (ai *AIInteraction) GenerateDraftFromPrompt(ctx context.Context, draft *dom
 
 	// Build the AI prompt
 	prompt := fmt.Sprintf(`
-		Fill this one-page template in simple %s language. Avoid legal jargon. Keep each section short (2–4 lines).
-		You must follow these rules:
+Fill this one-page template in simple %s language. Avoid legal jargon. Keep each section short (2–4 lines).
 
-		1. For all parties, do NOT use their actual names. Always use placeholders:
-		   - "<<Party A>>"
-		   - "<<Party B>>"
+IMPORTANT:
+- Title should be short and descriptive (e.g., "NDA", "Service Agreement").
+- Do NOT put all content in the title; use sections for the details.
+- For all parties, use placeholders: "<<Party A>>", "<<Party B>>"
+- For signatures, always return placeholders:
+  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
+- Include this footer in the last section:
+  "This document is for information only and is not legal advice. Consult a qualified lawyer."
 
-		2. For signatures, always return placeholders:
-		   "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
+Input Draft JSON (may be partial): <<%s>>
 
-		3. Always include this footer in the last section:
-		   "This document is for information only and is not legal advice. Consult a qualified lawyer."
+User Prompt: %s
 
-		Input Draft JSON (may be partial): <<%s>>
+Output format:
+{
+  "title": "...",
+  "sections": [{ "heading": "...", "text": "..." }],
+  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
+}
 
-		User Prompt: %s
-
-		Output format:
-		{
-		  "title": "...",
-		  "sections": [{ "heading": "...", "text": "..." }],
-		  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
-		}
-
-		Today is: %s`,
-		language, string(draftJSON), promptText, time.Now().Format("2006-01-02"))
+Today is: %s
+`, language, string(draftJSON), promptText, time.Now().Format("2006-01-02"))
 
 	parts := []genai.Part{genai.Text(prompt)}
 
@@ -383,16 +431,22 @@ func (ai *AIInteraction) GenerateDraftFromPrompt(ctx context.Context, draft *dom
 		return nil, fmt.Errorf("received an empty draft response from the API")
 	}
 
-	// Extract text
+	// Extract the raw text
 	jsonString, ok := resp.Candidates[0].Content.Parts[0].(genai.Text)
 	if !ok {
 		return nil, fmt.Errorf("draft response part is not of type genai.Text")
 	}
 
-	// Parse JSON into Draft struct
+	// Extract valid JSON from AI response
+	cleanJSON, err := extractJSON(string(jsonString))
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract JSON: %w", err)
+	}
+
+	// Unmarshal into a Draft struct
 	var result domain.Draft
-	if err := json.Unmarshal([]byte(strings.TrimSpace(string(jsonString))), &result); err != nil {
-		return nil, fmt.Errorf("error unmarshaling draft JSON: %w\nRaw JSON: %s", err, jsonString)
+	if err := json.Unmarshal([]byte(cleanJSON), &result); err != nil {
+		return nil, fmt.Errorf("error unmarshaling draft JSON: %w\nRaw JSON: %s", err, cleanJSON)
 	}
 
 	return &result, nil

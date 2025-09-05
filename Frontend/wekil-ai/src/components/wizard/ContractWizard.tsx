@@ -23,10 +23,12 @@ import CommonDetails from "@/components/wizard/steps/CommonDetails";
 import SpecificDetails from "@/components/wizard/steps/SpecificDetails";
 import { AIDraftPreview } from "@/components/wizard/steps/AIDraftPreview";
 import { FinalPreview } from "@/components/wizard/steps/FinalPreview";
+import { ContractDraft, IntialDraftdata } from "../ContractPreview/ContractPreview";
 import { useLanguage } from "@/context/LanguageContext";
 import WeKilAILoader from "../ui/WekilAILoader";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+
 
 export interface Step {
   id: string;
@@ -100,6 +102,7 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const router = useRouter();
   const [agreementLanguage, setAgreementLanguage] = useState<Language>("en");
+  const [intialDraftdata,setIntialDraftdata] = useState<ContractDraft>(IntialDraftdata);
   const [description, setDescription] = useState<string>("");
   const [commonDetails, setCommonDetails] = useState<
     ContractData["commonDetails"]
@@ -200,9 +203,21 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
       setIsCheckingComplexity(true);
       setTimeout(() => {
         setIsCheckingComplexity(false);
+        //place to call Classify API
         setCurrentStep(currentStep + 1);
       }, 1000);
-    } else if (currentStep < steps.length - 1) {
+    } 
+    else if(currentStep == 4){
+      // place to call Draft API
+      
+      setCurrentStep(currentStep + 1);
+    }
+    else if(currentStep == 5){
+
+      // place to call FinalReview API
+      setCurrentStep(currentStep + 1);
+    }
+    else if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       toast.success(t[currentLanguage].finish);
@@ -393,18 +408,21 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
             contractType={contractData.contractType}
             specificDetails={specificDetails}
             setSpecificDetails={setSpecificDetails}
+            contract = {contractData}
           />
         )}
         {currentStep === 5 && (
           <AIDraftPreview
             currentLanguage={currentLanguage}
             contractData={contractData}
+            draftedData = {intialDraftdata}
+            setDraftedData = {setIntialDraftdata}
           />
         )}
         {currentStep === 6 && (
           <FinalPreview
             currentLanguage={currentLanguage}
-            contractData={contractData}
+            draftedData = {intialDraftdata}
           />
         )}
       </div>

@@ -1,29 +1,26 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Globe, Download, Send, FileText, AlertTriangle } from "lucide-react";
-import { ContractData, Language } from "@/components/wizard/ContractWizard";
+import { Language } from "@/components/wizard/ContractWizard";
 import { toast } from "sonner";
+import ContractPreview, {
+  ContractDraft,
+} from "@/components/ContractPreview/ContractPreview";
 
 interface FinalPreviewProps {
   currentLanguage: Language;
-  contractData: Partial<ContractData>;
+  draftedData: ContractDraft;
 }
 
 export function FinalPreview({
   currentLanguage,
-  contractData,
+  draftedData,
 }: FinalPreviewProps) {
   const [isTranslating, setIsTranslating] = useState(false);
   const [previewLanguage, setPreviewLanguage] = useState(currentLanguage);
+  const [isExporting, setIsExporting] = useState(false);
 
   const texts = {
     en: {
@@ -78,60 +75,6 @@ export function FinalPreview({
     );
   };
 
-  const getContractTitle = () => {
-    if (previewLanguage === "en") {
-      switch (contractData.contractType) {
-        case "service":
-          return "Service Agreement";
-        case "goods":
-          return "Sale of Goods Agreement";
-        case "loan":
-          return "Loan Agreement";
-        case "nda":
-          return "Non-Disclosure Agreement";
-        default:
-          return "Contract Agreement";
-      }
-    } else {
-      switch (contractData.contractType) {
-        case "service":
-          return "የአገልግሎት ስምምነት";
-        case "goods":
-          return "የዕቃ ሽያጭ ስምምነት";
-        case "loan":
-          return "የብድር ስምምነት";
-        case "nda":
-          return "የሚስጥር ጥበቃ ስምምነት";
-        default:
-          return "የውል ስምምነት";
-      }
-    }
-  };
-
-  const getPartiesSection = () => {
-    const parties = contractData.parties || [];
-    if (previewLanguage === "en") {
-      return `This agreement is between ${
-        parties[0]?.fullName || "Party A"
-      } and ${parties[1]?.fullName || "Party B"}.`;
-    } else {
-      return `ይህ ስምምነት በ${parties[0]?.fullName || "የመጀመሪያ ወገን"} እና በ${
-        parties[1]?.fullName || "ሁለተኛ ወገን"
-      } መካከል ነው።`;
-    }
-  };
-
-  const getTermsSection = () => {
-    const common = contractData.commonDetails;
-    if (!common) return "";
-
-    if (previewLanguage === "en") {
-      return `The total amount is ${common.totalAmount} ${common.currency}, effective from ${common.startDate} to ${common.endDate}.`;
-    } else {
-      return `ጠቅላላ መጠኑ ${common.totalAmount} ${common.currency} ሲሆን ከ${common.startDate} እስከ ${common.endDate} ድረስ የሚሰራ ነው።`;
-    }
-  };
-
   const handleSaveDraft = () => {
     toast.success(
       previewLanguage === "en"
@@ -139,13 +82,40 @@ export function FinalPreview({
         : "ረቂቁ በተሳካ ሁኔታ ተቀምጧል!"
     );
   };
+  
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const response = await fetch("/api/pdfDraft",{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(draftedData)
+      })
+      const data = await response.json();
 
-  const handleExport = () => {
-    toast.success(
-      previewLanguage === "en"
-        ? "Contract exported successfully!"
-        : "ውሉ በተሳካ ሁኔታ ወደ ውጭ ተልኳል!"
-    );
+      if (data.file) {
+        const response = await fetch(data.file);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "contract.pdf";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        toast.success(
+          previewLanguage === "en"
+            ? "Contract exported successfully!"
+            : "ውሉ በተሳካ ሁኔታ ወደ ውጭ ተልኳል!"
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    setIsExporting(false)
   };
 
   const handleShare = () => {
@@ -155,7 +125,6 @@ export function FinalPreview({
         : "ውሉ በተሳካ ሁኔታ ተጋርቷል!"
     );
   };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -193,72 +162,9 @@ export function FinalPreview({
           </div>
         </div>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>{getContractTitle()}</CardTitle>
-            <CardDescription>
-              {t.language}: {previewLanguage === "en" ? "English" : "አማርኛ"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <h3 className="font-semibold">{t.parties}</h3>
-              <p className="text-sm leading-relaxed">{getPartiesSection()}</p>
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="font-semibold">{t.terms}</h3>
-              <p className="text-sm leading-relaxed">{getTermsSection()}</p>
-            </div>
-
-            {contractData.description && (
-              <div className="space-y-2">
-                <h3 className="font-semibold">{t.descriptions}</h3>
-                <p className="text-sm leading-relaxed">
-                  {contractData.description}
-                </p>
-              </div>
-            )}
-
-            <div className="pt-6 border-t">
-              <h3 className="font-semibold mb-4">{t.signatures}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>
-                    {previewLanguage === "en"
-                      ? "Party A Signature"
-                      : "የመጀመሪያ ወገን ፊርማ"}
-                  </Label>
-                  <div className="h-16 border-2 border-dashed border-border rounded-lg flex items-center justify-center text-muted-foreground">
-                    {previewLanguage === "en" ? "Signature Line" : "የፊርማ መስመር"}
-                  </div>
-                </div>
-                <div>
-                  <Label>
-                    {previewLanguage === "en"
-                      ? "Party B Signature"
-                      : "የሁለተኛ ወገን ፊርማ"}
-                  </Label>
-                  <div className="h-16 border-2 border-dashed border-border rounded-lg flex items-center justify-center text-muted-foreground">
-                    {previewLanguage === "en" ? "Signature Line" : "የፊርማ መስመር"}
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div>
-                  <Label>
-                    {t.place}: {contractData.commonDetails?.location || ""}
-                  </Label>
-                </div>
-                <div>
-                  <Label>
-                    {t.date}: {new Date().toISOString().split("T")[0]}
-                  </Label>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="">
+          <ContractPreview data={draftedData} />
+        </div>
       )}
 
       <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
@@ -272,13 +178,27 @@ export function FinalPreview({
       </div>
 
       <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={handleSaveDraft} className="gap-2">
+        <Button
+          variant="outline"
+          onClick={handleSaveDraft}
+          
+          className="gap-2 "
+        >
           <FileText className="w-4 h-4" />
           {t.saveDraft}
         </Button>
-        <Button variant="outline" onClick={handleExport} className="gap-2">
-          <Download className="w-4 h-4" />
-          {t.export}
+        <Button variant="outline" onClick={handleExport} disabled={isExporting} className="gap-2 disabled">
+          
+          {!isExporting ? (
+            <>
+              <Download className="w-4 h-4" />
+              {t.export}
+            </>
+          ) : (
+            <span className="w-32 flex items-center">
+              <Loader2 /> Exporting...
+            </span>
+          )}
         </Button>
         <Button onClick={handleShare} className="gap-2">
           <Send className="w-4 h-4" />
@@ -287,10 +207,6 @@ export function FinalPreview({
       </div>
     </div>
   );
-}
-
-function Label({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm font-medium mb-2">{children}</p>;
 }
 
 function Loader2({ className }: { className?: string }) {
@@ -305,7 +221,7 @@ function Loader2({ className }: { className?: string }) {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={`animate-spin ${className}`}
+      className={`animate-spin ${className} mx-2`}
     >
       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
     </svg>

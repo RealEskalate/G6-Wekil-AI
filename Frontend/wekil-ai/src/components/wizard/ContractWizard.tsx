@@ -24,11 +24,10 @@ import SpecificDetails from "@/components/wizard/steps/SpecificDetails";
 import { AIDraftPreview } from "@/components/wizard/steps/AIDraftPreview";
 import { FinalPreview } from "@/components/wizard/steps/FinalPreview";
 import { ContractDraft, IntialDraftdata } from "../ContractPreview/ContractPreview";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/components/LanguageContext";
 import WeKilAILoader from "../ui/WekilAILoader";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-
 
 export interface Step {
   id: string;
@@ -85,38 +84,28 @@ interface Translations {
 
 export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [currentLanguage, setCurrentLanguage] = useState<Language>("en");
   const { lang, setLang } = useLanguage();
-  const [contractData, setContractData] = useState<Partial<ContractData>>({});
+  const [contractData, setContractData] = useState<Partial<ContractData>>({
+    agreementLanguage: "en",
+    parties: [
+      { fullName: "", phone: "", email: "" },
+      { fullName: "", phone: "", email: "" },
+    ],
+    commonDetails: {
+      location: "",
+      totalAmount: 0,
+      currency: "ETB",
+      startDate: "",
+      endDate: "",
+      dueDates: [],
+    },
+    specificDetails: {},
+  });
   const [isCheckingComplexity, setIsCheckingComplexity] = useState(false);
   const { status } = useSession();
-
-  // Step-specific state
-  const [contractType, setContractType] = useState<string>("");
-  const [parties, setParties] = useState<
-    { fullName: string; phone: string; email: string }[]
-  >([
-    { fullName: "", phone: "", email: "" },
-    { fullName: "", phone: "", email: "" },
-  ]);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const router = useRouter();
-  const [agreementLanguage, setAgreementLanguage] = useState<Language>("en");
-  const [intialDraftdata,setIntialDraftdata] = useState<ContractDraft>(IntialDraftdata);
-  const [description, setDescription] = useState<string>("");
-  const [commonDetails, setCommonDetails] = useState<
-    ContractData["commonDetails"]
-  >({
-    location: "",
-    totalAmount: 0,
-    currency: "ETB",
-    startDate: "",
-    endDate: "",
-    dueDates: [],
-  });
-  const [specificDetails, setSpecificDetails] = useState<
-    NonNullable<ContractData["specificDetails"]>
-  >({});
+  const [intialDraftdata, setIntialDraftdata] = useState<ContractDraft>(IntialDraftdata);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -137,38 +126,37 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   const steps: Step[] = [
     {
       id: "type",
-      label: currentLanguage === "en" ? "Contract Type" : "የውል አይነት",
+      label: lang === "en" ? "Contract Type" : "የውል አይነት",
       icon: FileText,
     },
     {
       id: "language",
-      label:
-        currentLanguage === "en" ? "Language & Description" : "ቋንቋ እና መግለጫ",
+      label: lang === "en" ? "Language & Description" : "ቋንቋ እና መግለጫ",
       icon: Globe,
     },
     {
       id: "parties",
-      label: currentLanguage === "en" ? "Parties" : "ተዋዋዮች",
+      label: lang === "en" ? "Parties" : "ተዋዋዮች",
       icon: Users,
     },
     {
       id: "common",
-      label: currentLanguage === "en" ? "Common Details" : "የጋራ ዝርዝሮች",
+      label: lang === "en" ? "Common Details" : "የጋራ ዝርዝሮች",
       icon: DollarSign,
     },
     {
       id: "specific",
-      label: currentLanguage === "en" ? "Specific Details" : "የተወሰኑ ዝርዝሮች",
+      label: lang === "en" ? "Specific Details" : "የተወሰኑ ዝርዝሮች",
       icon: Settings,
     },
     {
       id: "aiDraft",
-      label: currentLanguage === "en" ? "AI Draft Preview" : "AI ረቂቅ",
+      label: lang === "en" ? "AI Draft Preview" : "AI ረቂቅ",
       icon: Bot,
     },
     {
       id: "final",
-      label: currentLanguage === "en" ? "Final Preview" : "ፍጻሜ ቅድመ እይታ",
+      label: lang === "en" ? "Final Preview" : "ፍጻሜ ቅድመ እይታ",
       icon: Eye,
     },
   ];
@@ -196,31 +184,37 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
     },
   };
 
+  // Helper setters for each step, always update contractData
+  const setContractType = (type: string) =>
+    setContractData((prev) => ({ ...prev, contractType: type }));
+  const setAgreementLanguage = (language: Language) =>
+    setContractData((prev) => ({ ...prev, agreementLanguage: language }));
+  const setDescription = (desc: string) =>
+    setContractData((prev) => ({ ...prev, description: desc }));
+  const setParties = (ps: { fullName: string; phone: string; email: string }[]) =>
+    setContractData((prev) => ({ ...prev, parties: ps }));
+  const setCommonDetails = (details: ContractData["commonDetails"]) =>
+    setContractData((prev) => ({ ...prev, commonDetails: details }));
+  const setSpecificDetails = (details: NonNullable<ContractData["specificDetails"]>) =>
+    setContractData((prev) => ({ ...prev, specificDetails: details }));
+
   const handleNext = (data: Partial<ContractData>) => {
-    setContractData({ ...contractData, ...data });
+    setContractData((prev) => ({ ...prev, ...data }));
 
     if (currentStep === 1) {
       setIsCheckingComplexity(true);
       setTimeout(() => {
         setIsCheckingComplexity(false);
-        //place to call Classify API
         setCurrentStep(currentStep + 1);
       }, 1000);
-    } 
-    else if(currentStep == 4){
-      // place to call Draft API
-      
+    } else if (currentStep === 4) {
       setCurrentStep(currentStep + 1);
-    }
-    else if(currentStep == 5){
-
-      // place to call FinalReview API
+    } else if (currentStep === 5) {
       setCurrentStep(currentStep + 1);
-    }
-    else if (currentStep < steps.length - 1) {
+    } else if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      toast.success(t[currentLanguage].finish);
+      toast.success(t[lang].finish);
       if (onBackToDashboard) onBackToDashboard();
     }
   };
@@ -232,73 +226,76 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
 
   const handleLanguageToggle = () => {
     setLang(lang === "en" ? "am" : "en");
-    setCurrentLanguage(currentLanguage === "en" ? "am" : "en");
   };
 
   const validateAndGetStepData = (): Partial<ContractData> | null => {
     switch (currentStep) {
       case 0: // ChooseContractType
-        if (!contractType) {
-          toast.error(t[currentLanguage].error);
+        if (!contractData.contractType) {
+          toast.error(t[lang].error);
           return null;
         }
-        return { contractType };
+        return { contractType: contractData.contractType };
       case 1: // LanguageAndDescription
-        if (!description.trim()) {
-          toast.error(t[currentLanguage].error);
+        if (!contractData.description?.trim()) {
+          toast.error(t[lang].error);
           return null;
         }
-        return { agreementLanguage, description };
+        return {
+          agreementLanguage: contractData.agreementLanguage,
+          description: contractData.description,
+        };
       case 2: // PartiesInformation
         if (
-          parties.some(
+          !contractData.parties ||
+          contractData.parties.some(
             (party) => !party.fullName || !party.phone || !party.email
           )
         ) {
-          toast.error(t[currentLanguage].error);
+          toast.error(t[lang].error);
           return null;
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (parties.some((party) => !emailRegex.test(party.email))) {
-          toast.error(t[currentLanguage].invalidEmail);
+        if (contractData.parties.some((party) => !emailRegex.test(party.email))) {
+          toast.error(t[lang].invalidEmail);
           return null;
         }
-        return { parties };
+        return { parties: contractData.parties };
       case 3: // CommonDetails
         if (
-          !commonDetails?.location ||
-          !commonDetails?.totalAmount ||
-          !commonDetails?.startDate ||
-          !commonDetails?.endDate
+          !contractData.commonDetails?.location ||
+          !contractData.commonDetails?.totalAmount ||
+          !contractData.commonDetails?.startDate ||
+          !contractData.commonDetails?.endDate
         ) {
-          toast.error(t[currentLanguage].error);
+          toast.error(t[lang].error);
           return null;
         }
-        return { commonDetails };
+        return { commonDetails: contractData.commonDetails };
       case 4: // SpecificDetails
         if (
-          contractType === "service" &&
-          !specificDetails?.servicesDescription?.trim()
+          contractData.contractType === "service" &&
+          !contractData.specificDetails?.servicesDescription?.trim()
         ) {
-          toast.error(t[currentLanguage].error);
+          toast.error(t[lang].error);
           return null;
         }
         if (
-          contractType === "goods" &&
-          (!specificDetails?.items || specificDetails.items.length === 0)
+          contractData.contractType === "goods" &&
+          (!contractData.specificDetails?.items || contractData.specificDetails.items.length === 0)
         ) {
-          toast.error(t[currentLanguage].error);
+          toast.error(t[lang].error);
           return null;
         }
-        if (contractType === "loan" && !specificDetails?.principalAmount) {
-          toast.error(t[currentLanguage].error);
+        if (contractData.contractType === "loan" && !contractData.specificDetails?.principalAmount) {
+          toast.error(t[lang].error);
           return null;
         }
-        if (contractType === "nda" && !specificDetails?.purpose?.trim()) {
-          toast.error(t[currentLanguage].error);
+        if (contractData.contractType === "nda" && !contractData.specificDetails?.purpose?.trim()) {
+          toast.error(t[lang].error);
           return null;
         }
-        return { specificDetails };
+        return { specificDetails: contractData.specificDetails };
       default:
         return {};
     }
@@ -315,22 +312,22 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
     return (
       <div
         className={`h-full flex flex-col bg-gray-100 ${
-          currentLanguage === "am" ? "font-ethiopic" : ""
+          lang === "am" ? "font-ethiopic" : ""
         }`}
       >
         <div className="px-6 py-4 flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={handleBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {t[currentLanguage].back}
+            {t[lang].back}
           </Button>
-          <h1 className="text-xl font-semibold">{t[currentLanguage].title}</h1>
+          <h1 className="text-xl font-semibold">{t[lang].title}</h1>
         </div>
         <div className="flex-1 flex items-center justify-center">
           <Card className="w-full max-w-md">
             <CardContent className="p-6 flex flex-col items-center">
               <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
               <p className="mt-4 text-lg text-gray-700">
-                {currentLanguage === "en"
+                {lang === "en"
                   ? "Checking complexity..."
                   : "ውስብስብነት በመፈተሽ ላይ..."}
               </p>
@@ -344,14 +341,12 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   return (
     <div
       className={`h-full p-5 flex flex-col bg-gray-50 ${
-        currentLanguage === "am" ? "font-ethiopic" : ""
+        lang === "am" ? "font-ethiopic" : ""
       }`}
     >
       {/* Header */}
       <div className="flex py-10 items-center justify-between">
-        <h1 className=" text-xl px-10 font-semibold">
-          {t[currentLanguage].title}
-        </h1>
+        <h1 className="text-xl px-10 font-semibold">{t[lang].title}</h1>
         <Button
           variant="ghost"
           className="cursor-pointer"
@@ -359,7 +354,7 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
           onClick={handleLanguageToggle}
         >
           <Globe className="h-4 w-4 mr-2" />
-          {currentLanguage === "en" ? "አማርኛ" : "English"}
+          {lang === "en" ? "አማርኛ" : "English"}
         </Button>
       </div>
 
@@ -372,57 +367,67 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
       <div className="flex-1 overflow-auto">
         {currentStep === 0 && (
           <ChooseContractType
-            currentLanguage={currentLanguage}
-            contractType={contractType}
+            currentLanguage={lang}
+            contractType={contractData.contractType || ""}
             setContractType={setContractType}
           />
         )}
         {currentStep === 1 && (
           <LanguageAndDescription
-            currentLanguage={currentLanguage}
-            agreementLanguage={agreementLanguage}
+            currentLanguage={lang}
+            agreementLanguage={contractData.agreementLanguage || "en"}
             setAgreementLanguage={setAgreementLanguage}
-            description={description}
+            description={contractData.description || ""}
             setDescription={setDescription}
           />
         )}
         {currentStep === 2 && (
           <PartiesInformation
-            currentLanguage={currentLanguage}
+            currentLanguage={lang}
             contractType={contractData.contractType}
-            parties={parties}
+            parties={contractData.parties || [
+              { fullName: "", phone: "", email: "" },
+              { fullName: "", phone: "", email: "" },
+            ]}
             setParties={setParties}
           />
         )}
         {currentStep === 3 && (
           <CommonDetails
-            currentLanguage={currentLanguage}
+            currentLanguage={lang}
             contractType={contractData.contractType}
-            commonDetails={commonDetails}
+            commonDetails={
+              contractData.commonDetails || {
+                location: "",
+                totalAmount: 0,
+                currency: "ETB",
+                startDate: "",
+                endDate: "",
+                dueDates: [],
+              }
+            }
             setCommonDetails={setCommonDetails}
           />
         )}
         {currentStep === 4 && (
           <SpecificDetails
-            currentLanguage={currentLanguage}
+            currentLanguage={lang}
             contractType={contractData.contractType}
-            specificDetails={specificDetails}
+            specificDetails={contractData.specificDetails || {}}
             setSpecificDetails={setSpecificDetails}
-            contract = {contractData}
+            contract={contractData}
           />
         )}
         {currentStep === 5 && (
           <AIDraftPreview
-            currentLanguage={currentLanguage}
             contractData={contractData}
-            draftedData = {intialDraftdata}
-            setDraftedData = {setIntialDraftdata}
+            draftedData={intialDraftdata}
+            setDraftedData={setIntialDraftdata}
           />
         )}
         {currentStep === 6 && (
           <FinalPreview
-            currentLanguage={currentLanguage}
-            draftedData = {intialDraftdata}
+            draftedData={intialDraftdata}
           />
         )}
       </div>
@@ -436,24 +441,25 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
           onClick={handleBack}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          {t[currentLanguage].back}
+          {t[lang].back}
         </Button>
         {currentStep < steps.length - 1 ? (
           <Button
             onClick={handleFooterNext}
             className="bg-gray-600 hover:bg-gray-700 text-white cursor-pointer"
           >
-            {t[currentLanguage].next}
+            {t[lang].next}
           </Button>
         ) : (
           <Button
             onClick={() => handleNext({})}
             className="bg-slate-800 hover:bg-slate-700 text-white"
           >
-            {t[currentLanguage].finish}
+            {t[lang].finish}
           </Button>
         )}
       </div>
     </div>
   );
 }
+// ----------------- Snippets for comparison -----------------

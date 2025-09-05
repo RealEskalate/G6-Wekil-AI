@@ -18,4 +18,5 @@ type IAgreementUseCase interface {
 	GetAgreementsByUserID(userID primitive.ObjectID, pageNumber int) ([]*domain.Agreement, error)                                          // pagination
 	GetAgreementsByUserIDAndFilter(userID primitive.ObjectID, pageNumber int, filter *domain.AgreementFilter) ([]*domain.Agreement, error) // pagination
 	DuplicateAgreement(originalAgreementID primitive.ObjectID, newAcceptorEmail string, callerID primitive.ObjectID) (*domain.Intake, *domain.Draft, error)
+	CreateAgreementSave(intake *domain.Intake, save *domain.JustForSaveSake) (*domain.Agreement, error)
 }

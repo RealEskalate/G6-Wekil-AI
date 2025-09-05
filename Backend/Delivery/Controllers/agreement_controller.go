@@ -20,7 +20,7 @@ type AgreementController struct {
 
 // CreateAgreementRequest represents the expected JSON payload for creating an agreement.
 type CreateAgreementRequest struct {
-	Intake        *domain.Draft      `json:"draft"`
+	Draft         *domain.Draft      `json:"draft"`
 	Status        string             `json:"status"`
 	PDFURL        string             `json:"pdf_url"`
 	CreatorID     primitive.ObjectID `json:"creator_id"`
@@ -38,6 +38,7 @@ type DuplicateAgreementRequest struct {
 // GetAgreementByFilter implements domain.IAgreementController.
 // ?
 func (a *AgreementController) GetAgreementByFilter(ctx *gin.Context) {
+	log.Println("☑️", ctx.Query("page"))
 	pageNumber, err := strconv.Atoi(ctx.Query("page"))
 	if err != nil {
 		ctx.AbortWithStatusJSON(
@@ -68,6 +69,7 @@ func (a *AgreementController) GetAgreementByFilter(ctx *gin.Context) {
 		AgreementStatus:     ctx.Query("status"),
 		AgreementPageNumber: pageNumber,
 	}
+	log.Printf("❓ => %#v\n", agreementFilter)
 	resList, err := a.AgreementUseCase.GetAgreementsByUserIDAndFilter(userPrimitiveID, agreementFilter.AgreementPageNumber, &agreementFilter)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
@@ -119,7 +121,7 @@ func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 		return
 	}
 	req.CreatorID = creatorID_ // ASSIGN THE USER IT'S ID
-	newIntakeFromDraft, err := a.AIInteraction.GenerateIntake(context.Background(), req.Intake.String(), domain.EnglishLang)
+	newIntakeFromDraft, err := a.AIInteraction.GenerateIntake(context.Background(), req.Draft.String(), domain.EnglishLang)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -343,10 +345,11 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 
 // GetAgreementByUserID implements domain.IAgreementController.
 // ? this one is only for pagination purpose
+// ? with 
 func (a *AgreementController) GetAgreementByUserID(ctx *gin.Context) {
 	userStringID := ctx.GetString("user_id")
-	var agreementFilter domain.AgreementFilter
-	if err := ctx.ShouldBindJSON(&agreementFilter); err != nil {
+	pageNumber, err := strconv.Atoi(ctx.Query("page"))
+	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"data": gin.H{
@@ -366,7 +369,7 @@ func (a *AgreementController) GetAgreementByUserID(ctx *gin.Context) {
 		return
 	}
 
-	listAgr, err := a.AgreementUseCase.GetAgreementsByUserID(userPrimitiveID, agreementFilter.AgreementPageNumber)
+	listAgr, err := a.AgreementUseCase.GetAgreementsByUserID(userPrimitiveID, pageNumber)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"success": false,
@@ -416,19 +419,35 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 			"success": false,
 			"data": gin.H{
 				"message": fmt.Sprintf("your agreement is complex | %s", res.Category),
+				"error":   err.Error(),
 			},
 		})
 		return
 	}
 
 	// create the intake form the draft
-	intake, err := a.AIInteraction.GenerateIntake(context.Background(), aR.DraftText, domain.EnglishLang)
+	intake, err := a.AIInteraction.GenerateIntake(context.Background(), aR.DraftText, aR.Language)
 	log.Printf("✅ INTAKE RESULT \n%#v\n ERROR \n %#v\n", intake, err)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"data": gin.H{
 				"message": "Unable to create an Intake on your Draft",
+			},
+		})
+		return
+	}
+
+	//?
+	//? we need to generate a title for the agreement using the AI, but it have a risk of not generating the real title from the user draft
+	theTitle, err := a.AIInteraction.TitleGenerateHelper(context.Background(), aR.DraftText, aR.Language)
+	if err != nil {
+
+		ctx.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Unable to create Agreement Title",
+				"error":   err.Error(),
 			},
 		})
 		return
@@ -440,9 +459,16 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 	} else {
 		email_to_send = aR.AgrementInfo.PartyA.Email
 	}
+	// direct injection of the title in the object
+	aR.AgrementInfo.AgreementTitle = theTitle
 
-	// pass the intake to the CreateAgreement
-	agreement, err := a.AgreementUseCase.CreateAgreement(intake, aR.AgrementInfo.Status, aR.AgrementInfo.PDFURL, userID, email_to_send, aR.AgrementInfo.CreatorSigned)
+	// pass the intake to the CreateAgreementSave
+	passSave := &domain.JustForSaveSake{
+		CreatorID:        userID,
+		AgreementReqeust: &aR,
+		AcceptorEmail:    email_to_send,
+	}
+	agreement, err := a.AgreementUseCase.CreateAgreementSave(intake, passSave)
 	log.Printf("✅ AGREEMENT RESULT \n%#v\n ERROR \n %#v\n", agreement, err)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{

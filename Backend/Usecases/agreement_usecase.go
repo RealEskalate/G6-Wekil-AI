@@ -47,7 +47,54 @@ func (a *AgreementUseCase) SendAgreement(receiverEmail string, agreement *domain
 	return err
 }
 
+// CreateAgreementSave for saving end-point only implements domain.IAgreementUseCase.
+// ? just call it CreateAgreement 2.0 since the implementations are the same
+func (a *AgreementUseCase) CreateAgreementSave(intake *domain.Intake, save *domain.JustForSaveSake) (*domain.Agreement, error) {
+	aR := save.AgreementReqeust
+	if aR.AgrementInfo.Status != domain.DRAFT_STATUS && aR.AgrementInfo.Status != domain.PENDING_STATUS && aR.AgrementInfo.Status != domain.REJECTED_STATUS {
+		return nil, fmt.Errorf("invalid agreement status")
+	}
+	intake.ID = primitive.NilObjectID // make the _id == 000000 so that the database will assign a new ID to it. JUST IN CASE
+
+	// first store the intake in the database and get it's _id
+	storedIntake, err := a.IntakeRepo.StoreIntake(context.Background(), intake)
+	if err != nil {
+		return nil, err
+	}
+	// create the Agreement and store in the AgreementRepo Database
+
+	agreement := domain.Agreement{
+		AgreementType:  aR.AgrementInfo.AgreementType,
+		AgreementTitle: aR.AgrementInfo.AgreementTitle,
+		IntakeID:       storedIntake.ID,
+		Status:         aR.AgrementInfo.Status,
+		CreatorID:      save.CreatorID,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+		CreatorSigned:  aR.AgrementInfo.CreatorSigned,
+		AcceptorSigned: false,
+		PDFURL:         aR.AgrementInfo.PDFURL,
+	}
+	storedAgreement, err := a.AgreementRepo.SaveAgreement(context.Background(), &agreement)
+	if err != nil {
+		return nil, err
+	}
+	// if the agreementStatus in pending then we will send an email request to the second user
+	if storedAgreement.Status == domain.PENDING_STATUS {
+		acceptorEmail := save.AcceptorEmail
+		if acceptorEmail == "" {
+			return nil, fmt.Errorf("empty acceptor email found")
+		}
+		err := a.SendAgreement(acceptorEmail, storedAgreement)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return storedAgreement, nil
+}
+
 // CreateAgreement implements domain.IAgreementUseCase.
+// ! Abandoned function
 func (a *AgreementUseCase) CreateAgreement(intake *domain.Intake, agreementStatus string, pdfURL string, creatorID primitive.ObjectID, acceptorEmail string, creatorSigned bool) (*domain.Agreement, error) {
 	if agreementStatus != domain.DRAFT_STATUS && agreementStatus != domain.PENDING_STATUS && agreementStatus != domain.REJECTED_STATUS {
 		return nil, fmt.Errorf("invalid agreement status")

@@ -16,14 +16,15 @@ const (
 // Agreement represents a digital agreement record.
 type Agreement struct {
 	ID                  primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	IntakeID            primitive.ObjectID `json:"intake_id,omitempty" bson:"intake_id,omitempty"`
+	IntakeID            primitive.ObjectID `json:"intake_id" bson:"intake_id,omitempty"`
 	AgreementType       string             `json:"agreement_type" bson:"agreement_type"`
-	PDFURL              string             `json:"pdf_url,omitempty" bson:"pdf_url,omitempty"`
+	AgreementTitle      string             `json:"agreement_title" bson:"agreement_title,omitempty"`
+	PDFURL              string             `json:"pdf_url" bson:"pdf_url,omitempty"`
 	CreatorID           primitive.ObjectID `json:"creator_id" bson:"creator_id"`
 	AcceptorID          primitive.ObjectID `json:"acceptor_id" bson:"acceptor_id"`
-	CreatorSigned       bool               `json:"creator_signed,omitempty" bson:"creator_signed,omitempty"`
-	AcceptorSigned      bool               `json:"acceptor_signed,omitempty" bson:"acceptor_signed,omitempty"`
-	Status              string             `json:"status,omitempty" bson:"status,omitempty"`
+	CreatorSigned       bool               `json:"creator_signed" bson:"creator_signed,omitempty"`
+	AcceptorSigned      bool               `json:"acceptor_signed" bson:"acceptor_signed,omitempty"`
+	Status              string             `json:"status" bson:"status,omitempty"`
 	CreatedAt           time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt           time.Time          `json:"updated_at" bson:"updated_at"`
 	IsDeletedByCreator  bool               `bson:"is_deleted_by_creator" json:"is_deleted_by_creator"`
@@ -49,7 +50,7 @@ type AgreementFilter struct {
 }
 
 type PendingAgreement struct {
-	AgreementID   primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	AgreementID   primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	CreatorID     primitive.ObjectID `json:"creator_id" bson:"creator_id"`
 	AcceptorEmail string             `json:"email" bson:"email"`
 }
@@ -63,16 +64,23 @@ type PartyDTO struct {
 
 // AgreementRequestDTO holds the metadata for an agreement.
 type AgreementRequestDTO struct {
-	AgreementType string   `json:"agreement_type" bson:"agreement_type"`
-	PDFURL        string   `json:"pdf_url,omitempty" bson:"pdf_url,omitempty"`
-	CreatorSigned bool     `json:"creator_signed,omitempty" bson:"creator_signed,omitempty"`
-	Status        string   `json:"status,omitempty" bson:"status,omitempty"`
-	PartyA        PartyDTO `json:"party_a,omitempty" bson:"party_a,omitempty"`
-	PartyB        PartyDTO `json:"party_b,omitempty" bson:"party_b,omitempty"`
+	AgreementType  string   `json:"agreement_type" bson:"agreement_type"`
+	AgreementTitle string   `json:"agreement_title" bson:"agreement_title,omitempty"`
+	PDFURL         string   `json:"pdf_url" bson:"pdf_url,omitempty"`
+	CreatorSigned  bool     `json:"creator_signed" bson:"creator_signed,omitempty"`
+	Status         string   `json:"status" bson:"status,omitempty"`
+	PartyA         PartyDTO `json:"party_a" bson:"party_a,omitempty"`
+	PartyB         PartyDTO `json:"party_b" bson:"party_b,omitempty"`
 }
 
 // AgreementSaveRequest combines the agreement metadata and the draft text for saving.
 type AgreementRequest struct {
-	AgrementInfo AgreementRequestDTO `json:"agreement"`
-	DraftText    string              `json:"draft_text"`
+	AgrementInfo *AgreementRequestDTO `json:"agreement"`
+	DraftText    string               `json:"draft_text"`
+	Language     string               `json:"language"`
+}
+type JustForSaveSake struct {
+	CreatorID        primitive.ObjectID
+	AgreementReqeust *AgreementRequest
+	AcceptorEmail    string
 }

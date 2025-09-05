@@ -15,20 +15,24 @@ import (
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
 )
+
 const (
 	_GEMINI_FLASH_2_5 = "gemini-2.5-flash"
 	_GEMINI_FLASH_1_5 = "gemini-1.5-flash"
 )
+
 var _CURR_GEMINI_MODEL_USING = _GEMINI_FLASH_2_5
+
 // domain.ClassifierResult represents the structured JSON response from the classifier prompt.
 
 // domain.Draft represents the structured JSON response for the document template.
 
 // AIInteraction encapsulates the generative AI clients for different tasks.
 type AIInteraction struct {
-	IntakeClient     *genai.GenerativeModel
-	ClassifierClient *genai.GenerativeModel
-	DocumentClient   *genai.GenerativeModel
+	IntakeClient          *genai.GenerativeModel
+	ClassifierClient      *genai.GenerativeModel
+	DocumentClient        *genai.GenerativeModel
+	TitleGeneratingClient *genai.GenerativeModel
 }
 
 func extractJSON(raw string) (string, error) {
@@ -219,13 +223,26 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 			},
 		},
 	}
-
+	// 4. This configuration defines a JSON schema for a single string response.
+	singleStringModel := baseClient.GenerativeModel(_GEMINI_FLASH_1_5) //? I set gemini-1.5-flash here since we don't need that much intelegenece on the Title drafting
+	singleStringModel.GenerationConfig = genai.GenerationConfig{
+		ResponseMIMEType: "application/json",
+		ResponseSchema: &genai.Schema{
+			Type: genai.TypeObject,
+			Properties: map[string]*genai.Schema{
+				"title": {Type: genai.TypeString, Description: "take the first words to generate a title if you find it descriptive or "},
+			},
+			Required: []string{"title"},
+		},
+	}
 	return &AIInteraction{
-		IntakeClient:     intakeModel,
-		ClassifierClient: classifierModel,
-		DocumentClient:   documentModel,
+		IntakeClient:          intakeModel,
+		ClassifierClient:      classifierModel,
+		DocumentClient:        documentModel,
+		TitleGeneratingClient: singleStringModel,
 	}, nil
 }
+
 // GenerateIntake sends a request with a prompt and expects a structured
 // JSON response. It then unmarshals the response into the desired Go struct.
 func (ai *AIInteraction) GenerateIntake(ctx context.Context, prompt string, language string) (*domain.Intake, error) {
@@ -259,7 +276,7 @@ func (ai *AIInteraction) GenerateIntake(ctx context.Context, prompt string, lang
 	if err != nil {
 		return nil, fmt.Errorf("failed to extract JSON: %w", err)
 	}
-	log.Println("🤖 ", _CURR_GEMINI_MODEL_USING ,"\n" , cleanJSON)
+	log.Println("🤖 ", _CURR_GEMINI_MODEL_USING, "\n", cleanJSON)
 	// Unmarshal into Intake struct.
 	var intakeResponse domain.Intake
 	if err := json.Unmarshal([]byte(cleanJSON), &intakeResponse); err != nil {
@@ -454,4 +471,46 @@ Today is: %s
 	}
 
 	return &result, nil
+}
+// TitleGenerateHelper implements domain.IAIInteraction.
+func (ai *AIInteraction) TitleGenerateHelper(ctx context.Context, draftStringPrompt, language string) (string, error) {
+	// Define the specific prompt for this title generation task.
+	prompt := fmt.Sprintf(`Pick the first sentences in the following that will be used as a title for the following text in %s. Return a JSON object with a single key "title".
+	Text: <<%s>>`,
+		language,
+		draftStringPrompt,
+	)
+
+	parts := []genai.Part{genai.Text(prompt)}
+
+	// Send the request to the Gemini API.
+	resp, err := ai.TitleGeneratingClient.GenerateContent(ctx, parts...)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate title content: %w", err)
+	}
+
+	// Check for a valid response.
+	if resp == nil || len(resp.Candidates) == 0 || resp.Candidates[0].Content == nil || len(resp.Candidates[0].Content.Parts) == 0 {
+		return "", fmt.Errorf("received an empty title response from the API")
+	}
+
+	// The SDK returns the raw JSON string as Text. Unmarshal it directly.
+	jsonString, ok := resp.Candidates[0].Content.Parts[0].(genai.Text)
+	if !ok {
+		return "", fmt.Errorf("title response part is not of type genai.Text")
+	}
+
+	// Use the provided helper function to extract and clean the JSON string.
+	cleanedJSON, err := extractJSON(string(jsonString))
+	if err != nil {
+		return "", fmt.Errorf("error extracting JSON from response: %w", err)
+	}
+
+	var result domain.JustForTitleSake
+	if err := json.Unmarshal([]byte(cleanedJSON), &result); err != nil {
+		return "", fmt.Errorf("error unmarshaling title response JSON: %w\nRaw JSON: %s", err, cleanedJSON)
+	}
+
+	// Return the result in the expected domain.Draft format.
+	return result.Title, nil
 }

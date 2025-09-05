@@ -3,6 +3,7 @@ package domain
 // These models are designed to correspond with the JSON outputs described in the prompts.
 
 import (
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -110,7 +111,16 @@ type Draft struct {
 	Sections   []Section  `json:"sections" bson:"sections"`
 	Signatures Signatures `json:"signatures" bson:"signatures"`
 }
-
+func (b Draft) String() string { //? patching for The CreateAgreement end-point 
+	sections := ""
+	for _, each_section := range b.Sections{
+		heading := each_section.Heading
+		txt := each_section.Text
+		sections += (heading + "\n")
+		sections += (txt + "\n")
+	}
+	return fmt.Sprintf("Title: %s\n %s ", b.Title, sections)
+}
 // Section represents a heading and text block within the draft.
 type Section struct {
 	Heading string `json:"heading" bson:"heading"`

@@ -20,7 +20,7 @@ type AgreementController struct {
 
 // CreateAgreementRequest represents the expected JSON payload for creating an agreement.
 type CreateAgreementRequest struct {
-	Intake        *domain.Intake     `json:"intake"`
+	Intake        *domain.Draft      `json:"draft"`
 	Status        string             `json:"status"`
 	PDFURL        string             `json:"pdf_url"`
 	CreatorID     primitive.ObjectID `json:"creator_id"`
@@ -119,9 +119,17 @@ func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 		return
 	}
 	req.CreatorID = creatorID_ // ASSIGN THE USER IT'S ID
+	newIntakeFromDraft, err := a.AIInteraction.GenerateIntake(context.Background(), req.Intake.String(), domain.EnglishLang)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data":    gin.H{"message": "Missing required fields"},
+		})
+		return
+	}
 	// Validate other required fields
 	log.Println("‼️\n", req)
-	if req.Intake == nil || req.Status == "" || req.PDFURL == "" {
+	if newIntakeFromDraft == nil || req.Status == "" || req.PDFURL == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"data":    gin.H{"message": "Missing required fields"},
@@ -130,7 +138,7 @@ func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 	}
 
 	newAgreement, err := a.AgreementUseCase.CreateAgreement(
-		req.Intake,
+		newIntakeFromDraft,
 		req.Status,
 		req.PDFURL,
 		req.CreatorID,

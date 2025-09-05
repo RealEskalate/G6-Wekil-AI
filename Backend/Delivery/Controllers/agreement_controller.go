@@ -199,9 +199,14 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid original_agreement_id format"})
 		return
 	}
-	callerID, err := primitive.ObjectIDFromHex(req.CallerID)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid caller_id format"})
+	userIDValue, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	callerID, ok := userIDValue.(primitive.ObjectID)
+	if !ok || callerID.IsZero() {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID"})
 		return
 	}
 

@@ -1,11 +1,13 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions, Session, User } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
 import { JWT } from "next-auth/jwt";
 
 interface ExtendedJWT extends JWT {
   account_type?: string;
   rememberMe?: boolean;
   error?: string;
+  accessToken?: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
@@ -18,7 +20,7 @@ async function refreshBackendSession(token: ExtendedJWT): Promise<ExtendedJWT> {
       credentials: "include",
     });
 
-     if (!res.ok) {
+    if (!res.ok) {
       console.warn("Refresh failed:", res.status, await res.text());
       return { ...token, error: "RefreshTokenError" };
     }
@@ -31,6 +33,38 @@ async function refreshBackendSession(token: ExtendedJWT): Promise<ExtendedJWT> {
 
 export const authOptions: NextAuthOptions = {
   providers: [
+    GoogleProvider({
+  clientId: process.env.GOOGLE_CLIENT_ID!,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+  async profile(profile) {
+    // Send Google profile to your backend for registration/login
+    const res = await fetch(`${API_URL}/auth/nextjs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profile),
+    });
+
+    if (!res.ok) {
+      throw new Error("Google login failed");
+    }
+
+    const data = await res.json();
+    const account_type = data?.data?.account_type;
+    const accessToken = res.headers.get("Authorization")?.replace("Bearer ", "");
+
+
+    return {
+      id: profile.sub, 
+      name: profile.name,
+      email: profile.email,
+      image: profile.picture,
+      account_type,
+      accessToken,
+    } as User & { account_type?: string; accessToken?: string };
+  },
+    }),
+
+
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -62,7 +96,7 @@ export const authOptions: NextAuthOptions = {
         return {
           account_type,
           rememberMe: credentials?.rememberMe === "true",
-          accessToken: accessToken, 
+          accessToken: accessToken,
         } as User & {
           account_type?: string;
           rememberMe?: boolean;
@@ -83,14 +117,24 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token, user }: { token: ExtendedJWT; user?: User & { account_type?: string; rememberMe?: boolean; accessToken?: string } }) {
+    async jwt({
+      token,
+      user,
+    }: {
+      token: ExtendedJWT;
+      user?: User & {
+        account_type?: string;
+        rememberMe?: boolean;
+        accessToken?: string;
+      };
+    }) {
       // On login
       if (user) {
         return {
           ...token,
           account_type: user.account_type,
           rememberMe: user.rememberMe,
-          accessToken: user.accessToken, 
+          accessToken: user.accessToken,
           error: undefined,
         };
       }
@@ -109,7 +153,7 @@ export const authOptions: NextAuthOptions = {
           ...session.user,
           account_type: token.account_type,
           rememberMe: token.rememberMe,
-          accessToken: token.accessToken, 
+          accessToken: token.accessToken,
           error: token.error,
         },
       };
@@ -118,4 +162,3 @@ export const authOptions: NextAuthOptions = {
 
   secret: process.env.NEXTAUTH_SECRET,
 };
-

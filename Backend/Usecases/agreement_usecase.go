@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -207,12 +206,12 @@ func (a *AgreementUseCase) DuplicateAgreement(originalAgreementID primitive.Obje
 	if callerID != originalAgreement.CreatorID && callerID != originalAgreement.AcceptorID {
 		return nil, nil, fmt.Errorf("unauthorized access: only the original parties can duplicate this agreement")
 	}
-
+	
 	originalIntake, err := a.IntakeRepo.GetIntake(context.Background(), originalAgreement.IntakeID)
 	if err != nil {
 		return nil, nil, err
 	}
-
+	
 	// 3. Create a new intake object (a deep copy) and update the parties.
 	newIntake := *originalIntake // Shallow copy
 	if newIntake.Parties != nil {
@@ -232,7 +231,7 @@ func (a *AgreementUseCase) DuplicateAgreement(originalAgreementID primitive.Obje
 			} else { // callerID == originalAgreement.AcceptorID
 				originalCallerEmail = newParties[1].Email
 			}
-
+			
 			// Simple party swap logic.
 			newParties[0].Email = newAcceptorEmail
 			newParties[1].Email = originalCallerEmail
@@ -243,14 +242,10 @@ func (a *AgreementUseCase) DuplicateAgreement(originalAgreementID primitive.Obje
 		}
 		newIntake.Parties = newParties
 	}
-	intakeJSON, err := json.Marshal(newIntake)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal intake to JSON: %w", err)
-	}
 
 	// 4. Call the AI to generate a new draft from the modified intake.
 	// We're using the AI's GenerateDocumentDraft function as it's designed for this.
-	newDraft, err := a.AIInteraction.GenerateDocumentDraft(context.Background(), string(intakeJSON), "en")
+	newDraft, err := a.AIInteraction.GenerateDocumentDraft(context.Background(), &newIntake, "en")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -258,6 +253,7 @@ func (a *AgreementUseCase) DuplicateAgreement(originalAgreementID primitive.Obje
 	// 5. Return the new intake and draft. The frontend will handle PDF creation and saving.
 	return &newIntake, newDraft, nil
 }
+
 func NewAgreementUseCase(intakeRepo domainInter.IIntakeRepo, agreementRepo domainInter.IAgreementRepo, pendingRepo domainInter.IPendingAgreementRepo, aiInteraction domainInter.IAIInteraction) domainInter.IAgreementUseCase {
 
 	return &AgreementUseCase{

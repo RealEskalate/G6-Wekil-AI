@@ -3,7 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 const List<MapLocale> LOCALES = [
   MapLocale('en', LocalesData.EN),
-  MapLocale('am', LocalesData.AM),
+  MapLocale('am', LocalesData.AM), // Added Amharic translations
 ];
 
 mixin LocalesData {
@@ -82,6 +82,35 @@ mixin LocalesData {
   static const String noContractsYet = 'noContractsYet';
   static const String createFirstContract = 'createFirstContract';
   static const String createContract = 'createContract';
+  static const String servicesDescription = 'servicesDescription';
+  static const String milestones = 'milestones';
+  static const String description = 'description';
+  static const String amountOptional = 'amountOptional';
+  static const String dueDate = 'dueDate';
+  static const String removeMilestone = 'removeMilestone';
+  static const String addMilestone = 'addMilestone';
+  static const String numberOfRevisions = 'numberOfRevisions';
+
+  static const String item = 'item';
+  static const String quantity = 'quantity';
+  static const String unitPrice = 'unitPrice';
+  static const String removeItem = 'removeItem';
+  static const String addItem = 'addItem';
+  static const String deliveryTerms = 'deliveryTerms';
+
+  static const String principalAmount = 'principalAmount';
+  static const String installments = 'installments';
+  static const String installmentDescription = 'installmentDescription';
+  static const String removeInstallment = 'removeInstallment';
+  static const String addInstallment = 'addInstallment';
+  static const String lateFeePercentage = 'lateFeePercentage';
+
+  static const String effectiveDate = 'effectiveDate';
+  static const String confidentialityTermsYears = 'confidentialityTermsYears';
+  static const String purpose = 'purpose';
+  static const String mutualConfidentiality = 'mutualConfidentiality';
+  static const String amount = 'amount';
+  static const String frequencyHint = 'frequencyHint';
 
   static const Map<String, String> EN = {
     welcome: "welcome Back %a",
@@ -144,6 +173,35 @@ mixin LocalesData {
     noContractsYet: 'No contracts yet',
     createFirstContract: 'Create your first contract',
     createContract: 'Create Contract',
+
+    servicesDescription: "Services Description",
+    milestones: "Milestones",
+    description: "Description",
+    amountOptional: "Amount (optional)",
+    dueDate: "Due Date",
+    removeMilestone: "Remove Milestone",
+    addMilestone: "Add Milestone",
+    numberOfRevisions: "Number of Revisions",
+
+    item: "Item",
+    quantity: "Quantity",
+    unitPrice: "Unit Price",
+    removeItem: "Remove Item",
+    addItem: "Add Item",
+    deliveryTerms: "Delivery Terms",
+
+    principalAmount: "Principal Amount",
+    installments: "Installments",
+    installmentDescription: "Description",
+    removeInstallment: "Remove Installment",
+    addInstallment: "Add Installment",
+    lateFeePercentage: "Late Fee Percentage",
+
+    effectiveDate: "Effective Date",
+    confidentialityTermsYears: "Confidentiality Terms (years)",
+    purpose: "Purpose",
+    mutualConfidentiality: "Mutual Confidentiality",
+    amount: 'Amount',
   };
 
   static const Map<String, String> AM = {
@@ -204,5 +262,34 @@ mixin LocalesData {
     noContractsYet: 'እስካሁን ውል የለም',
     createFirstContract: 'የመጀመሪያውን ውልዎን ይፍጠሩ',
     createContract: 'ውል ይፍጠሩ',
+    servicesDescription: "የአገልግሎት መግለጫ",
+    milestones: "የውል ደረጃዎች",
+    description: "መግለጫ",
+    amountOptional: "መጠን (አማራጭ)",
+    dueDate: "የመጨረሻ ቀን",
+    removeMilestone: "ደረጃ አስወግድ",
+    addMilestone: "ደረጃ አክል",
+    numberOfRevisions: "የእይታ ብዛት",
+
+    item: "እቃ",
+    quantity: "ብዛት",
+    unitPrice: "የእቃ ዋጋ",
+    removeItem: "እቃ አስወግድ",
+    addItem: "እቃ አክል",
+    deliveryTerms: "የማድረሻ ውሎች",
+
+    principalAmount: "ዋና መጠን",
+    installments: "ክፍያዎች",
+    installmentDescription: "መግለጫ",
+    removeInstallment: "ክፍያ አስወግድ",
+    addInstallment: "ክፍያ አክል",
+    lateFeePercentage: "የቆይታ ቅጣት (%)",
+
+    effectiveDate: "የመጀመሪያ ቀን",
+    confidentialityTermsYears: "የምስጢርነት ውሎች (ዓመታት)",
+    purpose: "ዓላማ",
+    mutualConfidentiality: "የተጋራ ምስጢርነት",
+    amount: 'መጠን',
+    frequencyHint: 'የመደበኛ ጊዜ አስገባ',
   };
 }

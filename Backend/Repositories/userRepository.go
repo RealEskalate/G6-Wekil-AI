@@ -76,19 +76,19 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain
 	}
 	return &ind, nil
 }
-func (r *UserRepository) FindUser(ctx context.Context, userID string) (*domain.Individual, error) {
+// func (r *UserRepository) FindUser(ctx context.Context, userID string) (*domain.Individual, error) {
 
-	var ind domain.Individual
-	err := r.collection.FindOne(ctx, bson.M{"_id": userID}).Decode(&ind)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("failed to find user: %w", err)
-	}
-	log.Println("||||||||||||||============rrrr-:", ind)
-	return &ind, nil
-}
+// 	var ind domain.Individual
+// 	err := r.collection.FindOne(ctx, bson.M{"_id": userID}).Decode(&ind)
+// 	if err != nil {
+// 		if errors.Is(err, mongo.ErrNoDocuments) {
+// 			return nil, nil
+// 		}
+// 		return nil, fmt.Errorf("failed to find user: %w", err)
+// 	}
+// 	log.Println("||||||||||||||============rrrr-:", ind)
+// 	return &ind, nil
+// }
 
 // FindByID returns the individual by ID or (nil, nil) if not found.
 func (r *UserRepository) FindByID(ctx context.Context, individualID primitive.ObjectID) (*domain.Individual, error) {

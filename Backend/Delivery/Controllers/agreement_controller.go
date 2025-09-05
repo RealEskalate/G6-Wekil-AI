@@ -298,13 +298,13 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"data": gin.H{
-				"message": "Invalid request payload",
+				"message": "Invalid request payload**",
 			},
 		})
 		return
 	}
 	userPrimitiveID, err := primitive.ObjectIDFromHex(userStringID)
-	log.Println("⚡", userPrimitiveID, err, "from userStringId", userStringID)
+	// log.Println("⚡", userPrimitiveID, err, "from userStringId", userStringID)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -324,7 +324,8 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 		})
 		return
 	}
-	res, err := a.AgreementUseCase.GetAgreementByID(agreementID, userPrimitiveID)
+	res, err := a.AgreementUseCase.GetAgreementByIDIntake(agreementID, userPrimitiveID)
+	// log.Print("data------------------------:-", res)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,

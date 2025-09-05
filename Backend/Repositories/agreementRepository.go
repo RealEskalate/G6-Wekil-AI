@@ -149,6 +149,24 @@ func (a *AgreementRepository) GetAgreement(ctx context.Context, agreementID prim
 	}
 	return &singleAgreement, nil
 }
+// GetAgreement implements domain.IAgreementRepo.
+func (a *AgreementRepository) GetAgreementIntake(ctx context.Context, agreementID primitive.ObjectID) (*domain.AgreementIntake, error) {
+	filter := bson.M{"_id": agreementID}
+	var singleAgreement domain.AgreementIntake
+	if err := a.collection.FindOne(ctx, filter).Decode(&singleAgreement); err != nil {
+		return nil, err
+	}
+		log.Print("data------------------------:-", singleAgreement)
+
+	intakeFilter := bson.M{"_id": singleAgreement.IntakeID}
+	var intake domain.Intake
+	intakeCollection := a.collection.Database().Collection("intake")
+	if err := intakeCollection.FindOne(ctx, intakeFilter).Decode(&intake); err != nil {
+		return nil, fmt.Errorf("error fetching intake: %w", err)
+	}
+	singleAgreement.Intake = intake
+	return &singleAgreement, nil
+}
 
 // SaveAgreement implements domain.IAgreementRepo.
 func (a *AgreementRepository) SaveAgreement(ctx context.Context, agreement *domain.Agreement) (*domain.Agreement, error) {

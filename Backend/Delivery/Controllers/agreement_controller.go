@@ -313,7 +313,7 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 		})
 		return
 	}
-	res, err := a.AgreementUseCase.GetAgreementByID(agreementID, userPrimitiveID)
+	res, err := a.AgreementUseCase.GetAgreementByIDIntake(agreementID, userPrimitiveID)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,

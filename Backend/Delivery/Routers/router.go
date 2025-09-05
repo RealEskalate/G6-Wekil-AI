@@ -59,7 +59,7 @@ func Router(uc domain.IUserController, ai domain.IAIController, ag domain.IAgree
 		// adminRoutes.GET("/agreements/:id", uc.GetAgreement)
 	}
 
-	agreementRoutes := mainRouter.Group("/agreement")
+	agreementRoutes := mainRouter.Group("/agreement")				
 	agreementRoutes.Use(authMiddleware.JWTAuthMiddleware())
 	{
 		agreementRoutes.POST("/create", ag.CreateAgreement) //TODO: DELETE this one since it's not accepting DRAFT as the saving is.

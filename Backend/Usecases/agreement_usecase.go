@@ -118,6 +118,18 @@ func (a *AgreementUseCase) GetAgreementByID(agreementID primitive.ObjectID, user
 	}
 	return resAgree, nil
 }
+// GetAgreementByID implements domain.IAgreementUseCase.
+func (a *AgreementUseCase) GetAgreementByIDIntake(agreementID primitive.ObjectID, userID primitive.ObjectID) (*domain.AgreementIntake, error) {
+	resAgree, err := a.AgreementRepo.GetAgreementIntake(context.Background(), agreementID)
+	if err != nil {
+		return nil, err
+	} else if resAgree.AcceptorID != userID && resAgree.CreatorID != userID {
+		return nil, fmt.Errorf("unauthorized access")
+	} else if !(resAgree.IsDeletedByAcceptor || resAgree.IsDeletedByCreator) {
+		return nil, fmt.Errorf("trying to access deleted agreement")
+	}
+	return resAgree, nil
+}
 
 // GetAgreementsByUserID implements domain.IAgreementUseCase.
 func (a *AgreementUseCase) GetAgreementsByUserID(userID primitive.ObjectID, pageNumber int) ([]*domain.Agreement, error) {

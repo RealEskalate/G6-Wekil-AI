@@ -275,7 +275,7 @@ func (uc *UserController) GetProfile(ctx *gin.Context) {
 
 func (uc UserController) Logout(ctx *gin.Context) {
 	userID := ctx.GetString("user_id")
-	log.Println("id============:", userID)
+	log.Println("-------------********------------:", userID)
 
 	err := uc.userUseCase.Logout(ctx, userID)
 	if err != nil {
@@ -436,7 +436,6 @@ func (uc *UserController) HandleNotifications(ctx *gin.Context) {
 		})
 		return
 	}
-
 	ctx.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"page":    page,

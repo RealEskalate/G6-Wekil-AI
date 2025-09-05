@@ -60,7 +60,7 @@ func Router(uc domain.IUserController, ai domain.IAIController, ag domain.IAgree
 	}
 
 	agreementRoutes := mainRouter.Group("/agreement")
-	// agreement.Use(authMiddleware.JWTAuthMiddleware())
+	agreementRoutes.Use(authMiddleware.JWTAuthMiddleware())
 	{
 		agreementRoutes.POST("/create", ag.CreateAgreement) //TODO: DELETE this one since it's not accepting DRAFT as the saving is.
 		agreementRoutes.POST("/handle-signature", ag.SignitureHandling)

@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 	domain "wekil_ai/Domain"
@@ -240,10 +241,14 @@ func (a *AgreementUseCase) DuplicateAgreement(originalAgreementID primitive.Obje
 		}
 		newIntake.Parties = newParties
 	}
+	intakeJSON, err := json.Marshal(newIntake)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal intake to JSON: %w", err)
+	}
 
 	// 4. Call the AI to generate a new draft from the modified intake.
 	// We're using the AI's GenerateDocumentDraft function as it's designed for this.
-	newDraft, err := a.AIInteraction.GenerateDocumentDraft(context.Background(), &newIntake, "en")
+	newDraft, err := a.AIInteraction.GenerateDocumentDraft(context.Background(), string(intakeJSON), "en")
 	if err != nil {
 		return nil, nil, err
 	}

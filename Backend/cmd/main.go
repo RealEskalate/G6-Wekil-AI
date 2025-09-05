@@ -53,3 +53,7 @@ func main() {
 	agreementController := controllers.NewAgreementController(agreementUsecase)
     routers.Router(userController, aiController, agreementController)
 }
+
+
+
+

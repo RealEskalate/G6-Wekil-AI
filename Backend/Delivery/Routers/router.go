@@ -36,6 +36,7 @@ func Router(uc domain.IUserController, ai domain.IAIController, ag domain.IAgree
 	mainRouter.GET("/api/users/notification", authMiddleware.JWTAuthMiddleware(), uc.HandleNotifications)
 	mainRouter.GET("/auth/:provider", uc.SignInWithProvider)
 	mainRouter.GET("/auth/:provider/callback", uc.CallbackHandler)
+	mainRouter.POST("/auth/nextjs", uc.GoogleAuthHandler)
 	mainRouter.GET("/success", uc.Success)
 
 	aiRoutes := mainRouter.Group("/ai")

@@ -107,3 +107,13 @@ type ChangePasswordRequestDTO struct {
 type ResendOTPRequestDTO struct {
 	Email string `json:"email" binding:"required,email"`
 }
+
+type GoogleProfile struct {
+  Sub           string `json:"sub"`
+  Name          string `json:"name"`
+  GivenName     string `json:"given_name"`
+  FamilyName    string `json:"family_name"`
+  Email         string `json:"email"`
+  EmailVerified bool   `json:"email_verified"`
+  Picture       string `json:"picture"`
+}

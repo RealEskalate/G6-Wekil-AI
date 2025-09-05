@@ -32,14 +32,17 @@ func (uc *OAuthUsecase) HandleOAuthLogin(req *http.Request, res http.ResponseWri
 	}
 
 	existingUser, _ := uc.userRepo.FindByEmail(context.Background(),userData.Email)
+	var user *domain.Individual
 	if existingUser != nil {
-		return existingUser, "","",nil // Login
-	}
-	userData.IsVerified= true
-	// Signup
-	user,err:= uc.userRepo.CreateIndividual(context.Background(),userData)
-	if err != nil {
-		return nil, "","",err
+		// Login: use existing user
+		user = existingUser
+	} else {
+		// Signup: create new user
+		userData.IsVerified = true
+		user, err = uc.userRepo.CreateIndividual(context.Background(), userData)
+		if err != nil {
+			return nil, "", "", err
+		}
 	}
 	accessclaims := &domain.UserClaims{
 		UserID: user.ID.Hex(),

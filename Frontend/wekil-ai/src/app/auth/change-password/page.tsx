@@ -6,7 +6,7 @@ import { FaArrowLeft, FaRobot, FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/context/LanguageContext";
-import { authTranslations } from "@/lib/authTranslations";
+import { authTranslations } from "@/lib/translations/authTranslations";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/lib/redux/store";
 import { resetPassword, forgotPassword } from "@/lib/redux/slices/authSlice";
@@ -14,8 +14,8 @@ import { resetPassword, forgotPassword } from "@/lib/redux/slices/authSlice";
 function ChangePasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get("email") || "";
-
+  const email = searchParams?.get("email") ?? "";
+  
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

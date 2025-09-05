@@ -1,14 +1,22 @@
 name: wekil_ai_mobile_app
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
   sdk: ^3.8.1
 
 dependencies:
+  google_fonts: ^6.0.0
   flutter:
     sdk: flutter
+  flutter_bloc: ^8.1.6
+  flutter_localization: ^0.3.3
+  equatable: ^2.0.7
+  get_it: ^7.7.0
+  intl: ^0.20.2             # ✅ Match version required by Flutter
+  http: ^1.2.2
+  syncfusion_flutter_pdfviewer: ^30.2.7
 
 dev_dependencies:
   flutter_test:
@@ -17,3 +25,18 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/logo.jpg
+  fonts:
+    - family: NotoSansEthiopic
+      fonts:
+        - asset: assets/fonts/NotoSansEthiopic-Regular.ttf
+        - asset: assets/fonts/NotoSansEthiopic-Bold.ttf
+          weight: 700
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter_28pt-Regular.ttf
+        - asset: assets/fonts/Inter_28pt-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter_28pt-Bold.ttf
+          weight: 700

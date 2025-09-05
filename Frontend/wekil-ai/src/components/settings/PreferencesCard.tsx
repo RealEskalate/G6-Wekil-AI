@@ -10,7 +10,7 @@ import {
 } from "../ui/Card";
 import { Label } from "../ui/Label";
 import { Switch } from "../ui/Switchs";
-import { settingTranslations } from "@/lib/settingTranslations";
+import { settingTranslations } from "@/lib/translations/settingTranslations";
 import { useLanguage } from "@/context/LanguageContext";
 import { Globe, FileText, Save } from "lucide-react";
 import { Button } from "../ui/Button";

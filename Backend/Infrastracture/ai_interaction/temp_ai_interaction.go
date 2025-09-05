@@ -156,7 +156,6 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 				"purpose": {
 					Type: genai.TypeString,
 				},
-
 			},
 		},
 	}

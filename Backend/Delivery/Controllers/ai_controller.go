@@ -15,7 +15,8 @@ import (
 type AIController struct {
 	aiUsecase *usecases.AIUsecase
 }
-//* This controller doesn't have an Interface like others ‼️‼️‼️
+
+// * This controller doesn't have an Interface like others ‼️‼️‼️
 func NewAIController(aiUsecase *usecases.AIUsecase) *AIController {
 	return &AIController{aiUsecase: aiUsecase}
 }

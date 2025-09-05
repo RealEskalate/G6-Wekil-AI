@@ -22,6 +22,7 @@ interface ProfileState {
   loading: boolean;
   error: string | null;
   message: string | null;
+  loaded: boolean;
 }
 
 const initialState: ProfileState = {
@@ -29,6 +30,7 @@ const initialState: ProfileState = {
   loading: false,
   error: null,
   message: null,
+  loaded: false,
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -47,11 +49,13 @@ export const fetchProfile = createAsyncThunk<
   string,
   { rejectValue: string }
 >("profile/fetchProfile", async (accessToken, { rejectWithValue }) => {
+
   try {
     const response = await axios.get(`${API_URL}/api/users/profile`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     const data = response.data.data;
+    console.log("Fetched profile data:", data);
     return {
       id: data.id,
       email: data.email,
@@ -82,17 +86,7 @@ export const updateProfileApi = createAsyncThunk<
   "profile/updateProfileApi",
   async ({ accessToken, profileData }, { rejectWithValue }) => {
     try {
-      const payload = {
-        first_name: profileData.first_name,
-        middle_name: profileData.middle_name,
-        last_name: profileData.last_name,
-        telephone: profileData.telephone,
-        address: profileData.address,
-        profile_image: profileData.profileImage,
-        signature: profileData.signature,
-      };
-
-      const response = await axios.put(`${API_URL}/api/users/profile`, payload, {
+      const response = await axios.put(`${API_URL}/api/users/profile`, profileData, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
@@ -103,7 +97,6 @@ export const updateProfileApi = createAsyncThunk<
   }
 );
 
-// ------------------- Slice -------------------
 
 const profileSlice = createSlice({
   name: "profile",
@@ -128,6 +121,7 @@ const profileSlice = createSlice({
     builder.addCase(fetchProfile.fulfilled, (state, action) => {
       state.loading = false;
       state.user = action.payload;
+      state.loaded = true;
     });
     builder.addCase(fetchProfile.rejected, (state, action) => {
       state.loading = false;

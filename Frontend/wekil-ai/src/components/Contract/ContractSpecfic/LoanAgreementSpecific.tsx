@@ -5,21 +5,23 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 interface LoanAgreementSpecificProps {
   contract: ContractFormat;
 }
+import { useLanguage } from "@/context/LanguageContext";
 const LoanAgreementSpecific: React.FC<LoanAgreementSpecificProps> = ({
   contract,
 }) => {
+  const {lang} = useLanguage();
   const [showMore, setshowMore] = React.useState(false);
   return (
     <div className="w-full font-bold">
       <div className="p-4 mt-6">
-        <p className="my-2 text-md text-blue-950 font-semibold">Principal</p>
+        <p className="my-2 text-md text-blue-950 font-semibold">{lang=="en"?"Principal":"ዋና መጠን"}</p>
         <p className="my-2 text-md text-end text-blue-950">
           {contract.principal}
         </p>
       </div>
       <div className="p-4">
         <div className="flex justify-between my-2 text-md text-blue-950">
-          <p className="">Installment</p>
+          <p className="">{lang=="en"?"Installment":"የመክፈያ ክፍሎች"}</p>
           <p className="">
             {!showMore ? (
               <button onClick={() => setshowMore(!showMore)}>
@@ -35,11 +37,11 @@ const LoanAgreementSpecific: React.FC<LoanAgreementSpecificProps> = ({
         {showMore ? (
           <div className=" m-8 border border-gray-100 py-4 rounded-2xl flex justify-around">
             <p className="text-md text-blue-950 font-bold inline">
-              Item amount
+              {lang=="en"?"Item amount":"የእቃ መጠን"}
             </p>
 
             <p className="text-sm text-blue-950 font-bold text-end inline">
-              Item Due date
+              {lang=="en"?"Item Due date":"የመክፈያ ቀን"}
             </p>
           </div>
         ) : null}
@@ -63,13 +65,13 @@ const LoanAgreementSpecific: React.FC<LoanAgreementSpecificProps> = ({
             })
           ) : (
             <p className="text-sm font-bold text-blue-950 inline mx-4 ">
-              No installments yet
+              {lang=="en"?"No installments yet":"እስካሁን ድረስ የሚከፈሉ ክፍያዎች የሉም"}
             </p>
           )
         ) : null}
       </div>
       <div className="p-4 mt-6">
-        <p className="my-2 text-md text-blue-950">Delivery Terms</p>
+        <p className="my-2 text-md text-blue-950">{lang=="en"?"Delivery Terms":"'የማድረስ ውሎች'"}</p>
         <p className="my-2 text-sm text-blue-950">{contract.delivery_terms}</p>
       </div>
     </div>

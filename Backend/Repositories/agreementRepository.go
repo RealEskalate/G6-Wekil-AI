@@ -23,31 +23,51 @@ type AgreementRepository struct {
 
 // GetAgreementsByFilterAndPartyID implements domain.IAgreementRepo.
 func (a *AgreementRepository) GetAgreementsByFilterAndPartyID(ctx context.Context, ownerID primitive.ObjectID, pageNumber int, filter *domain.AgreementFilter) ([]*domain.Agreement, error) {
-	query := bson.D{
+	var filterOr bson.A
+	log.Printf("%#v", filter)
+	// Step 2: Conditionally append to the inner $or query.
+	if filter.AgreementStatus != "" {
+		log.Printf("😠Inserting %s", filter.AgreementStatus)
+		filterOr = append(filterOr, bson.D{{Key: "status", Value: filter.AgreementStatus}})
+	}
+	if filter.AgreementType != "" {
+		filterOr = append(filterOr, bson.D{{Key: "agreement_type", Value: filter.AgreementType}})
+	}
+
+	// Step 3: Initialize the main $and array.
+	var and bson.A
+
+	// Step 4: Add the mandatory $or condition for creator_id and acceptor_id.
+	// This part of the query is always present.
+	and = append(and, bson.D{
 		{
-			Key: "$and",
+			Key: "$or",
 			Value: bson.A{
-				bson.D{
-					{
-						Key: "$or",
-						Value: bson.A{
-							bson.D{{Key: "creator_id", Value: ownerID}},
-							bson.D{{Key: "acceptor_id", Value: ownerID}},
-						},
-					},
-				},
-				bson.D{
-					{
-						Key: "$or",
-						Value: bson.A{
-							bson.D{{Key: "status", Value: filter.AgreementStatus}},
-							bson.D{{Key: "agreement_type", Value: filter.AgreementType}},
-						},
-					},
-				},
+				bson.D{{Key: "creator_id", Value: ownerID}},
+				bson.D{{Key: "acceptor_id", Value: ownerID}},
 			},
 		},
+	})
+
+	// Step 5: Conditionally add the $or query for filter fields if it's not empty.
+	// This ensures we don't add an empty "$or" block.
+	if len(filterOr) > 0 {
+		and = append(and, bson.D{
+			{
+				Key: "$or",
+				Value: filterOr,
+			},
+		})
 	}
+
+	// Step 6: Assemble the final query.
+	query := bson.D{
+		{
+			Key:   "$and",
+			Value: and,
+		},
+	}
+	log.Printf("▶️Final BSON Query: %+v\n", query)
 	pageSize := ITEM_PER_PAGE
 	skip := int64((pageNumber - 1) * pageSize)
 	limit := int64(pageSize)

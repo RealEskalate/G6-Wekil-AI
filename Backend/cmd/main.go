@@ -20,6 +20,7 @@ func main() {
 		log.Fatal("❌Failed to connect:", err)
 	}
 	apiKey := config.GEMINI_API_KEY
+	log.Println("🤖", apiKey)
 	if apiKey == "" {
 		log.Fatal("❌ GEMINI_API_KEY not set")
 	}

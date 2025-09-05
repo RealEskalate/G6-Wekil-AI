@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { Language, ContractData } from "@/components/wizard/ContractWizard";
+import { stringify } from "querystring";
 
 interface SpecificDetailsProps {
   currentLanguage: Language;
@@ -15,6 +16,7 @@ interface SpecificDetailsProps {
     details: NonNullable<ContractData["specificDetails"]>
   ) => void;
   contract: Partial<ContractData>;
+  setContract: (item: Partial<ContractData>)=>void;
 }
 
 export default function SpecificDetails({
@@ -22,6 +24,8 @@ export default function SpecificDetails({
   contractType,
   specificDetails,
   setSpecificDetails,
+  contract,
+  setContract
 }: SpecificDetailsProps) {
   const t = {
     en: {
@@ -67,6 +71,16 @@ export default function SpecificDetails({
       { description: "", quantity: 1, unitPrice: 0 },
     ];
     setSpecificDetails({ ...specificDetails, items: newItems });
+    setContract({...contract,specificDetails: {...contract.specificDetails,items: newItems}})
+  };
+
+  const addMilestone = () => {
+    const newMilestone = [
+      ...(specificDetails.milestones || []),
+      { description: "", date: "01-01-2000"},
+    ];
+    setSpecificDetails({ ...specificDetails, milestones: newMilestone });
+    setContract({...contract,specificDetails: {...contract.specificDetails,milestones: newMilestone}})
   };
 
   const renderFields = () => {
@@ -79,10 +93,37 @@ export default function SpecificDetails({
               value={specificDetails.servicesDescription || ""}
               onChange={(e) =>
                 updateSpecificDetails("servicesDescription", e.target.value)
+
               }
               placeholder={t.services}
               className="w-full"
             />
+            {(specificDetails.milestones || []).map((item, idx) => (
+              <div key={idx} className="grid grid-cols-3 gap-4 mb-2 mt-4">
+                <h1 className="font-bold text-md">milestone desription: </h1>
+                <Input
+                  placeholder={t.desc}
+                  value={item.description}
+                  onChange={(e) => {
+                    const newItems = [...(specificDetails.milestones || [])];
+                    newItems[idx].description = e.target.value;
+                    setSpecificDetails({ ...specificDetails, milestones: newItems });
+                  }}
+                />
+                <Input
+                  placeholder={"01-01-2002"}
+                  value={item.date}
+                  onChange={(e) => {
+                    const newItems = [...(specificDetails.milestones || [])];
+                    newItems[idx].date = (e.target.value);
+                    setSpecificDetails({ ...specificDetails, milestones: newItems });
+                  }}
+                />
+              </div>
+            ))}
+            <Button variant="outline" size="sm" onClick={addMilestone}>
+              {t.addItem}
+            </Button>
           </div>
         );
 

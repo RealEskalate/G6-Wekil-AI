@@ -23,12 +23,17 @@ import CommonDetails from "@/components/wizard/steps/CommonDetails";
 import SpecificDetails from "@/components/wizard/steps/SpecificDetails";
 import { AIDraftPreview } from "@/components/wizard/steps/AIDraftPreview";
 import { FinalPreview } from "@/components/wizard/steps/FinalPreview";
-import { ContractDraft, IntialDraftdata } from "../ContractPreview/ContractPreview";
+import {
+  ContractDraft,
+  IntialDraftdata,
+} from "../ContractPreview/ContractPreview";
 import { useLanguage } from "@/context/LanguageContext";
 import WeKilAILoader from "../ui/WekilAILoader";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/redux/store";
+import { classifyApi, extractIntake } from "@/lib/redux/slices/aiSlice";
 
 export interface Step {
   id: string;
@@ -53,17 +58,25 @@ export interface ContractData {
   parties?: { fullName: string; phone: string; email: string }[];
   commonDetails: CommonDetail;
   specificDetails?: {
+    //service
     servicesDescription?: string;
     milestones?: { description: string; date: string }[];
     revisions?: number;
+    
+    // sales
     items?: { description: string; quantity: number; unitPrice: number }[];
     deliveryTerms?: string;
+
+    //loan
     principalAmount?: number;
     installments?: { amount: number; dueDate: string }[];
     lateFeePercentage?: number;
+
+    //nda
     effectiveDate?: string;
     confidentialityPeriod?: number;
     purpose?: string;
+    isMutual?: boolean; 
   };
   aiDraft?: Record<string, unknown>;
 }
@@ -102,7 +115,8 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const router = useRouter();
   const [agreementLanguage, setAgreementLanguage] = useState<Language>("en");
-  const [intialDraftdata,setIntialDraftdata] = useState<ContractDraft>(IntialDraftdata);
+  const [intialDraftdata, setIntialDraftdata] =
+    useState<ContractDraft>(IntialDraftdata);
   const [description, setDescription] = useState<string>("");
   const [commonDetails, setCommonDetails] = useState<
     ContractData["commonDetails"]
@@ -114,6 +128,7 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
     endDate: "",
     dueDates: [],
   });
+  const dispatch = useDispatch<AppDispatch>();
   const [specificDetails, setSpecificDetails] = useState<
     NonNullable<ContractData["specificDetails"]>
   >({});
@@ -196,28 +211,41 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
     },
   };
 
-  const handleNext = (data: Partial<ContractData>) => {
+  const handleNext = async (data: Partial<ContractData>) => {
     setContractData({ ...contractData, ...data });
 
     if (currentStep === 1) {
       setIsCheckingComplexity(true);
-      setTimeout(() => {
-        setIsCheckingComplexity(false);
-        //place to call Classify API
+      // setTimeout(() => {
+      //   //place to call Classify API
+      //   console.log(agreementLanguage)
+      //   console.log(description)
+      //   console.log(res)
+      //   setIsCheckingComplexity(false);
+      //   setCurrentStep(currentStep + 1);
+      // }, 1000);
+      const res = await dispatch(
+        classifyApi({ text: description, language: agreementLanguage })
+      );
+      setIsCheckingComplexity(false);
+      const type = res.payload.data?.payload?.category;
+      if (type == "basic") {
+        toast.success("Your prompt is Basic");
         setCurrentStep(currentStep + 1);
-      }, 1000);
-    } 
-    else if(currentStep == 4){
+      } else {
+        toast.error(
+          `Your prompt is ${type} due to ${res.payload.data?.payload?.reasons[0]} `
+        );
+      }
+    } else if (currentStep == 4) {
       // place to call Draft API
-      
+      console.log(contractData);
+      console.log(specificDetails);
       setCurrentStep(currentStep + 1);
-    }
-    else if(currentStep == 5){
-
+    } else if (currentStep == 5) {
       // place to call FinalReview API
       setCurrentStep(currentStep + 1);
-    }
-    else if (currentStep < steps.length - 1) {
+    } else if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       toast.success(t[currentLanguage].finish);
@@ -408,21 +436,22 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
             contractType={contractData.contractType}
             specificDetails={specificDetails}
             setSpecificDetails={setSpecificDetails}
-            contract = {contractData}
+            contract={contractData}
+            setContract = {setContractData}
           />
         )}
         {currentStep === 5 && (
           <AIDraftPreview
             currentLanguage={currentLanguage}
             contractData={contractData}
-            draftedData = {intialDraftdata}
-            setDraftedData = {setIntialDraftdata}
+            draftedData={intialDraftdata}
+            setDraftedData={setIntialDraftdata}
           />
         )}
         {currentStep === 6 && (
           <FinalPreview
             currentLanguage={currentLanguage}
-            draftedData = {intialDraftdata}
+            draftedData={intialDraftdata}
           />
         )}
       </div>

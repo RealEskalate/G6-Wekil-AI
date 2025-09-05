@@ -32,10 +32,36 @@ const getErrorMessage = async (response: Response, defaultMsg: string) => {
   }
 };
 
+  
+export const classifyApi = createAsyncThunk<
+  unknown,
+  { text: string; language: "am" | "en" },
+  { rejectValue: string }
+>("ai/classify", async (payload, { rejectWithValue }) => {
+  try {
+    const response = await fetch(`${API_URL}/ai/classify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok)
+      throw new Error(await getErrorMessage(response, "Extraction failed"));
+
+    const data = await response.json();
+    return data;
+  } catch (err: unknown) {
+    return rejectWithValue(
+      err instanceof Error ? err.message : "Extraction failed"
+    );
+  }
+});
+
 // --- Async thunks ---
+
 export const extractIntake = createAsyncThunk<
   unknown,
-  { text: string; language: string },
+  { text: string; language: "am" | "en" },
   { rejectValue: string }
 >("ai/extract", async (payload, { rejectWithValue }) => {
   try {
@@ -45,12 +71,15 @@ export const extractIntake = createAsyncThunk<
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) throw new Error(await getErrorMessage(response, "Extraction failed"));
+    if (!response.ok)
+      throw new Error(await getErrorMessage(response, "Extraction failed"));
 
     const data = await response.json();
-    return data.data;
+    return data;
   } catch (err: unknown) {
-    return rejectWithValue(err instanceof Error ? err.message : "Extraction failed");
+    return rejectWithValue(
+      err instanceof Error ? err.message : "Extraction failed"
+    );
   }
 });
 
@@ -66,12 +95,17 @@ export const generateDraft = createAsyncThunk<
       body: JSON.stringify({ intake: payload }),
     });
 
-    if (!response.ok) throw new Error(await getErrorMessage(response, "Draft generation failed"));
+    if (!response.ok)
+      throw new Error(
+        await getErrorMessage(response, "Draft generation failed")
+      );
 
     const data = await response.json();
     return data.data;
   } catch (err: unknown) {
-    return rejectWithValue(err instanceof Error ? err.message : "Draft generation failed");
+    return rejectWithValue(
+      err instanceof Error ? err.message : "Draft generation failed"
+    );
   }
 });
 
@@ -87,12 +121,15 @@ export const updateDraftFromPrompt = createAsyncThunk<
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) throw new Error(await getErrorMessage(response, "Draft update failed"));
+    if (!response.ok)
+      throw new Error(await getErrorMessage(response, "Draft update failed"));
 
     const data = await response.json();
     return data.data;
   } catch (err: unknown) {
-    return rejectWithValue(err instanceof Error ? err.message : "Draft update failed");
+    return rejectWithValue(
+      err instanceof Error ? err.message : "Draft update failed"
+    );
   }
 });
 
@@ -108,12 +145,15 @@ export const finalPreview = createAsyncThunk<
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) throw new Error(await getErrorMessage(response, "Final preview failed"));
+    if (!response.ok)
+      throw new Error(await getErrorMessage(response, "Final preview failed"));
 
     const data = await response.json();
     return data.data;
   } catch (err: unknown) {
-    return rejectWithValue(err instanceof Error ? err.message : "Final preview failed");
+    return rejectWithValue(
+      err instanceof Error ? err.message : "Final preview failed"
+    );
   }
 });
 
@@ -138,15 +178,21 @@ const aiSlice = createSlice({
       state.error = null;
       state.message = null;
     });
-    builder.addCase(extractIntake.fulfilled, (state, action: PayloadAction<unknown>) => {
-      state.loading = false;
-      state.intake = action.payload;
-      state.message = "Intake extracted successfully";
-    });
-    builder.addCase(extractIntake.rejected, (state, action: PayloadAction<string | undefined>) => {
-      state.loading = false;
-      state.error = action.payload ?? "Extraction failed";
-    });
+    builder.addCase(
+      extractIntake.fulfilled,
+      (state, action: PayloadAction<unknown>) => {
+        state.loading = false;
+        state.intake = action.payload;
+        state.message = "Intake extracted successfully";
+      }
+    );
+    builder.addCase(
+      extractIntake.rejected,
+      (state, action: PayloadAction<string | undefined>) => {
+        state.loading = false;
+        state.error = action.payload ?? "Extraction failed";
+      }
+    );
 
     // --- Generate Draft ---
     builder.addCase(generateDraft.pending, (state) => {
@@ -154,15 +200,21 @@ const aiSlice = createSlice({
       state.error = null;
       state.message = null;
     });
-    builder.addCase(generateDraft.fulfilled, (state, action: PayloadAction<ContractFormat>) => {
-      state.loading = false;
-      state.draft = action.payload;
-      state.message = "Draft generated successfully";
-    });
-    builder.addCase(generateDraft.rejected, (state, action: PayloadAction<string | undefined>) => {
-      state.loading = false;
-      state.error = action.payload ?? "Draft generation failed";
-    });
+    builder.addCase(
+      generateDraft.fulfilled,
+      (state, action: PayloadAction<ContractFormat>) => {
+        state.loading = false;
+        state.draft = action.payload;
+        state.message = "Draft generated successfully";
+      }
+    );
+    builder.addCase(
+      generateDraft.rejected,
+      (state, action: PayloadAction<string | undefined>) => {
+        state.loading = false;
+        state.error = action.payload ?? "Draft generation failed";
+      }
+    );
 
     // --- Update Draft from Prompt ---
     builder.addCase(updateDraftFromPrompt.pending, (state) => {
@@ -170,15 +222,21 @@ const aiSlice = createSlice({
       state.error = null;
       state.message = null;
     });
-    builder.addCase(updateDraftFromPrompt.fulfilled, (state, action: PayloadAction<ContractFormat>) => {
-      state.loading = false;
-      state.draft = action.payload;
-      state.message = "Draft updated successfully";
-    });
-    builder.addCase(updateDraftFromPrompt.rejected, (state, action: PayloadAction<string | undefined>) => {
-      state.loading = false;
-      state.error = action.payload ?? "Draft update failed";
-    });
+    builder.addCase(
+      updateDraftFromPrompt.fulfilled,
+      (state, action: PayloadAction<ContractFormat>) => {
+        state.loading = false;
+        state.draft = action.payload;
+        state.message = "Draft updated successfully";
+      }
+    );
+    builder.addCase(
+      updateDraftFromPrompt.rejected,
+      (state, action: PayloadAction<string | undefined>) => {
+        state.loading = false;
+        state.error = action.payload ?? "Draft update failed";
+      }
+    );
 
     // --- Final Preview ---
     builder.addCase(finalPreview.pending, (state) => {
@@ -186,15 +244,21 @@ const aiSlice = createSlice({
       state.error = null;
       state.message = null;
     });
-    builder.addCase(finalPreview.fulfilled, (state, action: PayloadAction<ContractFormat>) => {
-      state.loading = false;
-      state.final = action.payload;
-      state.message = "Final preview ready";
-    });
-    builder.addCase(finalPreview.rejected, (state, action: PayloadAction<string | undefined>) => {
-      state.loading = false;
-      state.error = action.payload ?? "Final preview failed";
-    });
+    builder.addCase(
+      finalPreview.fulfilled,
+      (state, action: PayloadAction<ContractFormat>) => {
+        state.loading = false;
+        state.final = action.payload;
+        state.message = "Final preview ready";
+      }
+    );
+    builder.addCase(
+      finalPreview.rejected,
+      (state, action: PayloadAction<string | undefined>) => {
+        state.loading = false;
+        state.error = action.payload ?? "Final preview failed";
+      }
+    );
   },
 });
 

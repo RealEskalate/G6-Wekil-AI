@@ -188,7 +188,13 @@ func (a *AgreementController) DeleteAgreement(ctx *gin.Context) {
 func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 	var req DuplicateAgreementRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Invalid request body",
+				"details": err.Error(),
+			},
+		})
 		// log.Printf("Error binding request body: %v", err)
 		return
 	}
@@ -196,37 +202,53 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 	// Validate and parse ObjectIDs
 	originalAgreementID, err := primitive.ObjectIDFromHex(req.OriginalAgreementID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid original_agreement_id format"})
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{"message": "Invalid original_agreement_id format"},
+		})
 		return
 	}
 	userIDValue, exists := ctx.Get("user_id")
 	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"success": false,
+			"data": gin.H{"message": "User not authenticated"},
+		})
 		return
 	}
 	callerID, ok := userIDValue.(primitive.ObjectID)
 	if !ok || callerID.IsZero() {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"success": false,
+			"data": gin.H{"message": "Invalid user ID"},
+		})
 		return
 	}
 
 	// Call the use case to get the new draft and intake
 	newIntake, newDraft, err := a.AgreementUseCase.DuplicateAgreement(originalAgreementID, req.NewAcceptorEmail, callerID)
 	if err != nil {
-		// Handle specific use case errors
+		msg := "Failed to duplicate agreement"
+		status := http.StatusInternalServerError
 		if err.Error() == "unauthorized access: only the original parties can duplicate this agreement" {
-			ctx.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
-		} else {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to duplicate agreement"})
-			// log.Printf("Error duplicating agreement: %v", err)
+			msg = err.Error()
+			status = http.StatusForbidden
 		}
+		ctx.JSON(status, gin.H{
+			"success": false,
+			"data": gin.H{"message": msg},
+		})
 		return
 	}
 
 	// Return the new intake and draft to the frontend for PDF generation
 	ctx.JSON(http.StatusOK, gin.H{
-		"new_intake": newIntake,
-		"new_draft":  newDraft,
+		"success": true,
+		"data": gin.H{
+			"message":     "Agreement duplicated successfully",
+			"new_intake":  newIntake,
+			"new_draft":   newDraft,
+		},
 	})
 }
 

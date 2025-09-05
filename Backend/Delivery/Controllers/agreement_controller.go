@@ -93,11 +93,19 @@ func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 		return
 	}
 
-	// Manual validation for ObjectId
-	if req.CreatorID.IsZero() {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Missing or invalid creator_id"})
+	userIDValue, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
 	}
+
+	creatorID, ok := userIDValue.(primitive.ObjectID) // Assuming you use MongoDB ObjectID
+	if !ok || creatorID.IsZero() {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	// Validate other required fields
 	if req.Intake == nil || req.Status == "" || req.PDFURL == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Missing required fields"})
 		return

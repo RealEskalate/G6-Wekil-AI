@@ -26,7 +26,7 @@ export function AIDraftPreview({
   setDraftedData,
 }: AIDraftPreviewProps) {
   const [aiDraft, setAiDraft] = useState<ContractDraft>(draftedData);
-  const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
+  const [isGeneratingDraft] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [reprompt, setReprompt] = useState("");
   const [isReprompting, setIsReprompting] = useState(false);
@@ -162,11 +162,9 @@ export function AIDraftPreview({
     );
   };
 
-
-//   useEffect(() => {
-//     generateDraft();
-//   });
-
+  //   useEffect(() => {
+  //     generateDraft();
+  //   });
 
   if (isGeneratingDraft) {
     return <ContractDraftLoader currentLanguage={currentLanguage} />;

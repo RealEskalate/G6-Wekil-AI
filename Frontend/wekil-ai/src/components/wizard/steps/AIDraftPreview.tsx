@@ -1,40 +1,32 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { Loader2, Bot, Edit3, Send, Eye } from "lucide-react";
 import { ContractData, Language } from "@/components/wizard/ContractWizard";
 import { toast } from "sonner";
+import ContractPreview, {
+  ContractDraft,
+} from "@/components/ContractPreview/ContractPreview";
+import ContractDraftLoader from "@/components/ui/ContractDraftLoader";
 
 interface AIDraftPreviewProps {
   currentLanguage: Language;
   contractData: Partial<ContractData>;
-}
-
-interface DraftSection {
-  heading: string;
-  text: string;
-}
-
-interface Draft {
-  title: string;
-  sections: DraftSection[];
-  signatures: {
-    partyA: string;
-    partyB: string;
-    place: string;
-    date: string;
-  };
+  draftedData: ContractDraft;
+  setDraftedData: (item: ContractDraft) => void;
 }
 
 export function AIDraftPreview({
   currentLanguage,
   contractData,
+  draftedData,
+  setDraftedData,
 }: AIDraftPreviewProps) {
-  const [aiDraft, setAiDraft] = useState<Draft | null>(null);
-  const [isGeneratingDraft, setIsGeneratingDraft] = useState(true);
+  const [aiDraft, setAiDraft] = useState<ContractDraft>(draftedData);
+  const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [reprompt, setReprompt] = useState("");
   const [isReprompting, setIsReprompting] = useState(false);
@@ -71,39 +63,22 @@ export function AIDraftPreview({
   const t = texts[currentLanguage];
 
   // Mock API call to generate AI draft
-  const generateDraft = async () => {
-    setIsGeneratingDraft(true);
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+  // const generateDraft = async () => {
+  //   //
 
-    // Generate draft in the selected language
-    const mockDraft: Draft = {
-      title: getContractTitle(),
-      sections: [
-        {
-          heading: currentLanguage === "en" ? "Parties" : "ተሳታፊዎች",
-          text: getPartiesSection(),
-        },
-        {
-          heading: currentLanguage === "en" ? "Terms" : "ውሎች",
-          text: getTermsSection(),
-        },
-        {
-          heading: currentLanguage === "en" ? "Description" : "መግለጫ",
-          text: contractData.description || "",
-        },
-      ],
-      signatures: {
-        partyA: "",
-        partyB: "",
-        place: contractData.commonDetails?.location || "",
-        date: new Date().toISOString().split("T")[0],
-      },
-    };
+  //   setIsGeneratingDraft(true);
+  //   // Simulate API delay
+  //   await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    setAiDraft(mockDraft);
-    setIsGeneratingDraft(false);
-  };
+  //   // Generate draft in the selected language
+  //   const mockDraft: ContractDraft = {
+  //     ...draftedData,
+  //   };
+
+  //   setAiDraft(mockDraft);
+  //   setDraftedData(mockDraft);
+  //   setIsGeneratingDraft(false);
+  // };
 
   const getContractTitle = () => {
     if (currentLanguage === "en") {
@@ -135,44 +110,47 @@ export function AIDraftPreview({
     }
   };
 
-  const getPartiesSection = () => {
-    const parties = contractData.parties || [];
-    if (currentLanguage === "en") {
-      return `This agreement is between ${
-        parties[0]?.fullName || "Party A"
-      } and ${parties[1]?.fullName || "Party B"}.`;
-    } else {
-      return `ይህ ስምምነት በ${parties[0]?.fullName || "የመጀመሪያ ወገን"} እና በ${
-        parties[1]?.fullName || "ሁለተኛ ወገን"
-      } መካከል ነው።`;
-    }
-  };
+  // const getPartiesSection = () => {
+  //   const parties = contractData.parties || [];
+  //   if (currentLanguage === "en") {
+  //     return `This agreement is between ${
+  //       parties[0]?.fullName || "Party A"
+  //     } and ${parties[1]?.fullName || "Party B"}.`;
+  //   } else {
+  //     return `ይህ ስምምነት በ${parties[0]?.fullName || "የመጀመሪያ ወገን"} እና በ${
+  //       parties[1]?.fullName || "ሁለተኛ ወገን"
+  //     } መካከል ነው።`;
+  //   }
+  // };
 
-  const getTermsSection = () => {
-    const common = contractData.commonDetails;
-    if (!common) return "";
+  // const getTermsSection = () => {
+  //   const common = contractData.commonDetails;
+  //   if (!common) return "";
 
-    if (currentLanguage === "en") {
-      return `The total amount is ${common.totalAmount} ${common.currency}, effective from ${common.startDate} to ${common.endDate}.`;
-    } else {
-      return `ጠቅላላ መጠኑ ${common.totalAmount} ${common.currency} ሲሆን ከ${common.startDate} እስከ ${common.endDate} ድረስ የሚሰራ ነው።`;
-    }
-  };
+  //   if (currentLanguage === "en") {
+  //     return `The total amount is ${common.totalAmount} ${common.currency}, effective from ${common.startDate} to ${common.endDate}.`;
+  //   } else {
+  //     return `ጠቅላላ መጠኑ ${common.totalAmount} ${common.currency} ሲሆን ከ${common.startDate} እስከ ${common.endDate} ድረስ የሚሰራ ነው።`;
+  //   }
+  // };
 
   // Mock API call to update draft with reprompt
   const updateDraftWithPrompt = async () => {
     setIsReprompting(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    // Place to implment Repromt Api
 
     if (aiDraft) {
       const updatedDraft = {
         ...aiDraft,
         sections: aiDraft.sections.map((section) => ({
           ...section,
-          text: section.text + ` [Updated based on: ${reprompt}]`,
+          description: section.description + ` [Updated based on: ${reprompt}]`,
         })),
       };
       setAiDraft(updatedDraft);
+      setDraftedData(updatedDraft);
     }
 
     setReprompt("");
@@ -184,24 +162,14 @@ export function AIDraftPreview({
     );
   };
 
-  useEffect(() => {
-    generateDraft();
-  });
+
+//   useEffect(() => {
+//     generateDraft();
+//   });
+
 
   if (isGeneratingDraft) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-12 h-12 animate-spin mx-auto text-teal-500" />
-          <h3 className="text-lg font-medium">{t.generating}</h3>
-          <p className="text-muted-foreground">
-            {currentLanguage === "en"
-              ? "Please wait while we generate your agreement..."
-              : "እባክዎ ውልዎን እያመነጨን ያለን ይጠብቁ..."}
-          </p>
-        </div>
-      </div>
-    );
+    return <ContractDraftLoader currentLanguage={currentLanguage} />;
   }
 
   return (
@@ -235,77 +203,54 @@ export function AIDraftPreview({
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle>{aiDraft.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {aiDraft.sections.map((section, index) => (
-                <div key={index} className="space-y-2">
-                  <h3 className="font-semibold">{section.heading}</h3>
-                  {isEditMode ? (
-                    <Textarea
-                      value={section.text}
+            <CardHeader>{getContractTitle()}</CardHeader>
+
+            <CardContent className="space-y-6 margin-auto w-9/10 border border-gray-200">
+              {isEditMode ? (
+                <>
+                  <label htmlFor="font-bold text-sm" className="">
+                    title:
+                  </label>
+                  <input
+                    className="min-h-8 font-semibold"
+                    value={aiDraft.title}
+                    onChange={(e) => {
+                      setAiDraft({ ...aiDraft, title: e.target.value });
+                      setDraftedData({ ...aiDraft, title: e.target.value });
+                    }}
+                  />
+                </>
+              ) : null}
+              {isEditMode ? (
+                aiDraft.sections.map((section, index) => (
+                  <div key={index} className="space-y-2">
+                    <input
+                      className="min-h-8 font-semibold"
+                      value={section.title}
                       onChange={(e) => {
                         const newDraft = { ...aiDraft };
-                        newDraft.sections[index].text = e.target.value;
+                        newDraft.sections[index].title = e.target.value;
                         setAiDraft(newDraft);
+                        setDraftedData(newDraft);
+                      }}
+                    />
+                    <Textarea
+                      value={section.description}
+                      onChange={(e) => {
+                        const newDraft = { ...aiDraft };
+                        newDraft.sections[index].description = e.target.value;
+                        setAiDraft(newDraft);
+                        setDraftedData(newDraft);
                       }}
                       className="min-h-24"
                     />
-                  ) : (
-                    <p className="text-sm leading-relaxed">{section.text}</p>
-                  )}
-                </div>
-              ))}
-
-              <div className="pt-6 border-t">
-                <h3 className="font-semibold mb-4">
-                  {currentLanguage === "en" ? "Signatures" : "ፊርማዎች"}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>
-                      {currentLanguage === "en"
-                        ? "Party A Signature"
-                        : "የመጀመሪያ ወገን ፊርማ"}
-                    </Label>
-                    <div className="h-16 border-2 border-dashed border-border rounded-lg flex items-center justify-center text-muted-foreground">
-                      {currentLanguage === "en"
-                        ? "Signature Line"
-                        : "የፊርማ መስመር"}
-                    </div>
                   </div>
-                  <div>
-                    <Label>
-                      {currentLanguage === "en"
-                        ? "Party B Signature"
-                        : "የሁለተኛ ወገን ፊርማ"}
-                    </Label>
-                    <div className="h-16 border-2 border-dashed border-border rounded-lg flex items-center justify-center text-muted-foreground">
-                      {currentLanguage === "en"
-                        ? "Signature Line"
-                        : "የፊርማ መስመር"}
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <Label>
-                      {currentLanguage === "en" ? "Place:" : "ቦታ:"}{" "}
-                      {aiDraft.signatures.place}
-                    </Label>
-                  </div>
-                  <div>
-                    <Label>
-                      {currentLanguage === "en" ? "Date:" : "ቀን:"}{" "}
-                      {aiDraft.signatures.date}
-                    </Label>
-                  </div>
-                </div>
-              </div>
+                ))
+              ) : (
+                <ContractPreview data={aiDraft} />
+              )}
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

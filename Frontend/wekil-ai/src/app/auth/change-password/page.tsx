@@ -14,8 +14,8 @@ import { resetPassword, forgotPassword } from "@/lib/redux/slices/authSlice";
 function ChangePasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get("email") || "";
-
+  const email = searchParams?.get("email") ?? "";
+  
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

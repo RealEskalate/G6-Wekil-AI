@@ -6,7 +6,6 @@ const MyContracts = () => {
   return (
     <div>
       <ViewContract contract={data3} />
-      {/* <ContractLists /> */}
     </div>
   );
 };

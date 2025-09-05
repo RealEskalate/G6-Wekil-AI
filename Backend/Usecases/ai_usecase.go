@@ -5,6 +5,8 @@ import (
 	"strings"
 	"wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type AIUsecase struct {
@@ -45,12 +47,23 @@ func (u *AIUsecase) Extract(ctx context.Context, text, language string) (*domain
 		return nil, err
 	}
 
-	if len(result.Parties) > 0 {
-		result.DisclosingParty = &result.Parties[0]
-	}
-	if len(result.Parties) > 1 {
-		result.ReceivingParty = &result.Parties[1]
-	}
+	result.ID = primitive.NewObjectID()
+
+    if len(result.Parties) > 0 {
+        // Assign a unique ObjectID to the DisclosingParty
+        result.Parties[0].ID = primitive.NewObjectID()
+        result.DisclosingParty = &result.Parties[0]
+    }
+    if len(result.Parties) > 1 {
+        result.Parties[1].ID = primitive.NewObjectID()
+        result.ReceivingParty = &result.Parties[1]
+    }
+    
+    for i := range result.Parties {
+        if result.Parties[i].ID.IsZero() {
+            result.Parties[i].ID = primitive.NewObjectID()
+        }
+    }
 
 	return result, nil
 }
@@ -61,8 +74,8 @@ func (u *AIUsecase) Classify(ctx context.Context, text string) (*domain.Classifi
 }
 
 // Generate document draft (placeholders kept)
-func (u *AIUsecase) Draft(ctx context.Context, intake *domain.Intake, language string) (*domain.Draft, error) {
-	return u.aiRepo.GenerateDocumentDraft(ctx, intake, language)
+func (u *AIUsecase) Draft(ctx context.Context, draftText, language string) (*domain.Draft, error) {
+	return u.aiRepo.GenerateDocumentDraft(ctx, draftText, language)
 }
 
 // Generate draft from prompt (placeholders kept)

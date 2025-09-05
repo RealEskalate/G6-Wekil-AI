@@ -225,6 +225,7 @@ export const resetPassword = createAsyncThunk<
   }
 });
 
+// verify otp
 export const verifyOtp = createAsyncThunk<
   { data: { message?: string; error?: string }; success: boolean },
   { email: string; otp: string },
@@ -251,32 +252,7 @@ export const verifyOtp = createAsyncThunk<
   }
 });
 
-export const refreshToken = createAsyncThunk<
-  { data: { accessToken: string; refreshToken: string }; success: boolean },
-  void,
-  { rejectValue: string }
->("auth/refreshToken", async (_, { rejectWithValue }) => {
-  try {
-    const response = await fetch(`${API_URL}/api/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({}),
-      credentials: 'include',
-    });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    const responseData = await response.json();
-    return responseData;
-  } catch (error: unknown) {
-    return rejectWithValue(getErrorMessage(error));
-  }
-});
 
 // Google Login
 export const loginWithGoogle = createAsyncThunk<
@@ -286,9 +262,10 @@ export const loginWithGoogle = createAsyncThunk<
 >("auth/loginWithGoogle", async (_, { rejectWithValue }) => {
   try {
     const response = await fetch(`${API_URL}/auth/google`, {
-      method: "GET",
+      method: "POST",
       credentials: "include",
     });
+    console.log("Google login response:", response);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -460,18 +437,6 @@ const authSlice = createSlice({
     builder.addCase(verifyOtp.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload || "OTP verification failed";
-      state.success = false;
-    });
-
-    // Refresh Token
-    builder.addCase(refreshToken.fulfilled, (state, action) => {
-      if (state.user) {
-        state.user.accessToken = action.payload.data.accessToken;
-      }
-      state.success = action.payload.success;
-    });
-    builder.addCase(refreshToken.rejected, (state, action) => {
-      state.error = action.payload || "Token refresh failed";
       state.success = false;
     });
   },

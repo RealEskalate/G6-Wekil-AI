@@ -14,7 +14,7 @@ export default function VerifyEmail() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const { user } = useSelector((state: RootState) => state.auth); // ✅ Correct selector
+  const { user } = useSelector((state: RootState) => state.auth);
   const { lang } = useLanguage();
   const t = authTranslations[lang];
   const dispatch = useDispatch<AppDispatch>();
@@ -29,16 +29,16 @@ export default function VerifyEmail() {
       setLoading(false);
       return;
     }
-
     try {
       const res = await dispatch(
         verifyOtp({ email: user.email, otp })
       ).unwrap();
+      console.log(res.success);
 
       if (res.success) {
         toast.success(t.emailVerifiedSuccess);
         setTimeout(() => {
-          window.location.href = "/"; // redirect after success
+          window.location.href = "/";
         }, 1500);
       } else {
         setMessage(res.data.error || "❌ Invalid OTP, please try again.");
@@ -53,7 +53,7 @@ export default function VerifyEmail() {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-50 bg-opacity-50 z-50">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
         <h2 className="text-xl font-semibold text-center mb-4">
           {t.verifyEmailTitle}

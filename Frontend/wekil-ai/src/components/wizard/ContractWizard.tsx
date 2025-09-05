@@ -66,6 +66,7 @@ export interface ContractData {
     effectiveDate?: string;
     confidentialityPeriod?: number;
     purpose?: string;
+    isMutual?: boolean;
   };
   aiDraft?: Record<string, unknown>;
 }

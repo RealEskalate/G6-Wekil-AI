@@ -105,7 +105,7 @@ export default function SpecificDetails({
   const renderMilestones = () => (
     <div>
       <label className="block mb-2 font-medium">{t.milestones}</label>
-      {(specificDetails.milestones || []).map((milestone: any, idx: number) => (
+      {(specificDetails.milestones || []).map((milestone: { description: string; date: string }, idx: number) => (
         <div key={idx} className="flex gap-2 mb-2 items-center">
           <Input
             placeholder={t.milestoneDescription}
@@ -148,7 +148,7 @@ export default function SpecificDetails({
   const renderItems = () => (
     <div>
       <label className="block mb-2 font-medium">{t.items}</label>
-      {(specificDetails.items || []).map((item: any, idx: number) => (
+      {(specificDetails.items || []).map((item: { description: string; quantity: number; unitPrice: number }, idx: number) => (
         <div key={idx} className="grid grid-cols-3 gap-4 mb-2">
           <Input
             placeholder={t.itemDescription}
@@ -200,7 +200,7 @@ export default function SpecificDetails({
   const renderInstallments = () => (
     <div>
       <label className="block mb-2 font-medium">{t.installments}</label>
-      {(specificDetails.installments || []).map((installment: any, idx: number) => (
+      {(specificDetails.installments || []).map((installment: { amount: number; dueDate: string }, idx: number) => (
         <div key={idx} className="flex items-center gap-2 mb-2">
           <Input
             type="number"

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import '../../../../injection_container.dart';
 import '../bloc/auth_bloc.dart';
-import 'package:mobile/injection_container.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   final String email;

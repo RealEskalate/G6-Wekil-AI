@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile/injection_container.dart' as di;
+// import 'package:mobile/injection_container.dart' as di;
 import 'package:file_picker/file_picker.dart';
-import 'package:mobile/core/services/cloudinary_uploader.dart';
+// import 'package:mobile/core/services/cloudinary_uploader.dart';
+import '../../../../core/services/cloudinary_uploader.dart';
+import '../../../../injection_container.dart' as di;
 import '../bloc/setting_bloc.dart';
 
 class EditProfilePage extends StatefulWidget {

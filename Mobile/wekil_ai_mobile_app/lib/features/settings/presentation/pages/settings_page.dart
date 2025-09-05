@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile/injection_container.dart' as di;
+// import 'package:mobile/injection_container.dart' as di;
+import '../../../../injection_container.dart' as di;
 import '../../domain/entities/user_profile.dart';
 import '../bloc/setting_bloc.dart';
 

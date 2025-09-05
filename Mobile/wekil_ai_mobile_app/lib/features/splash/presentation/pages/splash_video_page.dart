@@ -2,9 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:video_player/video_player.dart';
-import 'package:mobile/injection_container.dart' as di;
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:mobile/features/auth/data/datasources/auth_local_data_source.dart';
+
+import '../../../../injection_container.dart' as di;
+import '../../../auth/data/datasources/auth_local_data_source.dart';
 
 class SplashVideoPage extends StatefulWidget {
   const SplashVideoPage({super.key});
@@ -53,7 +54,7 @@ class _SplashVideoPageState extends State<SplashVideoPage> {
       final hasAccess = (tokens?.accessToken.isNotEmpty ?? false);
       final hasRefresh = (tokens?.refreshToken.isNotEmpty ?? false);
       setState(() {
-        _nextRoute = (hasAccess || hasRefresh) ? '/settings' : '/sign-in';
+        _nextRoute = (hasAccess || hasRefresh) ? '/dashboard' : '/sign-in';
       });
     } catch (_) {
       setState(() => _nextRoute = '/sign-in');

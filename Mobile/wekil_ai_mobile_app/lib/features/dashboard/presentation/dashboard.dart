@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localization/flutter_localization.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/create_start_page.dart';
 import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -150,7 +150,7 @@ class DashboardPage extends StatelessWidget {
                           if ((state.recent).isEmpty) {
                             (onCreate ?? () {})();
                           } else {
-                            Navigator.of(context).pushNamed('/agreements');
+                            context.push('/agreements');
                           }
                         },
                         child: Text(

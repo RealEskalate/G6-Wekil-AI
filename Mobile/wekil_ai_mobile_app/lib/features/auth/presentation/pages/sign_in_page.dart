@@ -217,8 +217,8 @@ class _SignInPageState extends State<SignInPage> {
                                 );
                               }
                               if (state is AuthLoginSuccess) {
-                                // Navigate to settings page using GoRouter
-                                context.go('/settings');
+                                // Navigate to dashboard page using GoRouter
+                                context.go('/dashboard');
                               }
                             },
                             builder: (context, state) {

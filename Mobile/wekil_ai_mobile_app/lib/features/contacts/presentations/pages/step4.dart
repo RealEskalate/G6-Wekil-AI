@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/entities/contract_type.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step5.dart';
 import '../../../widget/progress_bar.dart';
 import '../../data/models/contact_data.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -36,20 +36,16 @@ class _CreateStep3State extends State<CreateStep3> {
     super.initState();
 
     _locationController = TextEditingController(
-      text: widget.intake.location ?? '',
+      text: widget.intake.location,
     );
     _amountController = TextEditingController(
       text: widget.intake.totalAmount?.toString() ?? '',
     );
     _startDateController = TextEditingController(
-      text: widget.intake.startDate != null
-          ? DateFormat('dd/MM/yyyy').format(widget.intake.startDate!)
-          : '',
+      text: DateFormat('dd/MM/yyyy').format(widget.intake.startDate),
     );
     _endDateController = TextEditingController(
-      text: widget.intake.endDate != null
-          ? DateFormat('dd/MM/yyyy').format(widget.intake.endDate!)
-          : '',
+      text: DateFormat('dd/MM/yyyy').format(widget.intake.endDate),
     );
 
     _selectedCurrency = _currencies.contains(widget.intake.currency)
@@ -210,7 +206,7 @@ class _CreateStep3State extends State<CreateStep3> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   OutlinedButton.icon(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                     icon: const Icon(Icons.arrow_back_ios),
                     label: const Text("Back"),
                     style: OutlinedButton.styleFrom(
@@ -243,15 +239,10 @@ class _CreateStep3State extends State<CreateStep3> {
                           'dd/MM/yyyy',
                         ).parse(_endDateController.text);
 
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => CreateStep4(
-                              intakeModel: widget.intake,
-                              contractType: widget.contractType,
-                            ),
-                          ),
-                        );
+                        context.push('/contracts/step5', extra: {
+                          'intakeModel': widget.intake,
+                          'contractType': widget.contractType,
+                        });
                       }
                     },
                     icon: const Icon(Icons.arrow_forward_ios),

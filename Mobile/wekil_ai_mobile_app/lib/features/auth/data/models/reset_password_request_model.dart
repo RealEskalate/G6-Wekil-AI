@@ -1,4 +1,4 @@
-import 'package:mobile/features/auth/domain/entities/reset_password_request.dart';
+import '../../domain/entities/reset_password_request.dart';
 
 class ResetPasswordRequestModel extends ResetPasswordRequest {
   const ResetPasswordRequestModel({

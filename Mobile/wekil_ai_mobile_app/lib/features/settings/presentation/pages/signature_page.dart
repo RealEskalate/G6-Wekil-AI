@@ -1,10 +1,13 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:signature/signature.dart';
-import 'package:mobile/injection_container.dart' as di;
+// import 'package:mobile/injection_container.dart' as di;
+import '../../../../core/services/cloudinary_uploader.dart';
+import '../../../../injection_container.dart' as di;
 import '../../../settings/presentation/bloc/setting_bloc.dart';
-import 'package:mobile/core/services/cloudinary_uploader.dart';
+// import 'package:mobile/core/services/cloudinary_uploader.dart';
 
 class SignaturePage extends StatefulWidget {
   const SignaturePage({super.key});
@@ -72,7 +75,7 @@ class _SignaturePageState extends State<SignaturePage> {
           ));
       // Success feedback; actual update result is handled by previous screen's bloc
       // ignore: use_build_context_synchronously
-      Navigator.of(context).pop(true);
+  context.pop(true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Save failed: $e'), backgroundColor: Colors.redAccent),
@@ -89,7 +92,7 @@ class _SignaturePageState extends State<SignaturePage> {
         title: const Text('Digital Signature'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
       ),
       body: Padding(

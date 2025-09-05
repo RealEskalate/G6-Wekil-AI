@@ -14,7 +14,7 @@ export default function VerifyEmail() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const { user } = useSelector((state: RootState) => state.auth); // ✅ Correct selector
+  const { user } = useSelector((state: RootState) => state.auth);
   const { lang } = useLanguage();
   const t = authTranslations[lang];
   const dispatch = useDispatch<AppDispatch>();
@@ -29,11 +29,13 @@ export default function VerifyEmail() {
       setLoading(false);
       return;
     }
-
+    console.log("Verifying OTP:", otp);
+    console.log("Verifying email:", user.email);
     try {
       const res = await dispatch(
         verifyOtp({ email: user.email, otp })
       ).unwrap();
+      console.log(res);
 
       if (res.success) {
         toast.success(t.emailVerifiedSuccess);

@@ -7,14 +7,38 @@ const Contracttype: ("service" | "loan" | "sale" | "nonDisclosure")[] = [
   "sale",
   "nonDisclosure",
 ];
-import { dashboardPageTranslation } from "@/lib/DashboardTranslation/dashboardPageTranslation";
+import { dashboardPageTranslation } from "@/lib/translations/dashboardPageTranslation";
 import { data1, data2, data3, data4 } from "@/types/Contracttype";
 import { DashBoardContract } from "@/components/dashboard/DashBoardContract";
 import Link from "next/link";
 import { Globe } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import WeKilAILoader from "@/components/ui/WekilAILoader";
+
 const Dashboard = () => {
   const { lang, setLang } = useLanguage();
+  const { status } = useSession();
+  const router = useRouter();
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/");
+    } else if (status === "authenticated") {
+      setIsAuthChecked(true);
+    }
+  }, [status, router]);
+
+  if (status === "loading" || !isAuthChecked) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <WeKilAILoader />
+      </div>
+    );
+  }
   return (
     <div className="bg-gray-50 sm:pl-6 lg:pl-8 h-full">
       <div className="p-4 sm:p-6 lg:p-8 w-auto">
@@ -26,7 +50,7 @@ const Dashboard = () => {
         </p>
         <div className="flex justify-center my-4">
           <button
-            className="py-1 px-3 rounded-full border text-sm border-gray-200 mr-6 hover:text-blue-400"
+            className="py-1 px-3 cursor-pointer rounded-full border text-sm border-gray-200 mr-6 hover:text-blue-400"
             onClick={() => (lang == "am" ? setLang("en") : setLang("am"))}
           >
             <Globe className="w-4 h-4 inline mx-2" />

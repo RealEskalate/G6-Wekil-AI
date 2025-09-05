@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // UserRepository implements user persistence for Individuals.
@@ -189,6 +190,54 @@ func (r *UserRepository) UpdateProfile(ctx context.Context, email string, update
 		return errors.New("individual not found")
 	}
 	return nil
+}
+
+// FindAll retrieves a paginated list of individuals with optional sorting.
+func (r *UserRepository) FindAll(ctx context.Context, page, limit int64, sort string) ([]domain.Individual, int64, error) {
+	if page < 1 || limit < 1 {
+		return nil, 0, errors.New("invalid pagination parameters")
+	}
+
+	// Calculate the skip value for pagination
+	skip := (page - 1) * limit
+
+	// Define the sort order
+	sortOrder := bson.D{}
+	if sort != "" {
+		sortOrder = bson.D{{Key: sort, Value: 1}}
+	}
+
+	// Define the projection to exclude the refresh_token field
+	projection := bson.D{{Key: "refresh_token", Value: 0}}
+
+	// Define the options for the query
+	opts := &options.FindOptions{
+		Skip:       &skip,
+		Limit:      &limit,
+		Sort:       sortOrder,
+		Projection: projection,
+	}
+
+	// Execute the query
+	cursor, err := r.collection.Find(ctx, bson.D{}, opts)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to retrieve users: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	// Decode the results into a slice of individuals
+	var users []domain.Individual
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, 0, fmt.Errorf("failed to decode users: %w", err)
+	}
+
+	// Count the total number of documents in the collection
+	totalUsers, err := r.collection.CountDocuments(ctx, bson.D{})
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count users: %w", err)
+	}
+
+	return users, totalUsers, nil
 }
 
 // Compile-time interface assertions (comment out if interfaces differ).

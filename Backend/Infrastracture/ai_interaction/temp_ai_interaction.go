@@ -137,7 +137,6 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 				"purpose": {
 					Type: genai.TypeString,
 				},
-
 			},
 		},
 	}
@@ -207,7 +206,7 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 // GenerateIntake sends a request with a prompt and expects a structured
 // JSON response. It then unmarshals the response into the desired Go struct.
 func (ai *AIInteraction) GenerateIntake(ctx context.Context, prompt string, language string) (*domain.Intake, error) {
-	fullPrompt := fmt.Sprintf("Extract the agreement details from the following text in %s language. Include an explicit field `agreement_type` with value 'sale', 'service', 'loan', or 'nda' based on the text." + "Today is %s. Text: %s", language, time.Now().Format("2006-01-02"), prompt)
+	fullPrompt := fmt.Sprintf("Extract the agreement details from the following text in %s language. Include an explicit field `agreement_type` with value 'sale', 'service', 'loan', or 'nda' based on the text."+"Today is %s. Text: %s", language, time.Now().Format("2006-01-02"), prompt)
 	parts := []genai.Part{genai.Text(fullPrompt)}
 
 	// Send the request and get the response. The SDK handles all HTTP details.

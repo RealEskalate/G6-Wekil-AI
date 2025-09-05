@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import DashboardHeader from "@/components/admin/DashboardHeader";
 import OverviewTab from "@/components/admin/OverviewTab";
@@ -8,11 +8,15 @@ import AnalyticsTab from "@/components/admin/AnalyticsTab";
 import ContractsTab from "@/components/admin/ContractsTab";
 import UsersTab from "@/components/admin/UsersTab";
 import { useLanguage } from "@/context/LanguageContext";
-import { adminTranslation } from "@/lib/adminTranslation";
-import { AnalyticsData, Contract, User } from "@/types/auth";
-import { useEffect } from "react";
+import { adminTranslation } from "@/lib/translations/adminTranslation";
+import { AnalyticsData, Contract } from "@/types/auth";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "@/lib/redux/store";
+import { fetchAdminUsers } from "@/lib/redux/slices/adminSlice";
+import { User } from "@/types/auth";
+import WeKilAILoader from "@/components/ui/WekilAILoader";
 
 export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,57 +30,16 @@ export default function AdminDashboard() {
   const t = adminTranslation[lang];
   const { data: session, status } = useSession();
   const router = useRouter();
+  const accountType = session?.user?.account_type;
+  const token = session?.user?.accessToken;
 
-  useEffect(() => {
-    console.log("Session data:", session);
-    console.log("Session status:", status);
-    if (status === "unauthenticated") {
-      router.replace("/not-authorized");
-    }
-    if (status === "loading") {
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500 dark:text-gray-300">Loading...</p>
-      </div>;
-    }
-    if (!session || session.user?.account_type !== "admin") {
-      router.replace("/not-authorized");
-    }
-  }, [status, router, session]);
-
-  // Mock data
-  const mockUsers: User[] = useMemo(
-    () => [
-      {
-        id: "1",
-        name: "John Doe",
-        email: "john@example.com",
-        joinDate: "2024-01-15",
-        contractsCount: 5,
-        status: "active",
-        lastActivity: "2024-01-25",
-      },
-      {
-        id: "2",
-        name: "ABC Company",
-        email: "contact@abc.com",
-        joinDate: "2024-01-20",
-        contractsCount: 12,
-        status: "active",
-        lastActivity: "2024-01-24",
-      },
-      {
-        id: "3",
-        name: "Jane Smith",
-        email: "jane@example.com",
-        joinDate: "2024-01-10",
-        contractsCount: 3,
-        status: "inactive",
-        lastActivity: "2024-01-20",
-      },
-    ],
-    []
+  // Redux
+  const dispatch = useDispatch<AppDispatch>();
+  const { users, loading, error, totalUsers } = useSelector(
+    (state: RootState) => state.admin
   );
 
+  // --- Mock Contracts & Analytics ---
   const mockContracts: Contract[] = useMemo(
     () => [
       {
@@ -125,7 +88,6 @@ export default function AdminDashboard() {
     []
   );
 
-  const totalUsers = mockUsers.length;
   const totalContracts = mockContracts.length;
   const totalRevenue = mockContracts.reduce(
     (sum, contract) => sum + contract.amount,
@@ -146,16 +108,27 @@ export default function AdminDashboard() {
     });
   }, [searchQuery, contractFilter, mockContracts]);
 
+  const mappedUsers: User[] = users.map((u) => ({
+    id: u.id,
+    name: `${u.first_name} ${u.last_name}`,
+    email: u.email,
+    status: u.is_verified ? "active" : "inactive",
+    contractsCount: 0,
+    joinDate: u.created_at,
+    lastActivity: u.updated_at,
+    telephone: u.telephone || "N/A",
+  }));
   const filteredUsers = useMemo(() => {
-    return mockUsers.filter((user) => {
+    return mappedUsers.filter((user) => {
       const matchesSearch =
         user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase());
+
       const matchesStatus = userFilter === "all" || user.status === userFilter;
+
       return matchesSearch && matchesStatus;
     });
-  }, [searchQuery, userFilter, mockUsers]);
-
+  }, [mappedUsers, searchQuery, userFilter]);
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -174,6 +147,30 @@ export default function AdminDashboard() {
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      dispatch(fetchAdminUsers({ token, page: 1, limit: totalUsers || 100 }));
+    }
+  }, [dispatch, token, totalUsers]);
+
+  useEffect(() => {
+    if (status === "authenticated" && accountType !== "admin") {
+      router.replace("/not-authorized");
+    }
+  }, [status, accountType, router]);
+
+  if (status === "loading" || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <WeKilAILoader />
+      </div>
+    );
+  }
+
+  if (status === "authenticated" && accountType !== "admin") {
+    return null;
+  }
 
   return (
     <div
@@ -198,6 +195,7 @@ export default function AdminDashboard() {
               {t.users}
             </TabsTrigger>
           </TabsList>
+
           <TabsContent value="overview" className="space-y-6">
             <OverviewTab
               stats={{
@@ -209,6 +207,7 @@ export default function AdminDashboard() {
               analyticsData={mockAnalytics}
             />
           </TabsContent>
+
           <TabsContent value="analytics" className="space-y-6">
             <AnalyticsTab
               chartType={chartType}
@@ -217,6 +216,7 @@ export default function AdminDashboard() {
               mockContracts={mockContracts}
             />
           </TabsContent>
+
           <TabsContent value="contracts" className="space-y-6">
             <ContractsTab
               searchQuery={searchQuery}
@@ -229,15 +229,20 @@ export default function AdminDashboard() {
               getStatusColor={getStatusColor}
             />
           </TabsContent>
+
           <TabsContent value="users" className="space-y-6">
-            <UsersTab
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              userFilter={userFilter}
-              setUserFilter={setUserFilter}
-              filteredUsers={filteredUsers}
-              getStatusColor={getStatusColor}
-            />
+            {error ? (
+              <p className="text-red-500">{error}</p>
+            ) : (
+              <UsersTab
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                userFilter={userFilter}
+                setUserFilter={setUserFilter}
+                filteredUsers={filteredUsers}
+                getStatusColor={getStatusColor}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </div>

@@ -1,74 +1,144 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
+import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 
-class NavBar extends StatelessWidget implements PreferredSizeWidget {
+class NavBar extends StatefulWidget implements PreferredSizeWidget {
   const NavBar({Key? key}) : super(key: key);
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  State<NavBar> createState() => _NavBarState();
+}
+
+class _NavBarState extends State<NavBar> {
+  late FlutterLocalization _flutterLocalization;
+  late String _currentLocale;
+  @override
+  void initState() {
+    super.initState();
+    _flutterLocalization = FlutterLocalization.instance;
+    _currentLocale = _flutterLocalization.currentLocale!.languageCode;
+  }
+
+  String currentLanguage = 'EN';
+  bool isHovering = false;
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      automaticallyImplyLeading: false, // Removes back button if not needed
+      automaticallyImplyLeading: false,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      titleSpacing: 0,
       title: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
+          const SizedBox(width: 16),
           Image.asset(
-            'assets/logo.jpg', // Replace with your logo path
-            height: 28,
+            'assets/logo.jpg',
+            height: 40, // larger logo
           ),
-          const SizedBox(width: 8),
-          Text(
-            'Wekil AI',
-            style: AppTypography.heading().copyWith(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
-            ),
-          ),
+          const SizedBox(width: 12),
+          Text('Wekil AI', style: AppTypography.heading(fontSize: 20)),
         ],
       ),
-
       actions: [
-        // Language button with icon + text for better UX
-        Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.language),
-              color: AppColors.textDark.withOpacity(0.7),
-              onPressed: () {
-                // Handle language change logic
+        // Language selector with hover effect
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: MouseRegion(
+            onEnter: (_) => setState(() => isHovering = true),
+            onExit: (_) => setState(() => isHovering = false),
+            cursor: SystemMouseCursors.click,
+            child: PopupMenuButton<String>(
+              tooltip: 'Select Language',
+              onSelected: (lang) {
+                _setLocale(lang);
               },
-            ),
-            TextButton(
-              onPressed: () {
-                // Handle language toggle (EN/አማ)
-              },
-              child: Text(
-                'EN',
-                style: AppTypography.body().copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark.withOpacity(0.7),
+              itemBuilder: (context) => ['en', 'am'].map((lang) {
+                return PopupMenuItem<String>(
+                  value: lang,
+                  child: Row(
+                    children: [
+                      Text(lang == 'en' ? 'English' : 'አማርኛ'),
+                      const Spacer(),
+                      if (_currentLocale == lang)
+                        const Icon(
+                          Icons.check,
+                          size: 18,
+                          color: Colors.green, // You can use AppColors.primary
+                        ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isHovering
+                      ? Colors.green.withOpacity(0.8)
+                      : Colors.transparent, // AppColors.accent
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.language,
+                      color: isHovering
+                          ? Colors.white
+                          : Colors
+                                .black87, // AppColors.textDark.withOpacity(0.7)
+                      size: 18,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _currentLocale.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: isHovering ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_drop_down,
+                      color: isHovering ? Colors.white : Colors.black54,
+                      size: 18,
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
+          ),
         ),
 
+        // Settings button
         IconButton(
           icon: const Icon(Icons.settings),
-          color: AppColors.textDark.withOpacity(0.7),
-          onPressed: () {
-            // Handle settings navigation
-          },
+          iconSize: 18,
+          color: Colors.black54, // AppColors.textDark.withOpacity(0.7)
+          onPressed: () {},
         ),
       ],
-
-      backgroundColor: Colors.white,
-      elevation: 0,
-      centerTitle: true, // Keeps it neat in the middle
     );
   }
 
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  //////////////////////////////////////////////////////////
+  // this is the function that will change the language
+  void _setLocale(String? value) {
+    if (value == null) return;
+    if (value == 'en') {
+      _flutterLocalization.translate('en');
+    } else if (value == 'am') {
+      _flutterLocalization.translate('am');
+    } else {
+      return;
+    }
+    setState(() {
+      _currentLocale = value;
+    });
+  }
 }

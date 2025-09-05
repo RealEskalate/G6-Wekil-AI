@@ -162,9 +162,11 @@ export function AIDraftPreview({
     );
   };
 
-  // useEffect(() => {
-  //   generateDraft();
-  // }, []);
+
+//   useEffect(() => {
+//     generateDraft();
+//   });
+
 
   if (isGeneratingDraft) {
     return <ContractDraftLoader currentLanguage={currentLanguage} />;

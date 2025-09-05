@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	domain "wekil_ai/Domain"
@@ -18,7 +20,7 @@ type AgreementController struct {
 
 // CreateAgreementRequest represents the expected JSON payload for creating an agreement.
 type CreateAgreementRequest struct {
-	Intake        *domain.Intake     `json:"intake"`
+	Intake        *domain.Draft      `json:"draft"`
 	Status        string             `json:"status"`
 	PDFURL        string             `json:"pdf_url"`
 	CreatorID     primitive.ObjectID `json:"creator_id"`
@@ -49,8 +51,8 @@ func (a *AgreementController) GetAgreementByFilter(ctx *gin.Context) {
 		)
 		return
 	}
-	userId := ctx.GetString("user_id")
-	userPrimitiveID, err := primitive.ObjectIDFromHex(userId)
+	userStringID := ctx.GetString("user_id")
+	userPrimitiveID, err := primitive.ObjectIDFromHex(userStringID)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -99,35 +101,44 @@ func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 		return
 	}
 
-	userIDValue, exists := ctx.Get("user_id")
-	if !exists {
+	userIDValue := ctx.GetString("user_id")
+	if userIDValue == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
-			"data": gin.H{"message": "User not authenticated"},
+			"data":    gin.H{"message": "User not authenticated"},
 		})
 		return
 	}
 
-	creatorID, ok := userIDValue.(primitive.ObjectID) // Assuming you use MongoDB ObjectID
-	if !ok || creatorID.IsZero() {
+	creatorID_, err := primitive.ObjectIDFromHex(userIDValue)
+	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
-			"data": gin.H{"message": "Invalid user ID"},
+			"data":    gin.H{"message": "Invalid user ID"},
 		})
 		return
 	}
-
-	// Validate other required fields
-	if req.Intake == nil || req.Status == "" || req.PDFURL == "" {
+	req.CreatorID = creatorID_ // ASSIGN THE USER IT'S ID
+	newIntakeFromDraft, err := a.AIInteraction.GenerateIntake(context.Background(), req.Intake.String(), domain.EnglishLang)
+	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"data": gin.H{"message": "Missing required fields"},
+			"data":    gin.H{"message": "Missing required fields"},
+		})
+		return
+	}
+	// Validate other required fields
+	log.Println("‼️\n", req)
+	if newIntakeFromDraft == nil || req.Status == "" || req.PDFURL == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data":    gin.H{"message": "Missing required fields"},
 		})
 		return
 	}
 
 	newAgreement, err := a.AgreementUseCase.CreateAgreement(
-		req.Intake,
+		newIntakeFromDraft,
 		req.Status,
 		req.PDFURL,
 		req.CreatorID,
@@ -143,7 +154,7 @@ func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 		}
 		ctx.JSON(status, gin.H{
 			"success": false,
-			"data": gin.H{"message": msg},
+			"data":    gin.H{"message": msg},
 		})
 		return
 	}
@@ -160,7 +171,7 @@ func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 // DeleteAgreement implements domain.IAgreementController.
 func (a *AgreementController) DeleteAgreement(ctx *gin.Context) {
 	var getID domain.GetAgreementID
-	userId := ctx.GetString("user_id")
+	userStringID := ctx.GetString("user_id")
 	if err := ctx.ShouldBindJSON(&getID); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -170,7 +181,7 @@ func (a *AgreementController) DeleteAgreement(ctx *gin.Context) {
 		})
 		return
 	}
-	userPrimitiveID, err := primitive.ObjectIDFromHex(userId)
+	userPrimitiveID, err := primitive.ObjectIDFromHex(userStringID)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -228,7 +239,7 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
-			"data": gin.H{"message": "Invalid original_agreement_id format"},
+			"data":    gin.H{"message": "Invalid original_agreement_id format"},
 		})
 		return
 	}
@@ -236,7 +247,7 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 	if !exists {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
-			"data": gin.H{"message": "User not authenticated"},
+			"data":    gin.H{"message": "User not authenticated"},
 		})
 		return
 	}
@@ -244,7 +255,7 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 	if !ok || callerID.IsZero() {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
-			"data": gin.H{"message": "Invalid user ID"},
+			"data":    gin.H{"message": "Invalid user ID"},
 		})
 		return
 	}
@@ -260,7 +271,7 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 		}
 		ctx.JSON(status, gin.H{
 			"success": false,
-			"data": gin.H{"message": msg},
+			"data":    gin.H{"message": msg},
 		})
 		return
 	}
@@ -269,9 +280,9 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
-			"message":     "Agreement duplicated successfully",
-			"new_intake":  newIntake,
-			"new_draft":   newDraft,
+			"message":    "Agreement duplicated successfully",
+			"new_intake": newIntake,
+			"new_draft":  newDraft,
 		},
 	})
 }
@@ -280,7 +291,7 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 
 	var getID domain.GetAgreementID
-	userId := ctx.GetString("user_id")
+	userStringID := ctx.GetString("user_id")
 	if err := ctx.ShouldBindJSON(&getID); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -290,8 +301,8 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 		})
 		return
 	}
-	userPrimitiveID, err := primitive.ObjectIDFromHex(userId)
-
+	userPrimitiveID, err := primitive.ObjectIDFromHex(userStringID)
+	log.Println("⚡", userPrimitiveID, err, "from userStringId", userStringID)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -333,7 +344,7 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 // GetAgreementByUserID implements domain.IAgreementController.
 // ? this one is only for pagination purpose
 func (a *AgreementController) GetAgreementByUserID(ctx *gin.Context) {
-	userId := ctx.GetString("user_id")
+	userStringID := ctx.GetString("user_id")
 	var agreementFilter domain.AgreementFilter
 	if err := ctx.ShouldBindJSON(&agreementFilter); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -344,7 +355,7 @@ func (a *AgreementController) GetAgreementByUserID(ctx *gin.Context) {
 		})
 		return
 	}
-	userPrimitiveID, err := primitive.ObjectIDFromHex(userId)
+	userPrimitiveID, err := primitive.ObjectIDFromHex(userStringID)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -374,6 +385,7 @@ func (a *AgreementController) GetAgreementByUserID(ctx *gin.Context) {
 
 // SaveAgreement implements domain.IAgreementController.
 func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
+	log.Println("✅ in SaveAgreement")
 	var aR domain.AgreementRequest
 	if err := ctx.ShouldBindJSON(&aR); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -384,11 +396,12 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 		})
 		return
 	}
-	userId := ctx.GetString("user_id")
+	userStringID := ctx.GetString("user_id")
 	ownerEmail := ctx.GetString("email")
-	userID, err := primitive.ObjectIDFromHex(userId)
+	userID, err := primitive.ObjectIDFromHex(userStringID)
+	log.Printf("%+v, %+v, %+v,\n", userStringID, ownerEmail, userID)
 	if err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"data": gin.H{
 				"message": "Unautorized user",
@@ -402,7 +415,7 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"data": gin.H{
-				"message": "your agreement is complex",
+				"message": fmt.Sprintf("your agreement is complex | %s", res.Category),
 			},
 		})
 		return
@@ -410,6 +423,7 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 
 	// create the intake form the draft
 	intake, err := a.AIInteraction.GenerateIntake(context.Background(), aR.DraftText, domain.EnglishLang)
+	log.Printf("✅ INTAKE RESULT \n%#v\n ERROR \n %#v\n", intake, err)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,
@@ -429,6 +443,7 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 
 	// pass the intake to the CreateAgreement
 	agreement, err := a.AgreementUseCase.CreateAgreement(intake, aR.AgrementInfo.Status, aR.AgrementInfo.PDFURL, userID, email_to_send, aR.AgrementInfo.CreatorSigned)
+	log.Printf("✅ AGREEMENT RESULT \n%#v\n ERROR \n %#v\n", agreement, err)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,
@@ -476,8 +491,8 @@ func (a *AgreementController) SignitureHandling(ctx *gin.Context) {
 		})
 		return
 	}
-	userId := ctx.GetString("user_id")
-	userID, err := primitive.ObjectIDFromHex(userId)
+	userStringID := ctx.GetString("user_id")
+	userID, err := primitive.ObjectIDFromHex(userStringID)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"success": false,
@@ -519,8 +534,9 @@ func (a *AgreementController) UpdateAgreement(ctx *gin.Context) {
 	panic("unimplemented")
 }
 
-func NewAgreementController(agreementUseCase domainInter.IAgreementUseCase) domainInter.IAgreementController {
+func NewAgreementController(agreementUseCase domainInter.IAgreementUseCase, aiInterface domainInter.IAIInteraction) domainInter.IAgreementController {
 	return &AgreementController{
 		AgreementUseCase: agreementUseCase,
+		AIInteraction:    aiInterface,
 	}
 }

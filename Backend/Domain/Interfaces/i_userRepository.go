@@ -13,7 +13,7 @@ type IIndividualRepository interface {
 	CreateIndividual(ctx context.Context,individual *domain.Individual) (*domain.Individual, error)
 	FindByEmail(ctx context.Context,email string) (*domain.Individual, error)
 	FindByID(ctx context.Context,individualID primitive.ObjectID) (*domain.Individual, error)
-	FindUser(ctx context.Context,userID string) (*domain.Individual, error)
+	// FindUser(ctx context.Context,userID string) (*domain.Individual, error)
 	UpdateIndividual(ctx context.Context,individualID primitive.ObjectID, updates map[string]interface{}) (error) // for the time being
 	UpdateResetOTP(ctx context.Context, email, otp string) error
     VerifyResetOTP(ctx context.Context, email, otp string) error

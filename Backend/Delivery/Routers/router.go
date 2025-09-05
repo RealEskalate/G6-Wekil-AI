@@ -36,6 +36,7 @@ func Router(uc domain.IUserController, ai domain.IAIController, ag domain.IAgree
 	mainRouter.GET("/api/users/notification", authMiddleware.JWTAuthMiddleware(), uc.HandleNotifications)
 	mainRouter.GET("/auth/:provider", uc.SignInWithProvider)
 	mainRouter.GET("/auth/:provider/callback", uc.CallbackHandler)
+	mainRouter.POST("/auth/nextjs", uc.GoogleAuthHandler)
 	mainRouter.GET("/success", uc.Success)
 
 	aiRoutes := mainRouter.Group("/ai")
@@ -60,14 +61,14 @@ func Router(uc domain.IUserController, ai domain.IAIController, ag domain.IAgree
 	}
 
 	agreementRoutes := mainRouter.Group("/agreement")
-	// agreement.Use(authMiddleware.JWTAuthMiddleware())
+	agreementRoutes.Use(authMiddleware.JWTAuthMiddleware())
 	{
-		agreementRoutes.POST("/create", ag.CreateAgreement) //todo: DELETE this one since it's not accepting DRAFT as the saving is.
+		agreementRoutes.POST("/create", ag.CreateAgreement) //TODO: DELETE this one since it's not accepting DRAFT as the saving is.
 		agreementRoutes.POST("/handle-signature", ag.SignitureHandling)
 		agreementRoutes.DELETE("/delete", ag.DeleteAgreement)
 		agreementRoutes.POST("/duplicate", ag.DuplicateAgreement)
-		mainRouter.POST("/save ", authMiddleware.JWTAuthMiddleware(), ag.SaveAgreement) //? ag.SaveAgreement is used for both saving and sending. (if the status is pending then it should both (save and send) if it's draft then it will ONLY save it)
-		mainRouter.POST("/send ", authMiddleware.JWTAuthMiddleware(), ag.SaveAgreement) //? ag.SaveAgreement is used for both saving and sending. (if the status is pending then it should both (save and send) if it's draft then it will ONLY save it)
+		agreementRoutes.POST("/save", authMiddleware.JWTAuthMiddleware(), ag.SaveAgreement) //? ag.SaveAgreement is used for both saving and sending. (if the status is pending then it should both (save and send) if it's draft then it will ONLY save it)
+		agreementRoutes.POST("/send", authMiddleware.JWTAuthMiddleware(), ag.SaveAgreement) //? ag.SaveAgreement is used for both saving and sending. (if the status is pending then it should both (save and send) if it's draft then it will ONLY save it)
 
 		agreementRoutes.GET("", ag.GetAgreementByID)
 		agreementRoutes.GET("/filter", ag.GetAgreementByFilter)

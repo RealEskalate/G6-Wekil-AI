@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { Globe, Download, Send, FileText, AlertTriangle } from "lucide-react";
 import { Language } from "@/components/wizard/ContractWizard";
 import { toast } from "sonner";
-import ContractPreview, {
-  ContractDraft,
-} from "@/components/ContractPreview/ContractPreview";
+import ContractPreview from "@/components/ContractPreview/ContractPreview";
+import { ContractDraft } from "@/types/Contracttype";
 
 interface FinalPreviewProps {
   currentLanguage: Language;
@@ -82,17 +81,17 @@ export function FinalPreview({
         : "ረቂቁ በተሳካ ሁኔታ ተቀምጧል!"
     );
   };
-  
+
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      const response = await fetch("/api/pdfDraft",{
+      const response = await fetch("/api/pdfDraft", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(draftedData)
-      })
+        body: JSON.stringify(draftedData),
+      });
       const data = await response.json();
 
       if (data.file) {
@@ -115,7 +114,7 @@ export function FinalPreview({
     } catch (error) {
       console.log(error);
     }
-    setIsExporting(false)
+    setIsExporting(false);
   };
 
   const handleShare = () => {
@@ -178,17 +177,16 @@ export function FinalPreview({
       </div>
 
       <div className="flex gap-2 justify-end">
-        <Button
-          variant="outline"
-          onClick={handleSaveDraft}
-          
-          className="gap-2 "
-        >
+        <Button variant="outline" onClick={handleSaveDraft} className="gap-2 ">
           <FileText className="w-4 h-4" />
           {t.saveDraft}
         </Button>
-        <Button variant="outline" onClick={handleExport} disabled={isExporting} className="gap-2 disabled">
-          
+        <Button
+          variant="outline"
+          onClick={handleExport}
+          disabled={isExporting}
+          className="gap-2 disabled"
+        >
           {!isExporting ? (
             <>
               <Download className="w-4 h-4" />

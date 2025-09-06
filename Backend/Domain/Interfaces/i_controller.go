@@ -19,5 +19,5 @@ type IUserController interface {
 	ChangePasswordHandler(ctx *gin.Context)
 	ResendOTPHandler(ctx *gin.Context)
 	GetAllUsers(ctx *gin.Context)
-	
+	GoogleAuthHandler(c *gin.Context)
 }

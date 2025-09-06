@@ -104,7 +104,7 @@ class RecentContractCard extends StatelessWidget {
                   lowercase: true,
                 ),
                 const Spacer(),
-                _EditIcon(onPressed: onEdit),
+                // edit removed per UX: no edit action on recent card
               ],
             ),
             const SizedBox(height: 10),
@@ -185,34 +185,6 @@ class _Pill extends StatelessWidget {
           color: color.darken(0.1),
           fontSize: 12,
           fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-class _EditIcon extends StatelessWidget {
-  final VoidCallback? onPressed;
-  const _EditIcon({this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkResponse(
-      onTap: onPressed,
-      radius: 18,
-      child: Container(
-        width: 32,
-        height: 28,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: theme.dividerColor.withOpacity(.25)),
-        ),
-        child: const AppSvgIcon(
-          name: 'pencil-square',
-          size: 16,
-          fallback: Icons.edit_outlined,
         ),
       ),
     );

@@ -61,7 +61,7 @@ type Intake struct {
 
 	// Loan-specific fields
 	Principal      float64       `json:"principal,omitempty" bson:"principal,omitempty"`
-	Installments   []Installment `json:"installments,omitempty" bson:"installments,omitempty"`
+	Installments   *Installment `json:"installments,omitempty" bson:"installments,omitempty"`
 	LateFeePercent float64       `json:"late_fee_percent,omitempty" bson:"late_fee_percent,omitempty"`
 
 	// NDA fields

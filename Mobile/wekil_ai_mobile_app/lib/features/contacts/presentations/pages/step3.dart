@@ -109,6 +109,11 @@ class _CreateStep2State extends State<CreateStep2> {
           "partyA": "Party A (Disclosing Party)",
           "partyB": "Party B (Receiving Party)",
         };
+      default:
+        return {
+          "partyA": "Party A",
+          "partyB": "Party B",
+        };
     }
   }
 

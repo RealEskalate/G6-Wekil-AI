@@ -11,15 +11,13 @@ import '../models/app_notification_model.dart';
 
 class DashboardRemoteDataSource {
   final String baseUrl;
-  final Future<String?> Function()? tokenProvider;
   final http.Client client;
 
   DashboardRemoteDataSource({
     String? baseUrl,
-    this.tokenProvider,
     http.Client? client,
-  }) : baseUrl = baseUrl ?? 'https://g6-wekil-ai-1.onrender.com',
-       client = client ?? http.Client();
+  })  : baseUrl = baseUrl ?? 'https://g6-wekil-ai-1.onrender.com',
+        client = client ?? http.Client();
 
   // TODO: Replace with real backend call.
   Future<Map<String, int>> fetchSummary() async {
@@ -29,14 +27,9 @@ class DashboardRemoteDataSource {
 
   // Fetch the list of agreements; backend sorts by default. We'll take top N in repo.
   Future<List<Agreement>> fetchAgreements() async {
-    final uri = Uri.parse('$baseUrl/api/agreements');
+    // Use baseUrl consistently; adjust path as needed for your backend
+    final uri = Uri.parse('$baseUrl/agreement/userID?page=1');
     final headers = <String, String>{'Content-Type': 'application/json'};
-    final raw = (await tokenProvider?.call())?.trim();
-    if (raw != null && raw.isNotEmpty) {
-      final hasBearer = raw.toLowerCase().startsWith('bearer ');
-      headers['Authorization'] = hasBearer ? raw : 'Bearer $raw';
-    }
-
     final res = await client.get(uri, headers: headers);
     if (res.statusCode >= 200 && res.statusCode < 300) {
       return AgreementModel.listFromJsonString(res.body);
@@ -47,14 +40,14 @@ class DashboardRemoteDataSource {
 
   // Fetch current user's profile
   Future<Individual?> fetchProfile() async {
-    final uri = Uri.parse('$baseUrl/api/users/profile');
-    final headers = <String, String>{'Content-Type': 'application/json'};
-    final raw = (await tokenProvider?.call())?.trim();
-    if (raw != null && raw.isNotEmpty) {
-      final hasBearer = raw.toLowerCase().startsWith('bearer ');
-      headers['Authorization'] = hasBearer ? raw : 'Bearer $raw';
-    }
-
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final uri = Uri.parse('$baseUrl/api/users/profile?ts=$ts');
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    };
     final res = await client.get(uri, headers: headers);
     if (res.statusCode >= 200 && res.statusCode < 300) {
       // Response shape: { data: { ...profile... }, success: true }
@@ -74,12 +67,6 @@ class DashboardRemoteDataSource {
   Future<AppNotification?> fetchNotification() async {
     final uri = Uri.parse('$baseUrl/api/users/notification');
     final headers = <String, String>{'Content-Type': 'application/json'};
-    final raw = (await tokenProvider?.call())?.trim();
-    if (raw != null && raw.isNotEmpty) {
-      final hasBearer = raw.toLowerCase().startsWith('bearer ');
-      headers['Authorization'] = hasBearer ? raw : 'Bearer $raw';
-    }
-
     final res = await client.get(uri, headers: headers);
     if (res.statusCode >= 200 && res.statusCode < 300) {
       try {

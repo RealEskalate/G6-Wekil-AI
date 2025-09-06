@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step7.dart';
 import 'package:wekil_ai_mobile_app/features/widget/progress_bar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -39,7 +39,7 @@ class _CreateStep5State extends State<CreateStep5> {
       print('this is partes two:\n${widget.intakeModel.parties[1].name}');
       print('Intake Data (local test):\n${widget.intakeModel}');
 
-      Navigator.pop(context, true);
+  context.pop(true);
       return;
     }
 
@@ -50,7 +50,7 @@ class _CreateStep5State extends State<CreateStep5> {
         widget.intakeModel,
         _changesController.text,
       ); // use !
-      Navigator.pop(context, true);
+  context.pop(true);
       // print('Intake Data after changes:\n${widget.intakeModel}'); // also log here
     } catch (e) {
       ScaffoldMessenger.of(
@@ -100,13 +100,9 @@ class _CreateStep5State extends State<CreateStep5> {
                         _submitChanges();
 
                         // Then navigate to PDF page
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                PdfChangerPage(intakeModel: widget.intakeModel),
-                          ),
-                        );
+                        context.push('/contracts/pdf', extra: {
+                          'intakeModel': widget.intakeModel,
+                        });
                       },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,

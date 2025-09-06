@@ -45,6 +45,7 @@ type UpdateIndividualDTO struct {
 
 type UserClaims struct {
 	UserID      string `json:"id"`
+	UserName    string `json:"user_name"`
 	Email       string `json:"email"`
 	IsVerified  bool   `json:"is_verified"`
 	AccountType string `json:"account_type"`
@@ -92,13 +93,8 @@ type UpdateProfileRequestDTO struct {
 	ProfileImage *string `json:"profile_image,omitempty" binding:"omitempty,url"`
 }
 
-type Notification struct {
-	SenderID    primitive.ObjectID `json:"sender_id,omitempty" bson:"sender_id,omitempty"`
-	ReceiverID  primitive.ObjectID `json:"receiver_id,omitempty" bson:"receiver_id,omitempty"`
-	Title       string             `json:"title" bson:"title"`     // e.g., "New Document Request"
-	Message     string             `json:"message" bson:"message"` // e.g., "You have a request in your email"
-	AgreementID primitive.ObjectID `json:"agreement_id" bson:"agreement_id"`
-}
+// Notification represents a notification document sent to users.
+
 
 type ChangePasswordRequestDTO struct {
 	OldPassword string `json:"old_password" bson:"old_password" binding:"required,min=6,max=50"`
@@ -109,11 +105,35 @@ type ResendOTPRequestDTO struct {
 }
 
 type GoogleProfile struct {
-  Sub           string `json:"sub"`
-  Name          string `json:"name"`
-  GivenName     string `json:"given_name"`
-  FamilyName    string `json:"family_name"`
-  Email         string `json:"email"`
-  EmailVerified bool   `json:"email_verified"`
-  Picture       string `json:"picture"`
+	Sub           string `json:"sub"`
+	Name          string `json:"name"`
+	GivenName     string `json:"given_name"`
+	FamilyName    string `json:"family_name"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
+	Picture       string `json:"picture"`
+}
+
+// ? well today is saturday and smn is not responding so:
+type Notification_ struct {
+	ID         string    `json:"_id" bson:"_id"`
+	Recipient  User_     `json:"recipient" bson:"recipient"`
+	Sender     User_     `json:"sender" bson:"sender"`
+	Type       string    `json:"type" bson:"type"`
+	Content    Content_  `json:"content" bson:"content"`
+	IsRead     bool      `json:"is_read" bson:"is_read"`
+	IsArchived bool      `json:"is_archived" bson:"is_archived"`
+	CreatedAt  time.Time `json:"created_at" bson:"created_at"`
+	ReadAt     time.Time `json:"read_at" bson:"read_at,omitempty"`
+	TargetURL  string    `json:"target_url" bson:"target_url"`
+}
+
+type User_ struct {
+	UserID   primitive.ObjectID `json:"user_id,omitempty" bson:"user_id,omitempty"`
+	UserName string             `json:"user_name,omitempty" bson:"user_name,omitempty"`
+	Email    string             `json:"email" bson:"email"`
+}
+type Content_ struct {
+	Title string `json:"title" bson:"title"`
+	Body  string `json:"body" bson:"body"`
 }

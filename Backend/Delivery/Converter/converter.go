@@ -26,3 +26,11 @@ func ToIndividual(u *domain.UnverifiedUserDTO) *domain.Individual {
 		UpdatedAt:    time.Now(),
 	}
 }
+
+func ToListPtrObject(old []domain.Notification_) []*domain.Notification_{
+	res := []*domain.Notification_{}
+	for _, each_notification := range old{
+		res = append(res, &each_notification)
+	}
+	return  res
+}

@@ -1,5 +1,6 @@
 package repository
 
+/*
 import (
 	"context"
 	"errors"
@@ -84,3 +85,4 @@ func (r *NotificationRepo) CreateNotification(ctx context.Context, notification 
     }
     return notification, nil
 }
+*/

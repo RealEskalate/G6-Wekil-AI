@@ -15,20 +15,24 @@ import (
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
 )
+
 const (
 	_GEMINI_FLASH_2_5 = "gemini-2.5-flash"
 	_GEMINI_FLASH_1_5 = "gemini-1.5-flash"
 )
+
 var _CURR_GEMINI_MODEL_USING = _GEMINI_FLASH_2_5
+
 // domain.ClassifierResult represents the structured JSON response from the classifier prompt.
 
 // domain.Draft represents the structured JSON response for the document template.
 
 // AIInteraction encapsulates the generative AI clients for different tasks.
 type AIInteraction struct {
-	IntakeClient     *genai.GenerativeModel
-	ClassifierClient *genai.GenerativeModel
-	DocumentClient   *genai.GenerativeModel
+	IntakeClient          *genai.GenerativeModel
+	ClassifierClient      *genai.GenerativeModel
+	DocumentClient        *genai.GenerativeModel
+	TitleGeneratingClient *genai.GenerativeModel
 }
 
 func extractJSON(raw string) (string, error) {
@@ -119,16 +123,25 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 				"delivery_terms": {Type: genai.TypeString},
 				"principal":      {Type: genai.TypeNumber},
 				"installments": {
-					Type: genai.TypeArray,
-					Items: &genai.Schema{
-						Type: genai.TypeObject,
-						Properties: map[string]*genai.Schema{
-							"amount":   {Type: genai.TypeNumber},
-							"due_date": {Type: genai.TypeString, Format: "date-time"},
-						},
-						Required: []string{"amount", "due_date"},
-					},
-				},
+    Type: genai.TypeObject,
+    Description: "Loan repayment schedule. Include only if agreement_type = loan.",
+    Properties: map[string]*genai.Schema{
+        "amount": {
+            Type:        genai.TypeNumber,
+            Description: "The amount to be paid per installments.",
+        },
+        "payment_term": {
+            Type:        genai.TypeString,
+            Description: "Repayment frequency (daily, weekly, monthly, quarterly).",
+        },
+        "due_date": {
+            Type:        genai.TypeString,
+            Format:      "date-time",
+            Description: "The due date for the first/next installments.",
+        },
+    },
+    Required: []string{"amount", "payment_term", "due_date"},
+},
 				"late_fee_percent": {Type: genai.TypeNumber},
 				"disclosingParty": {
 					Type: genai.TypeObject,
@@ -166,7 +179,7 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 	}
 
 	// 2. Initialize and configure the client for the Classification task.
-	classifierModel := baseClient.GenerativeModel("gemini-2.5-flash")
+	classifierModel := baseClient.GenerativeModel(_CURR_GEMINI_MODEL_USING)
 	classifierModel.GenerationConfig = genai.GenerationConfig{
 		ResponseMIMEType: "application/json",
 		ResponseSchema: &genai.Schema{
@@ -188,7 +201,7 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 
 	// 3. Initialize and configure the client for the Document Draft task.
 	// This configuration uses the schema from the 'Draft' model to ensure a structured JSON response.
-	documentModel := baseClient.GenerativeModel("gemini-2.5-flash")
+	documentModel := baseClient.GenerativeModel(_CURR_GEMINI_MODEL_USING)
 	documentModel.GenerationConfig = genai.GenerationConfig{
 		ResponseMIMEType: "application/json",
 		ResponseSchema: &genai.Schema{
@@ -219,20 +232,37 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 			},
 		},
 	}
-
+	// 4. This configuration defines a JSON schema for a single string response.
+	singleStringModel := baseClient.GenerativeModel(_GEMINI_FLASH_1_5) //? I set gemini-1.5-flash here since we don't need that much intelegenece on the Title drafting
+	singleStringModel.GenerationConfig = genai.GenerationConfig{
+		ResponseMIMEType: "application/json",
+		ResponseSchema: &genai.Schema{
+			Type: genai.TypeObject,
+			Properties: map[string]*genai.Schema{
+				"title": {Type: genai.TypeString, Description: "take the first words to generate a title if you find it descriptive or "},
+			},
+			Required: []string{"title"},
+		},
+	}
 	return &AIInteraction{
-		IntakeClient:     intakeModel,
-		ClassifierClient: classifierModel,
-		DocumentClient:   documentModel,
+		IntakeClient:          intakeModel,
+		ClassifierClient:      classifierModel,
+		DocumentClient:        documentModel,
+		TitleGeneratingClient: singleStringModel,
 	}, nil
 }
+
 // GenerateIntake sends a request with a prompt and expects a structured
 // JSON response. It then unmarshals the response into the desired Go struct.
 func (ai *AIInteraction) GenerateIntake(ctx context.Context, prompt string, language string) (*domain.Intake, error) {
 	fullPrompt := fmt.Sprintf(
-		"Extract the agreement details from the following text in %s language. "+
-			"Include an explicit field `agreement_type` with value 'sale', 'service', 'loan', or 'nda' based on the text. "+
-			"Today is %s. Text: %s",
+		 "Extract the agreement details from the following text in %s language. "+
+        "Include an explicit field `agreement_type` with value 'sale', 'service', 'loan', or 'nda' based on the text. "+
+        "Rules: "+
+        "- If agreement_type = 'loan', include an `installment` object with `amount`, `payment_term` (daily, weekly, monthly, quarterly), and `due_date`. "+
+        "- If agreement_type = 'nda', include `disclosing_party` and `receiving_party`. "+
+        "- For all other agreement types, omit these fields entirely. "+
+        "Today is %s. Text: %s",
 		language, time.Now().Format("2006-01-02"), prompt)
 
 	parts := []genai.Part{genai.Text(fullPrompt)}
@@ -259,7 +289,7 @@ func (ai *AIInteraction) GenerateIntake(ctx context.Context, prompt string, lang
 	if err != nil {
 		return nil, fmt.Errorf("failed to extract JSON: %w", err)
 	}
-	log.Println("🤖 ", _CURR_GEMINI_MODEL_USING ,"\n" , cleanJSON)
+	log.Println("🤖 ", _CURR_GEMINI_MODEL_USING, "\n", cleanJSON)
 	// Unmarshal into Intake struct.
 	var intakeResponse domain.Intake
 	if err := json.Unmarshal([]byte(cleanJSON), &intakeResponse); err != nil {
@@ -319,27 +349,46 @@ func (ai *AIInteraction) GenerateDocumentDraft(ctx context.Context, intake *doma
 	// Define the prompt for the AI.
 	prompt := fmt.Sprintf(`
 		Fill this one-page template in simple %s language. Avoid legal jargon. Keep each section short (2–4 lines).
-		Include the agreement type in the draft: %s.
 
-		For all parties, do NOT use their actual names. Always use placeholders:
-		  - "<<Party A>>"
-		  - "<<Party B>>"
-		For signatures, always return placeholders:
-		  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
+⚠️ Important:
+1. The "title" must be short and descriptive, e.g., "Service Agreement", "Loan Agreement", "NDA". Do NOT include details in the title.
+2. All other details must go into "sections". Example section headings:
+   - Parties
+   - Services (for service agreements)
+   - Milestones (if applicable)
+   - Payment / Installments
+   - Duration
+   - Termination / Other Terms
+3. For all parties, use placeholders: "<<Party A>>", "<<Party B>>"
+4. Signatures must use placeholders: { "party_a": "<<Signature>>", "party_b": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
+5. Include a disclaimer as the last section:
+   { "heading": "Disclaimer", "text": "This document is for information only and is not legal advice. Consult a qualified lawyer." }
 
-		Always include this footer:
-		  "This document is for information only and is not legal advice. Consult a qualified lawyer."
+Input JSON (sensitive fields ignored): <<%s>>
 
-		Input JSON (sensitive fields ignored): <<%s>>
+Output format:
+{
+  "title": "short descriptive title here",
+  "sections": [
+    { "heading": "Parties", "text": "..." },
+    { "heading": "Services", "text": "..." },
+    { "heading": "Milestones", "text": "..." },
+    { "heading": "Payment", "text": "..." },
+    { "heading": "Duration", "text": "..." },
+    { "heading": "Termination", "text": "..." },
+    { "heading": "Disclaimer", "text": "..." }
+  ],
+  "signatures": {
+    "party_a": "<<Signature>>",
+    "party_b": "<<Signature>>",
+    "place": "<<Place>>",
+    "date": "<<Date>>"
+  }
+}
 
-		Output format:
-		{
-		  "title": "...",
-		  "sections": [{ "heading": "...", "text": "..." }],
-		  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
-		}
-		Today is: %s`,
-		language, intake.AgreementType, string(intakeJSON), time.Now().Format("2006-01-02"))
+Today is: %s
+`,
+		language, string(intakeJSON), time.Now().Format("2006-01-02"))
 
 	parts := []genai.Part{genai.Text(prompt)}
 
@@ -380,9 +429,9 @@ func (ai *AIInteraction) GenerateDraftFromPrompt(ctx context.Context, draft *dom
 	if len(draft.Sections) == 0 {
 		draft.Sections = []domain.Section{
 			{
-				Heading: "Summary",
-				Text:    draft.Title, // fallback; ideally raw content if available
-			},
+				Heading: "Introduction",
+            	Text:    "This section introduces the purpose of the agreement and identifies the involved parties.",
+        },
 		}
 	}
 
@@ -404,30 +453,24 @@ func (ai *AIInteraction) GenerateDraftFromPrompt(ctx context.Context, draft *dom
 
 	// Build the AI prompt
 	prompt := fmt.Sprintf(`
-Fill this one-page template in simple %s language. Avoid legal jargon. Keep each section short (2–4 lines).
+Fill this one-page template in simple %s. Avoid legal jargon. Keep sections short (2–4 lines).
+- Title should be short and descriptive, e.g., "Service Agreement".
+- Use placeholders for parties: "<<Party A>>", "<<Party B>>".
+- Include all relevant sections based on agreement_type: %s.
+- Always include the footer: "This document is for information only and is not legal advice."
 
-IMPORTANT:
-- Title should be short and descriptive (e.g., "NDA", "Service Agreement").
-- Do NOT put all content in the title; use sections for the details.
-- For all parties, use placeholders: "<<Party A>>", "<<Party B>>"
-- For signatures, always return placeholders:
-  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
-- Include this footer in the last section:
-  "This document is for information only and is not legal advice. Consult a qualified lawyer."
-
-Input Draft JSON (may be partial): <<%s>>
-
-User Prompt: %s
+Input Draft JSON: <<%s>>
 
 Output format:
 {
   "title": "...",
-  "sections": [{ "heading": "...", "text": "..." }],
-  "signatures": { "partyA": "<<Signature>>", "partyB": "<<Signature>>", "place": "<<Place>>", "date": "<<Date>>" }
+  "sections": [{"heading": "...", "text": "..."}],
+  "signatures": {"partyA":"<<Signature>>","partyB":"<<Signature>>","place":"<<Place>>","date":"<<Date>>"}
 }
 
 Today is: %s
-`, language, string(draftJSON), promptText, time.Now().Format("2006-01-02"))
+`, language, draft.Title, string(draftJSON), time.Now().Format("2006-01-02"))
+
 
 	parts := []genai.Part{genai.Text(prompt)}
 
@@ -461,4 +504,46 @@ Today is: %s
 	}
 
 	return &result, nil
+}
+// TitleGenerateHelper implements domain.IAIInteraction.
+func (ai *AIInteraction) TitleGenerateHelper(ctx context.Context, draftStringPrompt, language string) (string, error) {
+	// Define the specific prompt for this title generation task.
+	prompt := fmt.Sprintf(`Pick the first sentences in the following that will be used as a title for the following text in %s. Return a JSON object with a single key "title".
+	Text: <<%s>>`,
+		language,
+		draftStringPrompt,
+	)
+
+	parts := []genai.Part{genai.Text(prompt)}
+
+	// Send the request to the Gemini API.
+	resp, err := ai.TitleGeneratingClient.GenerateContent(ctx, parts...)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate title content: %w", err)
+	}
+
+	// Check for a valid response.
+	if resp == nil || len(resp.Candidates) == 0 || resp.Candidates[0].Content == nil || len(resp.Candidates[0].Content.Parts) == 0 {
+		return "", fmt.Errorf("received an empty title response from the API")
+	}
+
+	// The SDK returns the raw JSON string as Text. Unmarshal it directly.
+	jsonString, ok := resp.Candidates[0].Content.Parts[0].(genai.Text)
+	if !ok {
+		return "", fmt.Errorf("title response part is not of type genai.Text")
+	}
+
+	// Use the provided helper function to extract and clean the JSON string.
+	cleanedJSON, err := extractJSON(string(jsonString))
+	if err != nil {
+		return "", fmt.Errorf("error extracting JSON from response: %w", err)
+	}
+
+	var result domain.JustForTitleSake
+	if err := json.Unmarshal([]byte(cleanedJSON), &result); err != nil {
+		return "", fmt.Errorf("error unmarshaling title response JSON: %w\nRaw JSON: %s", err, cleanedJSON)
+	}
+
+	// Return the result in the expected domain.Draft format.
+	return result.Title, nil
 }

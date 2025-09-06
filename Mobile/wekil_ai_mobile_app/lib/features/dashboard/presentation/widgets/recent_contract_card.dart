@@ -32,10 +32,14 @@ class RecentContractCard extends StatelessWidget {
     switch ((status ?? '').toLowerCase()) {
       case 'draft':
         return const Color(0xFF3B82F6); // blue
+      case 'pending':
+        return const Color(0xFFF59E0B); // amber
       case 'exported':
         return const Color(0xFF10B981); // green
       case 'signed':
         return const Color(0xFF14B8A6); // teal
+      case 'rejected':
+        return const Color(0xFFEF4444); // red
       default:
         return Colors.grey;
     }
@@ -145,7 +149,9 @@ class RecentContractCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '$amountStr ${contract.currency}',
+                  contract.currency.trim().isEmpty
+                      ? amountStr
+                      : '$amountStr ${contract.currency}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),

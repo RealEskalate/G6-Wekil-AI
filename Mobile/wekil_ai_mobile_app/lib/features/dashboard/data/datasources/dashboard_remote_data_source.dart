@@ -13,11 +13,9 @@ class DashboardRemoteDataSource {
   final String baseUrl;
   final http.Client client;
 
-  DashboardRemoteDataSource({
-    String? baseUrl,
-    http.Client? client,
-  })  : baseUrl = baseUrl ?? 'https://g6-wekil-ai-1.onrender.com',
-        client = client ?? http.Client();
+  DashboardRemoteDataSource({String? baseUrl, http.Client? client})
+    : baseUrl = baseUrl ?? 'https://g6-wekil-ai-1.onrender.com',
+      client = client ?? http.Client();
 
   // TODO: Replace with real backend call.
   Future<Map<String, int>> fetchSummary() async {
@@ -36,6 +34,28 @@ class DashboardRemoteDataSource {
     }
     // On error, return empty; UI handles empty gracefully.
     return const [];
+  }
+
+  // Fetch a single agreement by ID
+  Future<Map<String, dynamic>?> fetchAgreementById(String agreementId) async {
+    final uri = Uri.parse('$baseUrl/agreement');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization':
+          'Bearer <ACCESS_TOKEN>', // Replace with actual token retrieval logic
+    };
+    final body = jsonEncode({'agreement_id': agreementId});
+
+    final res = await client.post(uri, headers: headers, body: body);
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      try {
+        final map = jsonDecode(res.body) as Map<String, dynamic>;
+        return map['data'] as Map<String, dynamic>?;
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
   }
 
   // Fetch current user's profile

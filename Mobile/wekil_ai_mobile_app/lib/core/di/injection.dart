@@ -6,6 +6,13 @@ import '../../features/dashboard/data/repositories/dashboard_repository_impl.dar
 import '../../features/dashboard/domain/repositories/dashboard_repository.dart';
 import '../../features/dashboard/domain/usecases/get_dashboard_data.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_cubit.dart';
+// History
+import '../../injection_container.dart' as di_all;
+import '../../features/history/data/datasources/history_remote_data_source.dart';
+import '../../features/history/data/repositories/history_repository_impl.dart';
+import '../../features/history/domain/repositories/history_repository.dart';
+import '../../features/history/domain/usecases/get_history_page.dart';
+import '../../features/history/presentation/bloc/history_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -34,5 +41,22 @@ Future<void> setupDependencies({
   // Cubit
   getIt.registerFactory<DashboardCubit>(
     () => DashboardCubit(getIt<GetDashboardData>()),
+  );
+
+  // History DI
+  getIt.registerLazySingleton<HistoryRemoteDataSource>(
+    () => HistoryRemoteDataSource(
+      baseUrl: baseUrl,
+      client: di_all.sl<http.Client>(instanceName: 'authHttp'),
+    ),
+  );
+  getIt.registerLazySingleton<HistoryRepository>(
+    () => HistoryRepositoryImpl(remote: getIt<HistoryRemoteDataSource>()),
+  );
+  getIt.registerFactory<GetHistoryPage>(
+    () => GetHistoryPage(getIt<HistoryRepository>()),
+  );
+  getIt.registerFactory<HistoryBloc>(
+    () => HistoryBloc(getIt<GetHistoryPage>()),
   );
 }

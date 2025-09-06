@@ -24,157 +24,181 @@ import '../features/contacts/presentations/pages/step6.dart';
 import '../features/contacts/presentations/pages/step7.dart';
 import '../features/contacts/data/models/contact_data.dart';
 import '../features/contacts/domain/entities/contract_type.dart';
+import '../features/dashboard/presentation/pages/view_agreement_page.dart';
+import '../core/di/injection.dart' as dash_di;
+import '../features/history/domain/usecases/get_history_page.dart';
+import '../features/history/presentation/pages/history_page.dart';
 
 final List<GoRoute> appRoutes = [
-	GoRoute(
-		path: '/splash',
-		builder: (context, state) => const SplashVideoPage(),
-	),
-	GoRoute(
-		path: '/sign-in',
-		builder: (context, state) => const SignInPage(),
-	),
-	GoRoute(
-		path: '/sign-up',
-		builder: (context, state) => const SignUpPage(),
-	),
-	GoRoute(
-		path: '/otp-verification',
-		builder: (context, state) {
-			final email = state.extra as String? ?? '';
-			return OtpVerificationPage(email: email);
-		},
-	),
-	GoRoute(
-		path: '/settings',
-		builder: (context, state) => const SettingsPage(),
-	),
-	GoRoute(
-		path: '/profile-preview',
-		builder: (context, state) {
-			final extra = state.extra;
-			if (extra is SettingBloc) {
-				return BlocProvider<SettingBloc>.value(
-					value: extra,
-					child: const ProfilePreviewPage(),
-				);
-			}
-			return BlocProvider<SettingBloc>(
-				create: (_) => di.sl<SettingBloc>()..add(GetProfileEvent()),
-				child: const ProfilePreviewPage(),
-			);
-		},
-	),
-	GoRoute(
-		path: '/edit-profile',
-		builder: (context, state) {
-			final extra = state.extra;
-			if (extra is SettingBloc) {
-				return BlocProvider<SettingBloc>.value(
-					value: extra,
-					child: const EditProfilePage(),
-				);
-			}
-			return BlocProvider<SettingBloc>(
-				create: (_) => di.sl<SettingBloc>()..add(GetProfileEvent()),
-				child: const EditProfilePage(),
-			);
-		},
-	),
-	GoRoute(
-		path: '/signature',
-		builder: (context, state) {
-			final extra = state.extra;
-			if (extra is SettingBloc) {
-				return BlocProvider<SettingBloc>.value(
-					value: extra,
-					child: const SignaturePage(),
-				);
-			}
-			return BlocProvider<SettingBloc>(
-				create: (_) => di.sl<SettingBloc>()..add(GetProfileEvent()),
-				child: const SignaturePage(),
-			);
-		},
-	),
-	GoRoute(
-		path: '/reset-password',
-		builder: (context, state) {
-			final email = state.extra as String? ?? '';
-			return ResetPasswordPage(email: email);
-		},
-	),
-	GoRoute(
-		path: '/reset-password-request',
-		builder: (context, state) => const ResetPasswordRequestPage(),
-	),
+  GoRoute(
+    path: '/splash',
+    builder: (context, state) => const SplashVideoPage(),
+  ),
+  GoRoute(path: '/sign-in', builder: (context, state) => const SignInPage()),
+  GoRoute(path: '/sign-up', builder: (context, state) => const SignUpPage()),
+  GoRoute(
+    path: '/otp-verification',
+    builder: (context, state) {
+      final email = state.extra as String? ?? '';
+      return OtpVerificationPage(email: email);
+    },
+  ),
+  GoRoute(path: '/settings', builder: (context, state) => const SettingsPage()),
+  GoRoute(
+    path: '/profile-preview',
+    builder: (context, state) {
+      final extra = state.extra;
+      if (extra is SettingBloc) {
+        return BlocProvider<SettingBloc>.value(
+          value: extra,
+          child: const ProfilePreviewPage(),
+        );
+      }
+      return BlocProvider<SettingBloc>(
+        create: (_) => di.sl<SettingBloc>()..add(GetProfileEvent()),
+        child: const ProfilePreviewPage(),
+      );
+    },
+  ),
+  GoRoute(
+    path: '/edit-profile',
+    builder: (context, state) {
+      final extra = state.extra;
+      if (extra is SettingBloc) {
+        return BlocProvider<SettingBloc>.value(
+          value: extra,
+          child: const EditProfilePage(),
+        );
+      }
+      return BlocProvider<SettingBloc>(
+        create: (_) => di.sl<SettingBloc>()..add(GetProfileEvent()),
+        child: const EditProfilePage(),
+      );
+    },
+  ),
+  GoRoute(
+    path: '/signature',
+    builder: (context, state) {
+      final extra = state.extra;
+      if (extra is SettingBloc) {
+        return BlocProvider<SettingBloc>.value(
+          value: extra,
+          child: const SignaturePage(),
+        );
+      }
+      return BlocProvider<SettingBloc>(
+        create: (_) => di.sl<SettingBloc>()..add(GetProfileEvent()),
+        child: const SignaturePage(),
+      );
+    },
+  ),
+  GoRoute(
+    path: '/reset-password',
+    builder: (context, state) {
+      final email = state.extra as String? ?? '';
+      return ResetPasswordPage(email: email);
+    },
+  ),
+  GoRoute(
+    path: '/reset-password-request',
+    builder: (context, state) => const ResetPasswordRequestPage(),
+  ),
 
-	GoRoute(
-		path: '/dashboard',
-		builder: (context, state) {
-			final initial = state.extra as int?; // 0: Dashboard, 1: Create, 2: History/Contracts
-			return MainScreen(initialIndex: initial);
-		},
-	),
+  GoRoute(
+    path: '/dashboard',
+    builder: (context, state) {
+      final initial =
+          state.extra as int?; // 0: Dashboard, 1: Create, 2: History/Contracts
+      return MainScreen(initialIndex: initial);
+    },
+  ),
 
-	// Contracts flow
-	GoRoute(
-		path: '/contracts/start',
-		builder: (context, state) => const CreateContractScreen(),
-	),
-	GoRoute(
-		path: '/contracts/types',
-		builder: (context, state) => const ContractsTypesPages(),
-	),
-	GoRoute(
-		path: '/contracts/step2',
-		builder: (context, state) {
-			final extra = state.extra as Map?;
-			final type = extra?['contractType'] as ContractType?;
-			return CreateStep1(contractType: type ?? ContractType.serviceAgreement);
-		},
-	),
-	GoRoute(
-		path: '/contracts/step3',
-		builder: (context, state) {
-			final extra = state.extra as Map?;
-			final intake = extra?['intake'] as IntakeModel?;
-			final type = extra?['contractType'] as ContractType?;
-			return CreateStep2(intake: intake!, contractType: type ?? ContractType.serviceAgreement);
-		},
-	),
-	GoRoute(
-		path: '/contracts/step4',
-		builder: (context, state) {
-			final extra = state.extra as Map?;
-			final intakeModel = extra?['intakeModel'] as IntakeModel?;
-			final type = extra?['contractType'] as ContractType?;
-			return CreateStep3(intake: intakeModel!, contractType: type ?? ContractType.serviceAgreement);
-		},
-	),
-	GoRoute(
-		path: '/contracts/step5',
-		builder: (context, state) {
-			final extra = state.extra as Map?;
-			final intakeModel = extra?['intakeModel'] as IntakeModel?;
-			final type = extra?['contractType'] as ContractType?;
-			return CreateStep4(intakeModel: intakeModel!, contractType: type ?? ContractType.serviceAgreement);
-		},
-	),
-	GoRoute(
-		path: '/contracts/step6',
-		builder: (context, state) {
-			final extra = state.extra as Map?;
-			final intakeModel = extra?['intakeModel'] as IntakeModel?;
-			return CreateStep5(intakeModel: intakeModel!, draftContractPdfUrl: extra?['draftContractPdfUrl'] as String? ?? '');
-		},
-	),
-	GoRoute(
-		path: '/contracts/pdf',
-		builder: (context, state) {
-			final extra = state.extra as Map?;
-			final intakeModel = extra?['intakeModel'] as IntakeModel?;
-			return PdfChangerPage(intakeModel: intakeModel!);
-		},
-	),
+  // History list route
+  GoRoute(
+    path: '/history',
+    builder: (context, state) {
+      final usecase = dash_di.getIt<GetHistoryPage>();
+      return HistoryPage.provider(usecase: usecase);
+    },
+  ),
+
+  // Contracts flow
+  GoRoute(
+    path: '/contracts/start',
+    builder: (context, state) => const CreateContractScreen(),
+  ),
+  GoRoute(
+    path: '/contracts/types',
+    builder: (context, state) => const ContractsTypesPages(),
+  ),
+  GoRoute(
+    path: '/contracts/step2',
+    builder: (context, state) {
+      final extra = state.extra as Map?;
+      final type = extra?['contractType'] as ContractType?;
+      return CreateStep1(contractType: type ?? ContractType.serviceAgreement);
+    },
+  ),
+  GoRoute(
+    path: '/contracts/step3',
+    builder: (context, state) {
+      final extra = state.extra as Map?;
+      final intake = extra?['intake'] as IntakeModel?;
+      final type = extra?['contractType'] as ContractType?;
+      return CreateStep2(
+        intake: intake!,
+        contractType: type ?? ContractType.serviceAgreement,
+      );
+    },
+  ),
+  GoRoute(
+    path: '/contracts/step4',
+    builder: (context, state) {
+      final extra = state.extra as Map?;
+      final intakeModel = extra?['intakeModel'] as IntakeModel?;
+      final type = extra?['contractType'] as ContractType?;
+      return CreateStep3(
+        intake: intakeModel!,
+        contractType: type ?? ContractType.serviceAgreement,
+      );
+    },
+  ),
+  GoRoute(
+    path: '/contracts/step5',
+    builder: (context, state) {
+      final extra = state.extra as Map?;
+      final intakeModel = extra?['intakeModel'] as IntakeModel?;
+      final type = extra?['contractType'] as ContractType?;
+      return CreateStep4(
+        intakeModel: intakeModel!,
+        contractType: type ?? ContractType.serviceAgreement,
+      );
+    },
+  ),
+  GoRoute(
+    path: '/contracts/step6',
+    builder: (context, state) {
+      final extra = state.extra as Map?;
+      final intakeModel = extra?['intakeModel'] as IntakeModel?;
+      return CreateStep5(
+        intakeModel: intakeModel!,
+        draftContractPdfUrl: extra?['draftContractPdfUrl'] as String? ?? '',
+      );
+    },
+  ),
+  GoRoute(
+    path: '/contracts/pdf',
+    builder: (context, state) {
+      final extra = state.extra as Map?;
+      final intakeModel = extra?['intakeModel'] as IntakeModel?;
+      return PdfChangerPage(intakeModel: intakeModel!);
+    },
+  ),
+  GoRoute(
+    path: '/agreement/:id',
+    builder: (context, state) {
+      final agreementId = state.pathParameters['id']!;
+      return ViewAgreementPage(agreementId: agreementId);
+    },
+  ),
 ];

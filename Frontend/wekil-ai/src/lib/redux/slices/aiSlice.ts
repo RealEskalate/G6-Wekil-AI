@@ -200,7 +200,8 @@ export const finalPreview = createAsyncThunk<
       throw new Error(await getErrorMessage(response, "Final preview failed"));
 
     const data = await response.json();
-    return data as FinalPreviewResponse;
+    
+    return data.data as FinalPreviewResponse;
   } catch (err: unknown) {
     return rejectWithValue(
       err instanceof Error ? err.message : "Final preview failed"

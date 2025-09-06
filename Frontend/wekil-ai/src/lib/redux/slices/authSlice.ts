@@ -1,5 +1,12 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
+
+interface VerifyOtpResponse {
+  code: string;
+  message: string;
+  success: boolean;
+}
+
 interface User {
   email: string;
   first_name?: string;
@@ -225,10 +232,9 @@ export const resetPassword = createAsyncThunk<
   }
 });
 
-// verify otp
 export const verifyOtp = createAsyncThunk<
-  { data: { message?: string; error?: string }; success: boolean },
-  { email: string; otp: string },
+  VerifyOtpResponse, // correct type for fulfilled payload
+  { email: string; otp: string }, // args
   { rejectValue: string }
 >("auth/verifyOtp", async (data, { rejectWithValue }) => {
   try {
@@ -240,13 +246,14 @@ export const verifyOtp = createAsyncThunk<
       body: JSON.stringify(data),
     });
 
+    const responseData = await response.json();
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      return rejectWithValue(responseData.message || `HTTP error! status: ${response.status}`);
     }
 
-    const responseData = await response.json();
-    return responseData;
+    console.log(responseData, "responseData");
+    return responseData as VerifyOtpResponse; // ✅ return all fields
   } catch (error: unknown) {
     return rejectWithValue(getErrorMessage(error));
   }
@@ -389,9 +396,11 @@ const authSlice = createSlice({
     });
     builder.addCase(verifyOtp.fulfilled, (state, action) => {
       state.loading = false;
-      state.message = action.payload.data.message || action.payload.data.error || null;
+      state.message = action.payload.message;
       state.success = action.payload.success;
+      state.code = action.payload.code;
     });
+
     builder.addCase(verifyOtp.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload || "OTP verification failed";

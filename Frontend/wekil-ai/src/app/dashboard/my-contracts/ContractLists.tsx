@@ -3,10 +3,13 @@ import React from "react";
 import { ArrowLeft, Globe } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ContractCard from "@/components/Contract/ContractCard";
-import { data1, data2, data3, data4 } from "@/types/Contracttype";
+import { ContractFormat} from "@/types/Contracttype";
 import { useLanguage } from "@/context/LanguageContext";
 import { viewContractTranslation } from "@/lib/translations/dashboardPageTranslation";
-const ContractLists = () => {
+interface ContractListsProps{
+  contractList: ContractFormat[]
+}
+const ContractLists:React.FC<ContractListsProps> = ({contractList}) => {
   const route = useRouter();
   const { lang, setLang } = useLanguage();
   return (
@@ -37,10 +40,7 @@ const ContractLists = () => {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-4">
-        <ContractCard contract={data1} />
-        <ContractCard contract={data2} />
-        <ContractCard contract={data3} />
-        <ContractCard contract={data4} />
+        {contractList.map((item:ContractFormat,idx)=>(<ContractCard contract={item} key={idx}/>))}
       </div>
     </div>
   );

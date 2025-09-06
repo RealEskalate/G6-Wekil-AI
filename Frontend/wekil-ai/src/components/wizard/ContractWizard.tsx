@@ -33,7 +33,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/lib/redux/store";
-import { classifyApi, extractIntake } from "@/lib/redux/slices/aiSlice";
+import { classifyApi } from "@/lib/redux/slices/aiSlice";
 
 export interface Step {
   id: string;
@@ -62,17 +62,14 @@ export interface ContractData {
     servicesDescription?: string;
     milestones?: { description: string; date: string }[];
     revisions?: number;
-    
     // sales
     items?: { description: string; quantity: number; unitPrice: number }[];
     deliveryTerms?: string;
-
     //loan
     principalAmount?: number;
     installments?: { amount: number; dueDate: string }[];
     lateFeePercentage?: number;
-
-    //nda
+    
     effectiveDate?: string;
     confidentialityPeriod?: number;
     purpose?: string;
@@ -216,28 +213,41 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
 
     if (currentStep === 1) {
       setIsCheckingComplexity(true);
-      // setTimeout(() => {
-      //   //place to call Classify API
-      //   console.log(agreementLanguage)
-      //   console.log(description)
-      //   console.log(res)
-      //   setIsCheckingComplexity(false);
-      //   setCurrentStep(currentStep + 1);
-      // }, 1000);
+
       const res = await dispatch(
         classifyApi({ text: description, language: agreementLanguage })
       );
+
       setIsCheckingComplexity(false);
-      const type = res.payload.data?.payload?.category;
-      if (type == "basic") {
-        toast.success("Your prompt is Basic");
-        setCurrentStep(currentStep + 1);
+
+      if (classifyApi.fulfilled.match(res) && res.payload) {
+        const classification = (
+          res.payload as {
+            data?: { payload?: { category?: string; reasons?: string[] } };
+          }
+        )?.data?.payload;
+
+        const type = classification?.category;
+
+        if (type === "basic") {
+          toast.success("Your prompt is Basic");
+          setCurrentStep((prev) => prev + 1);
+        } else if (type) {
+          toast.error(
+            `Your prompt is ${type} due to ${
+              classification?.reasons?.[0] ?? "unspecified reason"
+            }, please consult a lawyer.`
+          );
+        } else {
+          toast.error("Invalid classification response");
+        }
       } else {
         toast.error(
-          `Your prompt is ${type} due to ${res.payload.data?.payload?.reasons[0]} `
+          (res as { payload?: { message?: string } }).payload?.message ??
+            "Classification failed"
         );
-      }
-    } else if (currentStep == 4) {
+      }}
+    else if (currentStep == 4) {
       // place to call Draft API
       console.log(contractData);
       console.log(specificDetails);

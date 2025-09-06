@@ -45,4 +45,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
   Future<AppNotification?> getNotification() async {
     return remote.fetchNotification();
   }
+
+  @override
+  Future<Map<String, dynamic>?> getAgreementById(String agreementId) async {
+    return await remote.fetchAgreementById(agreementId);
+  }
 }

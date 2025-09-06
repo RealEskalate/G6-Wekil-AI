@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
 // import 'package:mobile/injection_container.dart' as di;
 import '../../../../injection_container.dart' as di;
+import '../../../widget/nav_bar.dart';
 import '../../domain/entities/user_profile.dart';
 import '../bloc/setting_bloc.dart';
 
@@ -23,22 +25,7 @@ class SettingsPage extends StatelessWidget {
         child: Builder(
           builder: (context) => Scaffold(
             backgroundColor: const Color(0xFFF7F9FB),
-            appBar: AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0,
-              title: const Text('Settings', style: TextStyle(color: Color(0xFF1A2B3C), fontWeight: FontWeight.bold)),
-              centerTitle: true,
-              leading: IconButton(
-                icon: const Icon(Icons.menu, color: Color(0xFF1A2B3C)),
-                onPressed: () {},
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.language, color: Color(0xFF1A2B3C)),
-                  onPressed: () {},
-                ),
-              ],
-            ),
+            appBar: NavBar(),
             body: BlocBuilder<SettingBloc, SettingState>(
               builder: (context, state) {
                 if (state is SettingLoading) {
@@ -107,7 +94,28 @@ class SettingsPage extends StatelessWidget {
                 );
               },
             ),
-            bottomNavigationBar: _BottomNavBar(),
+            bottomNavigationBar: BottomNav(
+              currentIndex: 1,
+              onItemSelected: (index) {
+                switch (index) {
+                  case 0:
+                    // Go to Dashboard tab
+                    GoRouter.of(context).go('/dashboard', extra: 0);
+                    break;
+                  case 1:
+                    // Already on Settings; do nothing
+                    break;
+                  case 2:
+                    // Go to Contracts/History tab in dashboard shell
+                    GoRouter.of(context).go('/dashboard', extra: 2);
+                    break;
+                }
+              },
+              onCreatePressed: () {
+                // Use the dedicated contracts flow start page
+                GoRouter.of(context).push('/contracts/start');
+              },
+            ),
           ),
         ),
       ),
@@ -387,20 +395,4 @@ class _SignOutButton extends StatelessWidget {
   }
 }
 
-class _BottomNavBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      backgroundColor: Colors.white,
-      selectedItemColor: const Color(0xFF1AC9A2),
-      unselectedItemColor: const Color(0xFF1A2B3C),
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-        BottomNavigationBarItem(icon: Icon(Icons.add_circle, color: Color(0xFF1AC9A2)), label: 'Create Contract'),
-        BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'My Contracts'),
-      ],
-      currentIndex: 1,
-      onTap: (i) {},
-    );
-  }
-}
+// Removed unused _BottomNavBar widget

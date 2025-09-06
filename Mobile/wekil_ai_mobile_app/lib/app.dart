@@ -24,8 +24,8 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     configlocalization();
     super.initState();
-    
   }
+
   @override
   Widget build(BuildContext context) {
     final base = ThemeData(
@@ -48,37 +48,42 @@ class _MyAppState extends State<MyApp> {
       localizationsDelegates: localization.localizationsDelegates,
       routerConfig: widget.router,
     );
-    
   }
+
   void configlocalization() {
     localization.init(mapLocales: LOCALES, initLanguageCode: "en");
     localization.onTranslatedLanguage = onTranslatedLanguage;
   }
+
   void onTranslatedLanguage(Locale? locale) {
     setState(() {});
   }
 }
 
-
-
-
-
-
-
 class MainScreen extends StatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  final int? initialIndex;
+  const MainScreen({Key? key, this.initialIndex}) : super(key: key);
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  
-  
   int _currentIndex = 0;
+  
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialIndex != null) {
+      _currentIndex = widget.initialIndex!.clamp(0, 2);
+    }
+  }
 
-  final List<Widget> _pages = [
-    DashboardPage.provider(), // index 0
+  // Provide pages via a getter so we can forward the _onCreatePressed callback
+  // into DashboardPage.provider() — this makes the dashboard's Create button
+  // trigger the same action as the bottom nav create.
+  List<Widget> get _pages => [
+    DashboardPage.provider(onCreate: _onCreatePressed), // index 0
     const CreateContractScreen(), // index 1
     const History(), // index 2
   ];
@@ -106,7 +111,5 @@ class _MainScreenState extends State<MainScreen> {
         onCreatePressed: _onCreatePressed,
       ),
     );
-    
   }
-
 }

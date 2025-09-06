@@ -33,20 +33,29 @@ class IndividualModel {
     DateTime? parseDate(dynamic v) =>
         v == null ? null : DateTime.tryParse(v.toString());
     return IndividualModel(
-      id: (json['id'] ?? json['_id'] ?? '').toString(),
-      email: (json['email'] ?? '').toString(),
-      firstName: (json['first_name'] ?? '').toString(),
-      lastName: (json['last_name'] ?? '').toString(),
-      middleName: json['middle_name']?.toString(),
-      telephone: (json['telephone'] ?? json['phone'])?.toString(),
-      accountType: (json['account_type'] ?? '').toString(),
+      id: (json['id'] ?? json['_id'] ?? json['userId'] ?? '').toString(),
+      email: (json['email'] ?? json['Email'] ?? '').toString(),
+      firstName: (json['firstName'] ?? json['first_name'] ?? '').toString(),
+      lastName: (json['lastName'] ?? json['last_name'] ?? '').toString(),
+      middleName: (json['middleName'] ?? json['middle_name'])?.toString(),
+      telephone: (json['telephone'] ?? json['phone'] ?? json['mobile'])
+          ?.toString(),
+      accountType: (json['accountType'] ?? json['account_type'] ?? 'individual')
+          .toString(),
       isVerified:
+          json['isVerified'] == true ||
           json['is_verified'] == true ||
+          json['isVerified']?.toString() == 'true' ||
           json['is_verified']?.toString() == 'true',
-      createdAt: parseDate(json['created_at']) ?? DateTime.now(),
-      updatedAt: parseDate(json['updated_at']),
-      profileImage: json['profile_image']?.toString(),
-      signature: json['signature']?.toString(),
+      createdAt:
+          parseDate(json['created_at'] ?? json['createdAt']) ?? DateTime.now(),
+      updatedAt: parseDate(json['updated_at'] ?? json['updatedAt']),
+      profileImage: (json['profileImage'] ?? json['profile_image'])?.toString(),
+      signature:
+          (json['signature'] ??
+                  json['signatureImage'] ??
+                  json['signature_image'])
+              ?.toString(),
     );
   }
 

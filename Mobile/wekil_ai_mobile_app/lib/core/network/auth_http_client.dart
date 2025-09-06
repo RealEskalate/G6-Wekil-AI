@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 typedef TokenGetter = Future<String?> Function();
-typedef TokenSaver = Future<void> Function(String accessToken, String refreshToken);
+typedef TokenSaver =
+    Future<void> Function(String accessToken, String refreshToken);
 typedef VoidAsync = Future<void> Function();
 
 class AuthHttpClient extends http.BaseClient {
@@ -39,14 +41,17 @@ class AuthHttpClient extends http.BaseClient {
 
     // Attach access token if available; if missing but refresh exists, try preemptive refresh.
     String? token = await getAccessToken();
-    if ((token == null || token.isEmpty) && !request.headers.containsKey('Authorization')) {
+    if ((token == null || token.isEmpty) &&
+        !request.headers.containsKey('Authorization')) {
       final refresh = await getRefreshToken();
       if (refresh != null && refresh.isNotEmpty) {
         final ok = await _refreshTokens();
         if (ok) token = await getAccessToken();
       }
     }
-    if (token != null && token.isNotEmpty && !request.headers.containsKey('Authorization')) {
+    if (token != null &&
+        token.isNotEmpty &&
+        !request.headers.containsKey('Authorization')) {
       request.headers['Authorization'] = 'Bearer $token';
     }
 
@@ -62,7 +67,12 @@ class AuthHttpClient extends http.BaseClient {
     }
 
     // Retry original request with new token
-    final cloned = await _cloneRequestWithNewToken(request, bufferedBody: bufferedBody, bufferedFiles: bufferedFiles, bufferedFields: bufferedFields);
+    final cloned = await _cloneRequestWithNewToken(
+      request,
+      bufferedBody: bufferedBody,
+      bufferedFiles: bufferedFiles,
+      bufferedFields: bufferedFields,
+    );
     if (cloned == null) return response; // cannot retry
     return _inner.send(cloned);
   }
@@ -75,21 +85,26 @@ class AuthHttpClient extends http.BaseClient {
     final uri = Uri.parse(refreshUrl);
     final headers = <String, String>{
       'Content-Type': 'application/json',
-      if (oldAccess != null && oldAccess.isNotEmpty) 'Authorization': 'Bearer $oldAccess',
+      if (oldAccess != null && oldAccess.isNotEmpty)
+        'Authorization': 'Bearer $oldAccess',
       // On web, cookies are managed by the browser and sent when withCredentials=true.
       if (!kIsWeb && refreshToken.isNotEmpty)
         // Include common cookie aliases to maximize compatibility
-        'Cookie': 'refresh_token=$refreshToken; refreshToken=$refreshToken; WEKIL-API-REFRESH-TOKEN=$refreshToken',
+        'Cookie':
+            'refresh_token=$refreshToken; refreshToken=$refreshToken; WEKIL-API-REFRESH-TOKEN=$refreshToken',
     };
     final res = await _inner.post(uri, headers: headers);
 
     if (res.statusCode != 200) return false;
 
-    // Parse new access token from Authorization header
+    // Try to extract new access token from Authorization header first
+    String newAccess = '';
     final authHeader = res.headers['authorization'] ?? '';
-    final newAccess = authHeader.startsWith('Bearer ')
-        ? authHeader.substring(7)
-        : authHeader;
+    if (authHeader.isNotEmpty) {
+      newAccess = authHeader.startsWith('Bearer ')
+          ? authHeader.substring(7)
+          : authHeader;
+    }
 
     // Parse new refresh token from Set-Cookie if present
     String newRefresh = refreshToken;
@@ -106,6 +121,52 @@ class AuthHttpClient extends http.BaseClient {
           newRefresh = m.group(1)!;
           break;
         }
+      }
+    }
+
+    // If no access token in header, try to parse body as JSON for common fields
+    if (newAccess.isEmpty) {
+      try {
+        final body = res.body;
+        if (body.isNotEmpty) {
+          final Map<String, dynamic> json = body.isNotEmpty
+              ? (jsonDecode(body) as Map<String, dynamic>)
+              : {};
+          // Common access token keys
+          final accessCandidates = [
+            'accessToken',
+            'access_token',
+            'token',
+            'jwt',
+            'authToken',
+            'authorization',
+          ];
+          for (final k in accessCandidates) {
+            if (json.containsKey(k) &&
+                json[k] is String &&
+                (json[k] as String).isNotEmpty) {
+              newAccess = json[k] as String;
+              break;
+            }
+          }
+
+          // Common refresh token keys
+          final refreshCandidates = [
+            'refreshToken',
+            'refresh_token',
+            'refresh',
+          ];
+          for (final k in refreshCandidates) {
+            if (json.containsKey(k) &&
+                json[k] is String &&
+                (json[k] as String).isNotEmpty) {
+              newRefresh = json[k] as String;
+              break;
+            }
+          }
+        }
+      } catch (e) {
+        // ignore JSON parse errors and fall back to header/cookie parsing
       }
     }
 

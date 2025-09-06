@@ -1,5 +1,5 @@
 import 'package:flutter_localization/flutter_localization.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+// removed unused import
 
 const List<MapLocale> LOCALES = [
   MapLocale('en', LocalesData.EN),
@@ -90,6 +90,9 @@ mixin LocalesData {
   static const String removeMilestone = 'removeMilestone';
   static const String addMilestone = 'addMilestone';
   static const String numberOfRevisions = 'numberOfRevisions';
+
+  // Generic placeholder for features not yet implemented
+  static const String notImplemented = 'notImplemented';
 
   static const String item = 'item';
   static const String quantity = 'quantity';
@@ -202,6 +205,8 @@ mixin LocalesData {
     purpose: "Purpose",
     mutualConfidentiality: "Mutual Confidentiality",
     amount: 'Amount',
+    // Generic placeholder message
+    notImplemented: 'Not implemented yet',
   };
 
   static const Map<String, String> AM = {
@@ -291,5 +296,7 @@ mixin LocalesData {
     mutualConfidentiality: "የተጋራ ምስጢርነት",
     amount: 'መጠን',
     frequencyHint: 'የመደበኛ ጊዜ አስገባ',
+    // Generic placeholder message in Amharic
+    notImplemented: 'አልተፈጸመ ነው',
   };
 }

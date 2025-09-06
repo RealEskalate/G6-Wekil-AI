@@ -10,6 +10,12 @@ import 'features/auth/data/datasources/auth_local_data_source.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'route/app_route.dart';
 
+// Temporary override access token for testing. Change this constant to use a
+// specific Bearer token without touching secure storage. Set to null to use
+// the stored token instead.
+const String? kTempAccessToken =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YjU5OTdiN2M4NDNmY2IyYTkxMGQxZiIsImVtYWlsIjoiYW1pbm1hbWluZTYyMEBnbWFpbC5jb20iLCJpc192ZXJpZmllZCI6dHJ1ZSwiYWNjb3VudF90eXBlIjoidXNlciIsInRva2VuX3R5cGUiOiJhY2Nlc3NfdG9rZW4iLCJleHAiOjE3NTcxMTEwNTIsImlhdCI6MTc1NzExMDE1Mn0.o76vh6_RU6v9_WXvdfFTcvZr-83lzNWyWrP-ImXg6T4";
+
 Future<void> bootstrapAndRun() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -26,14 +32,17 @@ Future<void> bootstrapAndRun() async {
   // Initialize Dashboard feature DI; provide token getter from Auth storage
   await setupDependencies(
     baseUrl: 'https://g6-wekil-ai-1.onrender.com',
-    tokenProvider: () async => (await di.sl<AuthLocalDataSource>().getCachedAuthTokens())?.accessToken,
+    tokenProvider: () async =>
+        kTempAccessToken ??
+        (await di.sl<AuthLocalDataSource>().getCachedAuthTokens())?.accessToken,
   );
 
+  // Remove the preserved native splash immediately so the app UI (dashboard)
+  // is visible during testing. This is the safest short-term fix.
+  FlutterNativeSplash.remove();
+
   // Configure router; splash will navigate to sign-in or dashboard
-  final router = GoRouter(
-    initialLocation: '/splash',
-    routes: appRoutes,
-  );
+  final router = GoRouter(initialLocation: '/dashboard', routes: appRoutes);
 
   runApp(
     BlocProvider<AuthBloc>(

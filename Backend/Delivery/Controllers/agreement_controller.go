@@ -75,7 +75,8 @@ func (a *AgreementController) GetAgreementByFilter(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"success": false,
 			"data": gin.H{
-				"message": err.Error(),
+				"message": "Unable to retrieve agreements. Please try again later.",
+				"error": err.Error(),
 			},
 		})
 		return
@@ -273,7 +274,10 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 		}
 		ctx.JSON(status, gin.H{
 			"success": false,
-			"data":    gin.H{"message": msg},
+			"data":    gin.H{
+				"message": msg,
+				"error":err.Error(),
+		},
 		})
 		return
 	}
@@ -298,7 +302,7 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"data": gin.H{
-				"message": "Invalid request payload**",
+				"message": "Invalid request payload",
 			},
 		})
 		return
@@ -330,7 +334,8 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"data": gin.H{
-				"message": err.Error(),
+				"message": "Unable to retrieve the agreement. Please try again later.",
+				"error": err.Error(),
 			},
 		})
 		return
@@ -375,7 +380,8 @@ func (a *AgreementController) GetAgreementByUserID(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"success": false,
 			"data": gin.H{
-				"message": err.Error(),
+				"message": "Unable to retrieve the agreement. Please try again later.",
+				"error": err.Error(),
 			},
 		})
 		return

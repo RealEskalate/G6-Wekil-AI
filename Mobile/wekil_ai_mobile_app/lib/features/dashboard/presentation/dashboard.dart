@@ -63,25 +63,6 @@ class DashboardPage extends StatefulWidget {
     );
   }
 
-  static Widget withMockData({
-    required DashboardSummary summary,
-    required List<Agreement> recent,
-    Individual? user,
-    VoidCallback? onCreate,
-    VoidCallback? onViewAll,
-  }) {
-    final repo = _FakeDashboardRepository(
-      summary: summary,
-      recent: recent,
-      user: user,
-    );
-    final uc = u.GetDashboardData(repo);
-    return BlocProvider(
-      create: (_) => DashboardCubit(uc)..load(),
-      child: DashboardPage(onCreate: onCreate, onViewAll: onViewAll),
-    );
-  }
-
   @override
   State<DashboardPage> createState() => _DashboardPageState();
 }
@@ -210,36 +191,6 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
     );
   }
-}
-
-class _FakeDashboardRepository implements d.DashboardRepository {
-  final DashboardSummary summary;
-  final List<Agreement> recent;
-  final Individual? user;
-  _FakeDashboardRepository({
-    required this.summary,
-    required this.recent,
-    this.user,
-  });
-  @override
-  Future<DashboardSummary> getSummary() async => summary;
-  @override
-  Future<List<Agreement>> getTopAgreements({int limit = 3}) async =>
-      recent.take(limit).toList();
-  @override
-  Future<Individual> getProfile() async =>
-      user ??
-      Individual(
-        id: '0',
-        email: 'user@example.com',
-        firstName: 'John',
-        lastName: 'Doe',
-        accountType: 'user',
-        isVerified: true,
-        createdAt: DateTime.now(),
-      );
-  @override
-  Future<AppNotification?> getNotification() async => null;
 }
 
 class _OverviewRow extends StatelessWidget {

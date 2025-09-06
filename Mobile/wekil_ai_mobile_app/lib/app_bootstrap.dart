@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:http/http.dart' as http;
 
 import 'app.dart';
 import 'core/di/injection.dart';
@@ -31,9 +32,7 @@ Future<void> bootstrapAndRun() async {
   // Initialize Dashboard feature DI; provide token getter from Auth storage
   await setupDependencies(
     baseUrl: 'https://g6-wekil-ai-1.onrender.com',
-    tokenProvider: () async =>
-        kTempAccessToken ??
-        (await di.sl<AuthLocalDataSource>().getCachedAuthTokens())?.accessToken,
+    client: di.sl<http.Client>(instanceName: 'authHttp'),
   );
 
   // Remove the preserved native splash immediately so the app UI (dashboard)

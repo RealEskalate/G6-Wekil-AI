@@ -61,7 +61,8 @@ class _MyAppState extends State<MyApp> {
 }
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  final int? initialIndex;
+  const MainScreen({Key? key, this.initialIndex}) : super(key: key);
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -69,6 +70,14 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialIndex != null) {
+      _currentIndex = widget.initialIndex!.clamp(0, 2);
+    }
+  }
 
   // Provide pages via a getter so we can forward the _onCreatePressed callback
   // into DashboardPage.provider() — this makes the dashboard's Create button

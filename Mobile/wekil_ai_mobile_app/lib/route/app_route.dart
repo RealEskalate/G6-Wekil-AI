@@ -111,7 +111,10 @@ final List<GoRoute> appRoutes = [
 
 	GoRoute(
 		path: '/dashboard',
-		builder: (context, state) => const MainScreen(),
+		builder: (context, state) {
+			final initial = state.extra as int?; // 0: Dashboard, 1: Create, 2: History/Contracts
+			return MainScreen(initialIndex: initial);
+		},
 	),
 
 	// Contracts flow

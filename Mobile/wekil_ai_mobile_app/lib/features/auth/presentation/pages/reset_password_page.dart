@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import '../../../../injection_container.dart';
 import '../bloc/auth_bloc.dart';
+import '../../../../core/ui/alerts.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   final String email;
@@ -100,14 +101,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 child: BlocConsumer<AuthBloc, AuthState>(
                   listener: (context, state) {
                     if (state is AuthFailure) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(state.message)),
-                      );
+                      showErrorSnackBar(context, state.message, title: 'Reset failed');
                     }
                     if (state is AuthResetPasswordSuccess) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(state.message.message)),
-                      );
+                      showSuccessSnackBar(context, state.message.message, title: 'Password reset');
                       // Navigate to login after successful password change
                       context.go('/sign-in');
                     }

@@ -26,6 +26,7 @@ dependencies:
   http: ^1.4.0
   shared_preferences: ^2.5.3
   flutter_secure_storage: ^9.2.4
+  flutter_web_auth_2: ^4.1.0
   flutter_native_splash: ^2.4.6
   pin_code_fields: ^8.0.1
   file_picker: ^8.1.2
@@ -47,6 +48,7 @@ flutter:
   assets:
   - assets/splash/loader.gif.mp4
   - assets/splash/logo.jpg
+  - assets/Google__G__logo.svg.png
   fonts:
     - family: NotoSansEthiopic
       fonts:

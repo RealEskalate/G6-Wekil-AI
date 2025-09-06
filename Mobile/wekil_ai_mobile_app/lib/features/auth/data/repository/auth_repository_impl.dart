@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
 import '../../../../core/error/failure.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/entities/login_input.dart';
@@ -50,17 +49,7 @@ class AuthRepositoryImpl implements AuthRepository {
         password: input.password,
       ));
       await localDataSource.cacheAuthTokens(result);
-      if (kDebugMode) {
-        String maskToken(String t) {
-          if (t.isEmpty) return '(empty)';
-          if (t.length <= 8) return '${t[0]}***${t[t.length - 1]}';
-          final start = t.substring(0, 6);
-          final end = t.substring(t.length - 4);
-          return '$start...$end';
-        }
-        // ignore: avoid_print
-        print('[AuthRepository] Saved access token after login: ${maskToken(result.accessToken)}');
-      }
+  // Avoid printing tokens in logs in production or debug.
       return Right(result);
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));

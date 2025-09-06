@@ -37,16 +37,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.requestPasswordReset,
     required this.resetPassword,
   }) : super(AuthInitial()) {
-    on<ForgotPasswordEvent>((event, emit) async {
+  on<ForgotPasswordEvent>((event, emit) async {
       emit(AuthLoading());
       final result = await requestPasswordReset(event.email);
       result.fold(
-        (failure) => emit(AuthFailure(failure.toString())),
+    (failure) => emit(AuthFailure(_message(failure))),
         (msg) => emit(AuthForgotPasswordSuccess(msg)),
       );
     });
 
-    on<ResetPasswordEvent>((event, emit) async {
+  on<ResetPasswordEvent>((event, emit) async {
       emit(AuthLoading());
       final result = await resetPassword(
         email: event.email,
@@ -54,7 +54,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         newPassword: event.newPassword,
       );
       result.fold(
-        (failure) => emit(AuthFailure(failure.toString())),
+    (failure) => emit(AuthFailure(_message(failure))),
         (msg) => emit(AuthResetPasswordSuccess(msg)),
       );
     });
@@ -62,7 +62,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthLoading());
       final result = await loginUseCase(LoginParams(LoginInput(email: event.email, password: event.password)));
       result.fold(
-        (failure) => emit(AuthFailure(failure.toString())),
+    (failure) => emit(AuthFailure(_message(failure))),
         (tokens) => emit(AuthLoginSuccess(tokens)),
       );
     });
@@ -70,7 +70,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthLoading());
       final result = await registerIndividualUseCase(RegisterIndividualParams(event.user, event.password));
       result.fold(
-        (failure) => emit(AuthFailure(failure.toString())),
+    (failure) => emit(AuthFailure(_message(failure))),
         (msg) => emit(AuthSignUpSuccess(msg)),
       );
     });
@@ -82,7 +82,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         ),
       );
       result.fold(
-        (failure) => emit(AuthFailure(failure.toString())),
+    (failure) => emit(AuthFailure(_message(failure))),
         (otpResult) => emit(AuthOtpVerified(otpResult)),
       );
     });
@@ -92,5 +92,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // await logoutUseCase(NoParams());
       emit(AuthLogoutSuccess());
     });
+  }
+
+  String _message(Object failure) {
+    try {
+      // Delay import of Failure type to avoid circular deps here; compare by toString
+      final s = failure.toString();
+      // If failure has a nice message field representation like 'ServerFailure: msg'
+      final idx = s.indexOf(':');
+      if (idx > 0 && idx < s.length - 1) {
+        return s.substring(idx + 1).trim();
+      }
+      return s;
+    } catch (_) {
+      return 'Unexpected error';
+    }
   }
 }

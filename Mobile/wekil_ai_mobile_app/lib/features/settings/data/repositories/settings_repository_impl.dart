@@ -28,7 +28,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
     } on Failure catch (f) {
       return Left(f);
     } catch (e) {
-      return Left(ServerFailure());
+  return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -52,7 +52,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
     } on Failure catch (f) {
       return Left(f);
     } catch (e) {
-      return Left(ServerFailure());
+  return Left(ServerFailure(message: e.toString()));
     }
   }
 

@@ -151,7 +151,21 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
       }
       return const ProfileUpdateResultModel(message: 'Profile updated successfully', updatedFields: []);
     } else {
-      throw Exception('Failed to update profile');
+      // Extract backend error message when possible
+      String msg = 'Failed to update profile (${response.statusCode})';
+      final raw = response.body.trim();
+      if (raw.isNotEmpty) {
+        try {
+          final decoded = json.decode(raw);
+          if (decoded is Map<String, dynamic>) {
+            final Map<String, dynamic> dataNode = (decoded['data'] is Map<String, dynamic>)
+                ? Map<String, dynamic>.from(decoded['data'] as Map)
+                : decoded;
+            msg = dataNode['error'] as String? ?? dataNode['message'] as String? ?? msg;
+          }
+        } catch (_) {}
+      }
+      throw Exception(msg);
     }
     } on http.ClientException catch (_) {
       throw NetworkFailure(message: 'Network/CORS error while updating profile');

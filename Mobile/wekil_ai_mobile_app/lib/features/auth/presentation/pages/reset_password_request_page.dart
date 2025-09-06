@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../injection_container.dart';
 import '../bloc/auth_bloc.dart';
+import '../../../../core/ui/alerts.dart';
 
 class ResetPasswordRequestPage extends StatefulWidget {
   const ResetPasswordRequestPage({super.key});
@@ -70,16 +71,16 @@ class _ResetPasswordRequestPageState extends State<ResetPasswordRequestPage> {
                 child: BlocConsumer<AuthBloc, AuthState>(
                   listener: (context, state) {
                     if (state is AuthFailure) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(state.message)),
-                      );
+                      showErrorSnackBar(context, state.message, title: 'Request failed');
                     }
                     if (state is AuthForgotPasswordSuccess) {
                       final msg = state.message.message;
                       final success = state.message.success ?? false;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(msg)),
-                      );
+                      if (success) {
+                        showSuccessSnackBar(context, msg, title: 'Email sent');
+                      } else {
+                        showErrorSnackBar(context, msg, title: 'Request failed');
+                      }
                       // Only navigate when backend indicates success
                       if (success) {
                         context.go('/reset-password', extra: _emailController.text.trim());

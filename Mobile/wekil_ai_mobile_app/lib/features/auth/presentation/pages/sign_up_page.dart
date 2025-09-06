@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/entities/user.dart';
 import '../bloc/auth_bloc.dart';
+import '../../../../core/ui/alerts.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -87,9 +88,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 BlocConsumer<AuthBloc, AuthState>(
                   listener: (context, state) {
                     if (state is AuthFailure) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(state.message)),
-                      );
+                      showErrorSnackBar(context, state.message, title: 'Sign up failed');
                     }
                     if (state is AuthSignUpSuccess) {
                       final msg = state.message;
@@ -99,9 +98,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       if (goVerify && email.isNotEmpty) {
                         context.go('/otp-verification', extra: email);
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(msg.message)),
-                        );
+                        showSuccessSnackBar(context, msg.message, title: 'Sign up');
                       }
                     }
                   },

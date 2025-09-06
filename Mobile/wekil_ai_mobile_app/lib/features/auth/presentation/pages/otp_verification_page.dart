@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../injection_container.dart';
 import '../bloc/auth_bloc.dart';
+import '../../../../core/ui/alerts.dart';
 
 class OtpVerificationPage extends StatefulWidget {
   final String email;
@@ -45,9 +46,11 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
               context.go('/sign-in');
             } else {
               setState(() { _error = state.result.message; });
+              showErrorSnackBar(context, state.result.message, title: 'Verification failed');
             }
           } else if (state is AuthFailure) {
             setState(() { _error = state.message; });
+            showErrorSnackBar(context, state.message, title: 'Verification failed');
           }
         },
         builder: (context, state) {

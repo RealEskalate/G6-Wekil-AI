@@ -25,7 +25,7 @@ Future<void> bootstrapAndRun() async {
 
   // Initialize Dashboard feature DI; provide token getter from Auth storage
   await setupDependencies(
-    baseUrl: 'https://g6-wekil-ai-1.onrender.com',
+  baseUrl: di.kBaseApiUrl,
     tokenProvider: () async => (await di.sl<AuthLocalDataSource>().getCachedAuthTokens())?.accessToken,
   );
 

@@ -129,24 +129,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(input.toJson()),
     );
-    // Debug: log header keys and Authorization presence (masked) to diagnose missing tokens
-    assert(() {
-      try {
-        final keys = response.headers.keys.toList()..sort();
-        // ignore: avoid_print
-        print('[AuthRemoteDS] login status: ${response.statusCode}, headers: ${keys.join(', ')}');
-        final auth = response.headers['authorization'] ?? '';
-        String mask(String t) {
-          if (t.isEmpty) return '(empty)';
-          if (t.startsWith('Bearer ')) t = t.substring(7);
-          if (t.length <= 8) return '${t[0]}***${t[t.length - 1]}';
-          return '${t.substring(0,6)}...${t.substring(t.length - 4)}';
-        }
-        // ignore: avoid_print
-        print('[AuthRemoteDS] login Authorization header: ${mask(auth)}');
-      } catch (_) {}
-      return true;
-    }());
+  // Avoid logging tokens or headers in production builds.
     Map<String, dynamic>? rootJson;
     if (response.body.isNotEmpty) {
       try {

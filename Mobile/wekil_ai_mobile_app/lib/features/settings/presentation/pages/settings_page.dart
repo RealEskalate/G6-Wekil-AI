@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../injection_container.dart' as di;
 import '../../domain/entities/user_profile.dart';
 import '../bloc/setting_bloc.dart';
+import '../../../../core/ui/alerts.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -55,6 +56,16 @@ class _SettingsPageState extends State<SettingsPage> {
           if (state is SettingUpdated) {
             // Immediately refetch to reflect latest server values
             context.read<SettingBloc>().add(GetProfileEvent());
+            showSuccessSnackBar(context, state.message, title: 'Profile updated');
+          }
+          if (state is SettingError) {
+            showErrorSnackBar(context, state.message, title: 'Settings error');
+          }
+          if (state is ChangePasswordFailure) {
+            showErrorSnackBar(context, state.message, title: 'Password change failed');
+          }
+          if (state is ChangePasswordSuccess) {
+            showSuccessSnackBar(context, state.message, title: 'Password changed');
           }
         },
         child: Builder(
@@ -105,17 +116,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                   children: [
-                    const Icon(Icons.error_outline, color: Colors.redAccent),
-                    const SizedBox(height: 8),
-                    Text(
-                      state.message,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.redAccent),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => context.read<SettingBloc>().add(GetProfileEvent()),
-                      child: const Text('Retry'),
+                    ErrorPanel(
+                      message: state.message,
+                      onRetry: () => context.read<SettingBloc>().add(GetProfileEvent()),
                     ),
                   ],
                 );

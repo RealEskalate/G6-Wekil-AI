@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
 import '../bloc/auth_bloc.dart';
+import '../../../../injection_container.dart' as di;
+import '../../data/datasources/auth_local_data_source.dart';
+import '../../data/models/auth_tokens_model.dart';
+import '../../../../core/ui/alerts.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -16,6 +21,36 @@ class _SignInPageState extends State<SignInPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  Future<void> _signInWithGoogle() async {
+    final scheme = 'wekilai';
+    final redirectUri = '$scheme://auth/callback';
+  // Use the shared base API URL (production default)
+  final base = di.kBaseApiUrl;
+  final encodedRedirect = Uri.encodeComponent(redirectUri);
+  final authUrl = '$base/auth/google?redirect_uri=$encodedRedirect';
+
+    try {
+      final callbackUrl = await FlutterWebAuth2.authenticate(
+        url: authUrl,
+        callbackUrlScheme: scheme,
+      );
+      final uri = Uri.parse(callbackUrl);
+      final refreshToken = uri.queryParameters['refresh_token'];
+      final accessToken = uri.queryParameters['access_token'];
+      if (refreshToken == null || refreshToken.isEmpty) {
+        throw Exception('Missing refresh_token from callback');
+      }
+      final local = di.sl<AuthLocalDataSource>();
+      await local.cacheAuthTokens(
+        AuthTokensModel(accessToken: accessToken ?? '', refreshToken: refreshToken),
+      );
+      if (mounted) context.go('/dashboard');
+    } catch (e) {
+  if (!mounted) return;
+  showErrorSnackBar(context, 'Google sign-in failed: $e');
+    }
+  }
 
   @override
   void dispose() {
@@ -209,12 +244,10 @@ class _SignInPageState extends State<SignInPage> {
                             ],
                           ),
                           const SizedBox(height: 18),
-                          BlocConsumer<AuthBloc, AuthState>(
+          BlocConsumer<AuthBloc, AuthState>(
                             listener: (context, state) {
                               if (state is AuthFailure) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(state.message)),
-                                );
+            showErrorSnackBar(context, state.message, title: 'Sign-in failed');
                               }
                               if (state is AuthLoginSuccess) {
                                 // Navigate to dashboard page using GoRouter
@@ -255,6 +288,38 @@ class _SignInPageState extends State<SignInPage> {
                             },
                           ),
                           const SizedBox(height: 12),
+                          Row(
+                            children: const [
+                              Expanded(child: Divider()),
+                              SizedBox(width: 8),
+                              Text('Or'),
+                              SizedBox(width: 8),
+                              Expanded(child: Divider()),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: _signInWithGoogle,
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                side: const BorderSide(color: Color(0xFFE0E0E0)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                backgroundColor: Colors.white,
+                              ),
+                              icon: Image.asset(
+                                'assets/Google__G__logo.svg.png',
+                                width: 18,
+                                height: 18,
+                                fit: BoxFit.contain,
+                              ),
+                              label: const Text(
+                                'Google',
+                                style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

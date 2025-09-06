@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:http/http.dart' as http;
 import 'package:wekil_ai_mobile_app/features/contacts/data/datasources/contract_api.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/data/datasources/draft_remote_datasource.dart';
@@ -6,10 +7,12 @@ import 'package:wekil_ai_mobile_app/features/contacts/data/repositories/contract
 import 'package:wekil_ai_mobile_app/features/contacts/domain/usecases/create_draft_usecase.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/usecases/generate_draft_usecase.dart.dart.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/usecases/modify_draft_usecase.dart';
+=======
+import 'package:go_router/go_router.dart';
+>>>>>>> 653810666dc2b095ee44bd8ee6978bb6cdf4a170
 import 'package:wekil_ai_mobile_app/features/widget/progress_bar.dart';
 import '../../data/models/contact_data.dart';
 import '../../../widget/contract_specificatio.dart';
-import 'step6.dart';
 import '../../domain/entities/contract_type.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -70,6 +73,7 @@ class _CreateStep4State extends State<CreateStep4> {
                           );
                           final createDraft = CreateDraftUseCase(datasource);
 
+<<<<<<< HEAD
                           final draftPayload = {
                             "title": widget.contractType.name,
                             "sections": [
@@ -137,6 +141,15 @@ class _CreateStep4State extends State<CreateStep4> {
                           );
                         }
                       },
+=======
+                  // final draftUrl = await generateDraft(intakeModel);
+                  final draftUrl = "https://example.com/fake-contract.pdf";
+                  context.push('/contracts/step6', extra: {
+                    'intakeModel': intakeModel,
+                    'draftContractPdfUrl': draftUrl,
+                  });
+                },
+>>>>>>> 653810666dc2b095ee44bd8ee6978bb6cdf4a170
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: AppColors.textLight,

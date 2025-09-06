@@ -166,7 +166,7 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 	}
 
 	// 2. Initialize and configure the client for the Classification task.
-	classifierModel := baseClient.GenerativeModel("gemini-2.5-flash")
+	classifierModel := baseClient.GenerativeModel(_CURR_GEMINI_MODEL_USING)
 	classifierModel.GenerationConfig = genai.GenerationConfig{
 		ResponseMIMEType: "application/json",
 		ResponseSchema: &genai.Schema{
@@ -188,7 +188,7 @@ func NewAIInteraction(apiKey string) (domainInterface.IAIInteraction, error) {
 
 	// 3. Initialize and configure the client for the Document Draft task.
 	// This configuration uses the schema from the 'Draft' model to ensure a structured JSON response.
-	documentModel := baseClient.GenerativeModel("gemini-2.5-flash")
+	documentModel := baseClient.GenerativeModel(_CURR_GEMINI_MODEL_USING)
 	documentModel.GenerationConfig = genai.GenerationConfig{
 		ResponseMIMEType: "application/json",
 		ResponseSchema: &genai.Schema{

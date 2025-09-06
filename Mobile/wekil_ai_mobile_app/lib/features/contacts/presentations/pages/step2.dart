@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_localization/flutter_localization.dart';
+<<<<<<< HEAD
 import 'package:http/http.dart' as http;
 import 'package:wekil_ai_mobile_app/features/contacts/data/datasources/classify_remote_datasource.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/usecases/classify_text.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step3.dart';
+=======
+>>>>>>> 653810666dc2b095ee44bd8ee6978bb6cdf4a170
 import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import '../../../widget/progress_bar.dart';
 import '../../data/models/contact_data.dart';
@@ -164,7 +168,7 @@ class _CreateStep1State extends State<CreateStep1> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.textDark,
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -175,6 +179,7 @@ class _CreateStep1State extends State<CreateStep1> {
                 ),
                 const SizedBox(width: 16),
                 Expanded(
+<<<<<<< HEAD
                   child: Expanded(
                     child:ElevatedButton(
   onPressed: isLoading
@@ -269,6 +274,46 @@ class _CreateStep1State extends State<CreateStep1> {
           ],
         ),
 )
+=======
+                  child: ElevatedButton(
+                    onPressed: () {
+                      final intake = IntakeModel(
+                        language: selectedLanguage,
+                        contractType: widget.contractType,
+                        parties: [],
+                        location: '',
+                        currency: '',
+                        dueDates: [],
+                        startDate: DateTime.now(),
+                        endDate: DateTime.now().add(const Duration(days: 30)),
+                        services: widget.contractType ==
+                                ContractType.serviceAgreement
+                            ? descriptionController.text
+                            : null,
+                        deliveryTerms: widget.contractType ==
+                                ContractType.salesOfGoods
+                            ? descriptionController.text
+                            : null,
+                      );
+                      context.push('/contracts/step3', extra: {
+                        'intake': intake,
+                        'contractType': widget.contractType,
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      textStyle: AppTypography.button(),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Text("Next"),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward, size: 18),
+                      ],
+                    ),
+>>>>>>> 653810666dc2b095ee44bd8ee6978bb6cdf4a170
                   ),
                 ),
               ],

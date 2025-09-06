@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:http/http.dart' as http;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/data/datasources/draft_remote_datasource.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/usecases/regenerate_draft_usecase.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step7.dart';
+=======
+import 'package:go_router/go_router.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+>>>>>>> 653810666dc2b095ee44bd8ee6978bb6cdf4a170
 import 'package:wekil_ai_mobile_app/features/widget/progress_bar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -39,6 +44,7 @@ class _CreateStep5State extends State<CreateStep5> {
     await Future.delayed(const Duration(seconds: 1)); // Simulate delay
   }
 
+<<<<<<< HEAD
   @override
   void initState() {
     super.initState();
@@ -61,6 +67,9 @@ class _CreateStep5State extends State<CreateStep5> {
         const SnackBar(content: Text("Please enter a message for AI")),
       );
       setState(() => _isLoadingAI = false);
+=======
+  context.pop(true);
+>>>>>>> 653810666dc2b095ee44bd8ee6978bb6cdf4a170
       return;
     }
 
@@ -69,6 +78,7 @@ class _CreateStep5State extends State<CreateStep5> {
     );
 
     try {
+<<<<<<< HEAD
       final response = await usecase(
         draft: draftText,
         prompt: prompt,
@@ -94,6 +104,14 @@ class _CreateStep5State extends State<CreateStep5> {
           _changesController.clear(); // ✅ clear the input after success
         });
       }
+=======
+      await widget.modifyDraft!(
+        widget.intakeModel,
+        _changesController.text,
+      ); // use !
+  context.pop(true);
+      // print('Intake Data after changes:\n${widget.intakeModel}'); // also log here
+>>>>>>> 653810666dc2b095ee44bd8ee6978bb6cdf4a170
     } catch (e) {
       print("❌ Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -159,6 +177,7 @@ class _CreateStep5State extends State<CreateStep5> {
                             setState(() => _isLoadingPdf = true);
                             await _submitChanges();
 
+<<<<<<< HEAD
                             // Navigate to PDF page
                             Navigator.push(
                               context,
@@ -186,6 +205,19 @@ class _CreateStep5State extends State<CreateStep5> {
                     child: _isLoadingPdf
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text("Export to PDF"),
+=======
+                        // Then navigate to PDF page
+                        context.push('/contracts/pdf', extra: {
+                          'intakeModel': widget.intakeModel,
+                        });
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: AppColors.textLight,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+>>>>>>> 653810666dc2b095ee44bd8ee6978bb6cdf4a170
                   ),
                 ),
                 const SizedBox(width: 16),

@@ -1,5 +1,6 @@
 import React from "react";
 import { Handshake, Banknote, ScrollText, Shield } from "lucide-react";
+import Link from "next/link";
 
 export const contractTypes = {
   service: {
@@ -51,17 +52,19 @@ const AgreementType = ({
   lang: "en" | "am";
 }) => {
   return (
-    <div className="px-4 border col-span-4 md:col-span-2 lg:col-span-1 border-gray-100 cursor-pointer hover:shadow-lg hover:scale-105 hover:border hover:border-blue-300 transition-all duration-300 ease-in-out p-6 rounded-lg">
-      <div className="flex justify-center mb-4 rounded-full">
-        {contractTypes[type].icon}
+    <Link href={"dashboard/create-contract"}>
+      <div className="px-4 border col-span-4 md:col-span-2 lg:col-span-1 border-gray-100 cursor-pointer hover:shadow-lg hover:scale-105 hover:border hover:border-blue-300 transition-all duration-300 ease-in-out p-6 rounded-lg">
+        <div className="flex justify-center mb-4 rounded-full">
+          {contractTypes[type].icon}
+        </div>
+        <p className="pl-3 mb-4 text-center text-lg font-bold text-gray-700">
+          {contractTypes[type].title[lang]}
+        </p>
+        <p className="pl-3 mb-4 text-md text-gray-500">
+          {contractTypes[type].description[lang]}
+        </p>
       </div>
-      <p className="pl-3 mb-4 text-center text-lg font-bold text-gray-700">
-        {contractTypes[type].title[lang]}
-      </p>
-      <p className="pl-3 mb-4 text-md text-gray-500">
-        {contractTypes[type].description[lang]}
-      </p>
-    </div>
+    </Link>
   );
 };
 

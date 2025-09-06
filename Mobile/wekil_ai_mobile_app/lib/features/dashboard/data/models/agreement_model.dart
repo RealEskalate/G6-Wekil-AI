@@ -134,7 +134,8 @@ class AgreementModel {
 
     return AgreementModel(
       id: (json['id'] ?? json['_id'] ?? '').toString(),
-      title: json['title']?.toString(),
+      // Prefer 'title' but fall back to 'agreement_title' from history API
+      title: (json['title'] ?? json['agreement_title'])?.toString(),
       currency: (json['currency'] ?? '').toString(),
       totalAmount: parseNum(json['total_amount']),
       // Backend sometimes returns created_at instead of start_date.

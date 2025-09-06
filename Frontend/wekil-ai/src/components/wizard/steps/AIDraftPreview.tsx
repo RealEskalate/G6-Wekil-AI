@@ -20,16 +20,25 @@ interface AIDraftPreviewProps {
   contractData: Partial<ContractData>;
   draftedData: ContractDraft;
   setDraftedData: (item: ContractDraft) => void;
-  textDraft?: string;
-  setTextDraft: (text: string) => void;
 }
+
+export const getFullDraftText = (draft: ContractDraft) => {
+  let fullText = draft.title.replace(/<<.*?>>/g, "");
+
+  draft.sections.forEach((section: Section) => {
+    const heading = section.heading.replace(/<<.*?>>/g, "");
+    const description = section.description.replace(/<<.*?>>/g, "");
+    fullText += ` ${heading} ${description}`;
+  });
+
+  return fullText.trim();
+};
 
 export function AIDraftPreview({
   currentLanguage,
   contractData,
   draftedData,
   setDraftedData,
-  setTextDraft,
 }: AIDraftPreviewProps) {
   const [aiDraft, setAiDraft] = useState<ContractDraft>(draftedData);
   const [isGeneratingDraft] = useState(false);
@@ -99,29 +108,16 @@ export function AIDraftPreview({
     }
   };
 
-  const getFullDraftText = (draft: ContractDraft) => {
-    let fullText = draft.title.replace(/<<.*?>>/g, ""); // remove <<placeholders>>
-
-    draft.sections.forEach((section: Section) => {
-      const heading = section.heading.replace(/<<.*?>>/g, "");
-      const description = section.description.replace(/<<.*?>>/g, "");
-      fullText += ` ${heading} ${description}`; // remove \n, use space
-    });
-
-    return fullText.trim();
-  };
-
   const updateDraftWithPrompt = async () => {
     if (!aiDraft) return;
     setIsReprompting(true);
 
     try {
-      const draftText = getFullDraftText(aiDraft);
-      setTextDraft(draftText);
+      const text = getFullDraftText(aiDraft);
 
       const resultAction = await dispatch(
         updateDraftFromPrompt({
-          draft: draftText,
+          draft: text,
           prompt: reprompt,
           language:
             contractData.agreementLanguage === "en" ? "English" : "Amharic",

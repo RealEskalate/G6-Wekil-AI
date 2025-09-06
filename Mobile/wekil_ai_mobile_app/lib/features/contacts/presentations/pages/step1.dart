@@ -26,7 +26,7 @@ class _ContractsTypesPagesState extends State<ContractsTypesPages> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 24),
-            const StepProgressBar(currentStep: 1, totalSteps: 7),
+            const StepProgressBar(currentStep: 1,  stepLabels: ["Type","Basic Info","Parties","Genera","Specific","Preview","Success",]),
             const SizedBox(height: 24),
             Text(
               LocalesData.Select_Contract_Type.getString(context),
@@ -77,7 +77,6 @@ class _ContractsTypesPagesState extends State<ContractsTypesPages> {
               type: ContractType.basicNDA,
             ),
             const SizedBox(height: 24),
-            _buildWarningCard(),
           ],
         ),
       ),
@@ -153,82 +152,6 @@ class _ContractsTypesPagesState extends State<ContractsTypesPages> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildWarningCard() {
-    return Card(
-      color: Colors.amber.shade50,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.amber.shade200, width: 1),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.info_outline, color: Colors.amber.shade800),
-                const SizedBox(width: 8),
-                Text(
-                  LocalesData.Not_for_Complex_Agreements.getString(context),
-                  style: AppTypography.body().copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              LocalesData.This_tool_is_designed_for_basic_agreements_only_Please_consult_a_lawyer_for.getString(context),
-              style: AppTypography.body().copyWith(
-                fontSize: 14,
-                color: AppColors.textDark.withOpacity(0.7),
-              ),
-            ),
-            const SizedBox(height: 8),
-            _buildBulletedText(
-              LocalesData.Employment_contracts.getString(context),
-              color: AppColors.textDark.withOpacity(0.7),
-            ),
-            _buildBulletedText(
-              LocalesData.Real_estate_or_land_transfers.getString(context),
-              color: AppColors.textDark.withOpacity(0.7),
-            ),
-            _buildBulletedText(
-              LocalesData.Corporate_or_shareholder_agreements.getString(context),
-              color: AppColors.textDark.withOpacity(0.7),
-            ),
-            _buildBulletedText(
-              LocalesData.Government_tenders_or_regulated_industries.getString(context),
-              color: AppColors.textDark.withOpacity(0.7),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBulletedText(String text, {Color? color}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('• ', style: TextStyle(color: color ?? AppColors.textDark)),
-          Expanded(
-            child: Text(
-              text,
-              style: AppTypography.body().copyWith(
-                color: color ?? AppColors.textDark,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

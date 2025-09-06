@@ -200,7 +200,6 @@ func (a *UserUseCase) Login(email, password string) (string,string, string,error
 		UserName: user.FirstName + " " + user.MiddleName,
 		Email:       user.Email,
 		IsVerified:  true,
-		AccountType: user.AccountType,
 		TokenType:   domainInterface.AccessToken,
 	}
 	// Generate Refresh Token

@@ -6,6 +6,5 @@ class LoginInput extends Equatable {
   const LoginInput({required this.email, required this.password});
   
   @override
-  
   List<Object?> get props => [email, password];
 }

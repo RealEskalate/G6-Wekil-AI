@@ -147,13 +147,9 @@ class _CreateStep2State extends State<CreateStep2> {
                 "Create ${_getContractTitle(widget.contractType)}",
                 style: AppTypography.heading().copyWith(fontSize: 20),
               ),
-              const SizedBox(height: 4),
-              Text(
-                "Step 3 of 7: Parties",
-                style: AppTypography.body().copyWith(color: Colors.grey[700]),
-              ),
+             
               const SizedBox(height: 20),
-              const StepProgressBar(currentStep: 3, totalSteps: 7),
+              const StepProgressBar(currentStep: 3,  stepLabels: ["Type","Basic Info","Parties","Genera","Specific","Preview","Success",]),
               const SizedBox(height: 24),
 
               // User Party Selection Toggle

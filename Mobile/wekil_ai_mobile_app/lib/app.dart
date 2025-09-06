@@ -3,12 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
-import 'package:wekil_ai_mobile_app/history.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 
 import 'features/dashboard/presentation/dashboard.dart';
 import 'features/contacts/presentations/pages/create_start_page.dart';
 import 'features/widget/bottom_nav.dart';
+import 'core/di/injection.dart' as dash_di;
+import 'features/history/domain/usecases/get_history_page.dart';
+import 'features/history/presentation/pages/history_page.dart';
 
 class MyApp extends StatefulWidget {
   final GoRouter router;
@@ -24,8 +26,8 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     configlocalization();
     super.initState();
-    
   }
+
   @override
   Widget build(BuildContext context) {
     final base = ThemeData(
@@ -48,39 +50,51 @@ class _MyAppState extends State<MyApp> {
       localizationsDelegates: localization.localizationsDelegates,
       routerConfig: widget.router,
     );
-    
   }
+
   void configlocalization() {
     localization.init(mapLocales: LOCALES, initLanguageCode: "en");
     localization.onTranslatedLanguage = onTranslatedLanguage;
   }
+
   void onTranslatedLanguage(Locale? locale) {
     setState(() {});
   }
 }
 
-
-
-
-
-
-
 class MainScreen extends StatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  final int? initialIndex;
+  const MainScreen({Key? key, this.initialIndex}) : super(key: key);
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  
-  
   int _currentIndex = 0;
+  late final Widget _historyPage;
+  
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialIndex != null) {
+      _currentIndex = widget.initialIndex!.clamp(0, 2);
+    }
+    // Create the History page once so its state persists across tab switches
+    final usecase = dash_di.getIt<GetHistoryPage>();
+    _historyPage = HistoryPage.provider(usecase: usecase);
+  }
 
-  final List<Widget> _pages = [
-    DashboardPage.provider(), // index 0
+  // Provide pages via a getter so we can forward the _onCreatePressed callback
+  // into DashboardPage.provider() — this makes the dashboard's Create button
+  // trigger the same action as the bottom nav create.
+  List<Widget> get _pages => [
+    DashboardPage.provider(
+      onCreate: _onCreatePressed,
+      onViewAll: _onViewAllPressed,
+    ), // index 0
     const CreateContractScreen(), // index 1
-    const History(), // index 2
+    _historyPage, // index 2
   ];
 
   void _onItemSelected(int index) {
@@ -95,6 +109,12 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  void _onViewAllPressed() {
+    setState(() {
+      _currentIndex = 2; // switch to History/Contracts tab
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,7 +126,5 @@ class _MainScreenState extends State<MainScreen> {
         onCreatePressed: _onCreatePressed,
       ),
     );
-    
   }
-
 }

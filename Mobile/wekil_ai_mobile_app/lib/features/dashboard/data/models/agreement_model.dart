@@ -134,11 +134,14 @@ class AgreementModel {
 
     return AgreementModel(
       id: (json['id'] ?? json['_id'] ?? '').toString(),
-      title: json['title']?.toString(),
+      // Prefer 'title' but fall back to 'agreement_title' from history API
+      title: (json['title'] ?? json['agreement_title'])?.toString(),
       currency: (json['currency'] ?? '').toString(),
       totalAmount: parseNum(json['total_amount']),
-      startDate: parseDate(json['start_date']),
-      endDate: parseDate(json['end_date']),
+      // Backend sometimes returns created_at instead of start_date.
+      // Use created_at as a fallback so Recent list shows sensible dates.
+      startDate: parseDate(json['start_date'] ?? json['created_at']),
+      endDate: parseDate(json['end_date'] ?? json['updated_at']),
       dueDates: dueDates,
       location: json['location']?.toString(),
       services: json['services']?.toString(),

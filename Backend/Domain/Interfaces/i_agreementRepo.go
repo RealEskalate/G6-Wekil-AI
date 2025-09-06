@@ -10,6 +10,7 @@ import (
 type IAgreementRepo interface { //! don't forget to add a DeleteAgreement() for tihs, based on time stamp of the deletedAT
 	SaveAgreement(ctx context.Context, agreement *domain.Agreement) (*domain.Agreement, error)
 	GetAgreement(ctx context.Context, agreementID primitive.ObjectID) (*domain.Agreement, error)
+	GetAgreementIntake(ctx context.Context, agreementID primitive.ObjectID) (*domain.AgreementIntake, error)
 	UpdateAgreement(ctx context.Context, agreementID primitive.ObjectID, agreement *domain.Agreement) (*domain.Agreement, error)
 	GetAgreementsByPartyID(ctx context.Context, ownerID primitive.ObjectID, pageNumber int) ([]*domain.Agreement, error)
 	GetAgreementsByFilterAndPartyID(ctx context.Context, ownerID primitive.ObjectID, pageNumber int, filter *domain.AgreementFilter) ([]*domain.Agreement, error)

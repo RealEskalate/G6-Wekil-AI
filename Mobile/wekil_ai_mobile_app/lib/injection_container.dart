@@ -105,7 +105,7 @@ Future<void> init() async {
       getCachedAuthTokens: () {
         final authLocalDataSource = sl<AuthLocalDataSource>();
         return authLocalDataSource.getCachedAuthTokens();
-      },
+      }, 
     ),
   );
 

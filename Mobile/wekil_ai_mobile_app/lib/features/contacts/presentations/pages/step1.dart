@@ -16,140 +16,208 @@ class ContractsTypesPages extends StatefulWidget {
 }
 
 class _ContractsTypesPagesState extends State<ContractsTypesPages> {
+  ContractType? _selectedType; // store selected contract type
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const NavBar(),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 24),
-            const StepProgressBar(currentStep: 1,  stepLabels: ["Type","Basic Info","Parties","Genera","Specific","Preview","Success",]),
-            const SizedBox(height: 24),
-            Text(
+             Text(
               LocalesData.Select_Contract_Type.getString(context),
-              style: AppTypography.heading().copyWith(fontSize: 24),
-              textAlign: TextAlign.center,
+              style: AppTypography.heading().copyWith(fontSize: 20),
             ),
             const SizedBox(height: 8),
-            Text(
-              LocalesData.Choose_the_type_of_contract_you_want_to_create.getString(context),
-              style: AppTypography.body().copyWith(color: Colors.grey),
-              textAlign: TextAlign.center,
+            const StepProgressBar(
+              currentStep: 1,
+              stepLabels: [
+                "Type",
+                "Basic Info",
+                "Parties",
+                "Genera",
+                "Specific",
+                "Preview",
+                "Success",
+              ], totalSteps: 7,
             ),
             const SizedBox(height: 24),
-            _buildContractTypeCard(
-              context,
-              icon: Icons.business_center,
-              title: LocalesData.Service_Agreement.getString(context),
-              subtitle: LocalesData.Freelance_work_design_photography_consulting.getString(context),
-              iconColor: Colors.blue,
-              cardColor: Colors.blue.shade50,
-              type: ContractType.serviceAgreement,
+
+            // Cards
+            Expanded(
+              child: ListView(
+                children: [
+                  _buildContractTypeCard(
+                    context,
+                    icon: Icons.business_center,
+                    title: LocalesData.Service_Agreement.getString(context),
+                    subtitle: LocalesData.Freelance_work_design_photography_consulting.getString(context),
+                    example: "Example: Logo design for 5,000 ETB",
+                    cardColor: Colors.blue.shade100,
+                    type: ContractType.serviceAgreement,
+                  ),
+                  _buildContractTypeCard(
+                    context,
+                    icon: Icons.shopping_bag,
+                    title: LocalesData.Sale_of_Goods.getString(context),
+                    subtitle: LocalesData.Small_item_sales_product_delivery_terms.getString(context),
+                    example: "Example: Electronics sale with warranty",
+                    cardColor: Colors.blue.shade100,
+                    type: ContractType.salesOfGoods,
+                  ),
+                  _buildContractTypeCard(
+                    context,
+                    icon: Icons.groups,
+                    title: LocalesData.Simple_Loan_IOU.getString(context),
+                    subtitle: LocalesData.Personal_loans_with_repayment_schedule.getString(context),
+                    example: "Example: 15,000 ETB loan, 3 months repayment",
+                    cardColor: Colors.blue.shade100,
+                    type: ContractType.simpleLoan,
+                  ),
+                  _buildContractTypeCard(
+                    context,
+                    icon: Icons.security,
+                    title: LocalesData.Basic_NDA.getString(context),
+                    subtitle: LocalesData.Simple_confidentiality_agreement.getString(context),
+                    example: "Example: Protect business idea discussions",
+                    cardColor: Colors.blue.shade100,
+                    type: ContractType.basicNDA,
+                  ),
+                ],
+              ),
             ),
-            _buildContractTypeCard(
-              context,
-              icon: Icons.shopping_bag,
-              title:LocalesData.Sale_of_Goods.getString(context), 
-              subtitle:LocalesData.Small_item_sales_product_delivery_terms.getString(context), 
-              iconColor: Colors.green.shade800,
-              cardColor: Colors.green.shade50,
-              type: ContractType.salesOfGoods,
+
+            const SizedBox(height: 16),
+
+            // Navigation Buttons
+            Row(
+              children: [
+                _buildNavButton("Previous", AppColors.primary, () {
+                  context.pop();
+                }),
+                _buildNavButton(
+                  "Next",
+                  _selectedType == null ? Colors.grey : AppColors.primary,
+                  _selectedType == null
+                      ? null
+                      : () {
+                          context.push('/contracts/step2', extra: {
+                            'contractType': _selectedType,
+                          });
+                        },
+                ),
+              ],
             ),
-            _buildContractTypeCard(
-              context,
-              icon: Icons.groups,
-              title: LocalesData.Simple_Loan_IOU.getString(context), 
-              subtitle: LocalesData.Personal_loans_with_repayment_schedule.getString(context),
-              iconColor: Colors.orange.shade800,
-              cardColor: Colors.orange.shade50,
-              type: ContractType.simpleLoan,
-            ),
-            _buildContractTypeCard(
-              context,
-              icon: Icons.security,
-              title:LocalesData.Basic_NDA.getString(context),
-              subtitle:LocalesData.Simple_confidentiality_agreement.getString(context) ,
-              iconColor: Colors.purple.shade800,
-              cardColor: Colors.purple.shade50,
-              type: ContractType.basicNDA,
-            ),
-            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
+
   Widget _buildContractTypeCard(
     BuildContext context, {
     required IconData icon,
     required String title,
     required String subtitle,
-    required Color iconColor,
+    required String example,
     required Color cardColor,
     required ContractType type,
   }) {
-    return Card(
-      color: cardColor,
-      elevation: 3, // subtle shadow
-      shadowColor: iconColor.withOpacity(0.3),
-      margin: const EdgeInsets.symmetric(vertical: 12.0),
-      shape: RoundedRectangleBorder(
+    final isSelected = _selectedType == type;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isSelected ? AppColors.primary.withOpacity(0.2) : cardColor,
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: iconColor, width: 0.5),
+        border: Border.all(
+          color: isSelected ? AppColors.primary : Colors.transparent,
+          width: 2,
+        ),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        splashColor: iconColor.withOpacity(0.1), // ripple effect
         onTap: () {
-          context.push('/contracts/step2', extra: {
-            'contractType': type,
+          setState(() {
+            _selectedType = type;
           });
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icon container
+              // Icon square
               Container(
-                width: 48,
-                height: 48,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
-                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: iconColor, size: 28),
+                child: Icon(icon, color: AppColors.primary, size: 24),
               ),
               const SizedBox(width: 16),
+
               // Text
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: AppTypography.body().copyWith(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                      ),
-                    ),
+                    Text(title,
+                        style: AppTypography.body().copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                        )),
                     const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: AppTypography.body().copyWith(
-                        fontSize: 14,
-                        color: AppColors.textDark.withOpacity(0.7),
-                      ),
-                    ),
+                    Text(subtitle,
+                        style: AppTypography.body().copyWith(
+                          fontSize: 14,
+                          color: AppColors.textDark,
+                        )),
+                    const SizedBox(height: 4),
+                    Text(example,
+                        style: AppTypography.body().copyWith(
+                          fontSize: 12,
+                          color: Colors.black54,
+                          fontStyle: FontStyle.italic,
+                        )),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavButton(String text, Color color, VoidCallback? onTap) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+        height: 48,
+        child: ElevatedButton(
+          onPressed: onTap,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
       ),

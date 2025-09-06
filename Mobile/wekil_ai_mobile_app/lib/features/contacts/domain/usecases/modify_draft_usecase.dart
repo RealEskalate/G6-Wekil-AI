@@ -1,13 +1,19 @@
-import 'package:wekil_ai_mobile_app/features/contacts/data/models/contact_data.dart';
+import '../../data/datasources/modify_draft_remote_datasource.dart';
 
-import '../repositories/contract_repository.dart';
+class ModifyDraftUseCase {
+  final ModifyDraftRemoteDatasource datasource;
 
-class ModifyDraft {
-  final ContractRepository repository;
+  ModifyDraftUseCase(this.datasource);
 
-  ModifyDraft(this.repository);
-
-  Future<void> call(IntakeModel intake, String changes) {
-    return repository.modifyDraft(intake, changes);
+  Future<Map<String, dynamic>> call({
+    required String draft,
+    required String prompt,
+    required String language,
+  }) async {
+    return await datasource.modifyDraft(
+      draft: draft,
+      prompt: prompt,
+      language: language,
+    );
   }
 }

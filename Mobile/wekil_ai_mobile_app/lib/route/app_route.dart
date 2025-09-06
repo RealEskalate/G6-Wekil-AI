@@ -191,7 +191,7 @@ final List<GoRoute> appRoutes = [
     builder: (context, state) {
       final extra = state.extra as Map?;
       final intakeModel = extra?['intakeModel'] as IntakeModel?;
-      return PdfChangerPage(intakeModel: intakeModel!);
+      return PdfChangerPage(intakeModel: intakeModel!, draftSections: [],);
     },
   ),
   GoRoute(

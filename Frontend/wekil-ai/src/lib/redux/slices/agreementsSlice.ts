@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk} from "@reduxjs/toolkit";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+const API_URL = process.env.NEW_NEXT_PUBLIC_API_URL as string;
 
 interface DraftSection {
   heading: string;

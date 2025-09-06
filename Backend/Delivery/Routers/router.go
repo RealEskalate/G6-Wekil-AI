@@ -73,7 +73,8 @@ func Router(uc domain.IUserController, ai domain.IAIController, ag domain.IAgree
 		agreementRoutes.POST("", ag.GetAgreementByID)
 		agreementRoutes.GET("/filter", ag.GetAgreementByFilter)
 		agreementRoutes.GET("/userID", ag.GetAgreementByUserID)
-		// agreementRoutes.POST("", ag.SaveAgreement)
+		agreementRoutes.POST("/sign", ag.SignitureHandling)
+		// agreementRoutes.POST("/decline", ag)
 	}
 	mainRouter.Run()
 

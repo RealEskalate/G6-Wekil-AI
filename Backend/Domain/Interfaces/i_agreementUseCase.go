@@ -12,8 +12,8 @@ type IAgreementUseCase interface {
 	SendAgreement(receiverEmail string, agreement *domain.Agreement) error // it will be saved on pending database
 	SoftDeleteAgreement(agreementID primitive.ObjectID, userID primitive.ObjectID) error
 	UpdateAgreement(agreementID primitive.ObjectID, newAgreement *domain.Agreement) (*domain.Agreement, error)
-	SignAgreement(agreementID primitive.ObjectID, userID primitive.ObjectID) error    //? for the time being, only making the boolean TRUE or FALSE for both side
-	DeclineAgreement(agreementID primitive.ObjectID, userID primitive.ObjectID) error // change the status to DECLINED
+	SignAgreement(agreementID primitive.ObjectID, userID primitive.ObjectID, wantToSign bool) error //? for the time being, only making the boolean TRUE or FALSE for both side
+	DeclineAgreement(agreementID primitive.ObjectID, userID primitive.ObjectID) error               // change the status to DECLINED
 	GetAgreementByID(agreementID primitive.ObjectID, userID primitive.ObjectID) (*domain.Agreement, error)
 	GetAgreementByIDIntake(agreementID primitive.ObjectID, userID primitive.ObjectID) (*domain.AgreementIntake, error)
 	GetAgreementsByUserID(userID primitive.ObjectID, pageNumber int) ([]*domain.Agreement, error)                                          // pagination

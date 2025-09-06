@@ -3,7 +3,7 @@ package usecases
 import (
 	"context"
 	"strings"
-	"wekil_ai/Domain"
+	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,31 +14,32 @@ type AIUsecase struct {
 }
 
 func NewAIUsecase(aiRepo domainInterface.IAIInteraction) *AIUsecase {
-	return &AIUsecase{aiRepo: aiRepo}
+	return &AIUsecase{
+		aiRepo: aiRepo,
+	}
 }
 
 func (u *AIUsecase) replacePartyPlaceholders(draft *domain.Draft, parties []domain.Party) {
-    if len(parties) < 2 {
-        return
-    }
+	if len(parties) < 2 {
+		return
+	}
 
-    var disclosingName, receivingName string
-    if len(parties) > 0 {
-        disclosingName = parties[0].Name
-    }
-    if len(parties) > 1 {
-        receivingName = parties[1].Name
-    }
+	var disclosingName, receivingName string
+	if len(parties) > 0 {
+		disclosingName = parties[0].Name
+	}
+	if len(parties) > 1 {
+		receivingName = parties[1].Name
+	}
 
-    for i := range draft.Sections {
-        draft.Sections[i].Text = strings.ReplaceAll(draft.Sections[i].Text, "<<Party A>>", disclosingName)
-        draft.Sections[i].Text = strings.ReplaceAll(draft.Sections[i].Text, "<<Party B>>", receivingName)
-    }
+	for i := range draft.Sections {
+		draft.Sections[i].Text = strings.ReplaceAll(draft.Sections[i].Text, "<<Party A>>", disclosingName)
+		draft.Sections[i].Text = strings.ReplaceAll(draft.Sections[i].Text, "<<Party B>>", receivingName)
+	}
 
-    draft.Signatures.PartyA = disclosingName
-    draft.Signatures.PartyB = receivingName
+	draft.Signatures.PartyA = disclosingName
+	draft.Signatures.PartyB = receivingName
 }
-
 
 // Extract key intake information
 func (u *AIUsecase) Extract(ctx context.Context, text, language string) (*domain.Intake, error) {
@@ -49,21 +50,21 @@ func (u *AIUsecase) Extract(ctx context.Context, text, language string) (*domain
 
 	result.ID = primitive.NewObjectID()
 
-    if len(result.Parties) > 0 {
-        // Assign a unique ObjectID to the DisclosingParty
-        result.Parties[0].ID = primitive.NewObjectID()
-        result.DisclosingParty = &result.Parties[0]
-    }
-    if len(result.Parties) > 1 {
-        result.Parties[1].ID = primitive.NewObjectID()
-        result.ReceivingParty = &result.Parties[1]
-    }
-    
-    for i := range result.Parties {
-        if result.Parties[i].ID.IsZero() {
-            result.Parties[i].ID = primitive.NewObjectID()
-        }
-    }
+	if len(result.Parties) > 0 {
+		// Assign a unique ObjectID to the DisclosingParty
+		result.Parties[0].ID = primitive.NewObjectID()
+		result.DisclosingParty = &result.Parties[0]
+	}
+	if len(result.Parties) > 1 {
+		result.Parties[1].ID = primitive.NewObjectID()
+		result.ReceivingParty = &result.Parties[1]
+	}
+
+	for i := range result.Parties {
+		if result.Parties[i].ID.IsZero() {
+			result.Parties[i].ID = primitive.NewObjectID()
+		}
+	}
 
 	return result, nil
 }

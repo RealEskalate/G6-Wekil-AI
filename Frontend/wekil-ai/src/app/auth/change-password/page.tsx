@@ -15,7 +15,7 @@ function ChangePasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams?.get("email") ?? "";
-  
+
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -57,11 +57,18 @@ function ChangePasswordForm() {
         toast.success(t.passwordChangedSuccess);
         router.push("/");
       } else {
-        toast.error(res.data.message || t.passwordChangeFailed);
+        toast.error(res.data?.message || res.error || t.passwordChangeFailed);
       }
-    } catch (error) {
-      console.error(error);
-      toast.error(t.passwordChangeFailed);
+    } catch (err: unknown) {
+      // Narrow error type safely
+      const error =
+        err && typeof err === "object" && "data" in err
+          ? (err as { data?: { message: string }; error?: string })
+          : null;
+
+      toast.error(
+        error?.data?.message || error?.error || t.passwordChangeFailed
+      );
     } finally {
       setIsLoading(false);
     }

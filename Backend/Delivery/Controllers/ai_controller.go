@@ -70,53 +70,32 @@ func (c *AIController) Classify(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, infrastracture.NewSuccessResponse("Classification success", result))
 }
 
+type DraftRequest struct {
+    Draft    domain.Intake `json:"draft" binding:"required"`
+    Language string       `json:"language" binding:"required"`
+}
+
+
 // POST /ai/draft
 func (c *AIController) Draft(ctx *gin.Context) {
-	var req struct {
-		Draft    string `json:"draft" binding:"required"`
-		Language string `json:"language" binding:"required"`
-	}
+    var req DraftRequest
 
-	// Validate request
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, infrastracture.NewErrorResponse(err.Error(), infrastracture.ValidationError))
-		return
-	}
+    // Bind JSON once
+    if err := ctx.ShouldBindJSON(&req); err != nil {
+        ctx.JSON(http.StatusBadRequest, infrastracture.NewErrorResponse(err.Error(), infrastracture.ValidationError))
+        return
+    }
 
-	// Step 1: Try to parse the draft into a structured Draft
-	var parsedDraft domain.Draft
-	err := json.Unmarshal([]byte(req.Draft), &parsedDraft)
-	if err != nil || parsedDraft.Title == "" {
-		// Step 2: If it’s not valid JSON → treat it as raw text
-		// First Extract → then Draft
-		intake, err := c.aiUsecase.Extract(context.Background(), req.Draft, req.Language)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, infrastracture.NewErrorResponse(err.Error(), infrastracture.InternalServerError))
-			return
-		}
+    result, err := c.aiUsecase.Draft(context.Background(), &req.Draft, req.Language)
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, infrastracture.NewErrorResponse(err.Error(), infrastracture.InternalServerError))
+        return
+    }
 
-		// Build a human-readable string from intake
-		intakeSummary, _ := json.Marshal(intake)
-
-		result, err := c.aiUsecase.Draft(context.Background(), string(intakeSummary), req.Language)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, infrastracture.NewErrorResponse(err.Error(), infrastracture.InternalServerError))
-			return
-		}
-
-		ctx.JSON(http.StatusOK, infrastracture.NewSuccessResponse("Draft generated successfully from raw text", result))
-		return
-	}
-
-	// Step 3: If it’s already structured JSON → just Draft
-	result, err := c.aiUsecase.Draft(context.Background(), req.Draft, req.Language)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, infrastracture.NewErrorResponse(err.Error(), infrastracture.InternalServerError))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, infrastracture.NewSuccessResponse("Draft generated successfully", result))
+    ctx.JSON(http.StatusOK, infrastracture.NewSuccessResponse("Classification success", result))
 }
+
+
 
 // POST /ai/draft-from-prompt
 func (c *AIController) DraftFromPrompt(ctx *gin.Context) {

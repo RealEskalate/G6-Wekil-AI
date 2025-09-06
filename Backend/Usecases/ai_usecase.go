@@ -75,10 +75,9 @@ func (u *AIUsecase) Classify(ctx context.Context, text string) (*domain.Classifi
 }
 
 // Generate document draft (placeholders kept)
-func (u *AIUsecase) Draft(ctx context.Context, draftText, language string) (*domain.Draft, error) {
-	return u.aiRepo.GenerateDocumentDraft(ctx, draftText, language)
+func (u *AIUsecase) Draft(ctx context.Context, intake *domain.Intake, language string) (*domain.Draft, error) {
+	return u.aiRepo.GenerateDocumentDraft(ctx, intake, language)
 }
-
 // Generate draft from prompt (placeholders kept)
 func (u *AIUsecase) DraftFromPrompt(ctx context.Context, draft *domain.Draft, promptText, language string) (*domain.Draft, error) {
 	return u.aiRepo.GenerateDraftFromPrompt(ctx, draft, promptText, language)

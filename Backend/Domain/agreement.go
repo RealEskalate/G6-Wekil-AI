@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"encoding/json"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -25,6 +26,34 @@ type Agreement struct {
 	CreatorSigned       bool               `json:"creator_signed" bson:"creator_signed,omitempty"`
 	AcceptorSigned      bool               `json:"acceptor_signed" bson:"acceptor_signed,omitempty"`
 	Status              string             `json:"status" bson:"status,omitempty"`
+	CreatedAt           time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt           time.Time          `json:"updated_at" bson:"updated_at"`
+	DeletedAt           time.Time          `json:"deleted_at" bson:"deleted_at"`
+	IsDeletedByCreator  bool               `bson:"is_deleted_by_creator" json:"is_deleted_by_creator"`
+	IsDeletedByAcceptor bool               `bson:"is_deleted_by_acceptor" json:"is_deleted_by_acceptor"`
+	// IsDeleted           bool               `json:"is_deleted,omitempty" bson:"is_deleted,omitempty"` //? I don't know for sure if we need this one anymore. since we can achive the same logic by using IsDeletedByCreator && IsDeletedByAcceptor
+}
+
+func (s Agreement) String() string {
+	res, err := json.MarshalIndent(s, "", "  ")
+	if err != nil {
+		return "<Can not generate a string>"
+	}
+	return string(res)
+}
+
+// Agreement with intake
+type AgreementIntake struct {
+	ID                  primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	IntakeID            primitive.ObjectID `json:"intake_id,omitempty" bson:"intake_id,omitempty"`
+	Intake              Intake             `json:"intake,omitempty" bson:"intake,omitempty"`
+	AgreementType       string             `json:"agreement_type" bson:"agreement_type"`
+	PDFURL              string             `json:"pdf_url,omitempty" bson:"pdf_url,omitempty"`
+	CreatorID           primitive.ObjectID `json:"creator_id" bson:"creator_id"`
+	AcceptorID          primitive.ObjectID `json:"acceptor_id" bson:"acceptor_id"`
+	CreatorSigned       bool               `json:"creator_signed,omitempty" bson:"creator_signed,omitempty"`
+	AcceptorSigned      bool               `json:"acceptor_signed,omitempty" bson:"acceptor_signed,omitempty"`
+	Status              string             `json:"status,omitempty" bson:"status,omitempty"`
 	CreatedAt           time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt           time.Time          `json:"updated_at" bson:"updated_at"`
 	IsDeletedByCreator  bool               `bson:"is_deleted_by_creator" json:"is_deleted_by_creator"`

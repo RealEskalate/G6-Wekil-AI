@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
-import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_typography.dart';
 
 class NavBar extends StatefulWidget implements PreferredSizeWidget {
@@ -38,7 +37,7 @@ class _NavBarState extends State<NavBar> {
         children: [
           const SizedBox(width: 16),
           Image.asset(
-            'assets/logo.jpg',
+            'assets/splash/logo.jpg',
             height: 40, // larger logo
           ),
           const SizedBox(width: 12),
@@ -120,7 +119,11 @@ class _NavBarState extends State<NavBar> {
           icon: const Icon(Icons.settings),
           iconSize: 18,
           color: Colors.black54, // AppColors.textDark.withOpacity(0.7)
-          onPressed: () {},
+          onPressed: () {
+            // Use GoRouter for navigation
+            // ignore: use_build_context_synchronously
+            GoRouter.of(context).go('/settings');
+          },
         ),
       ],
     );

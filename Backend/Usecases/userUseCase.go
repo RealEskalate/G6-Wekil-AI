@@ -319,7 +319,7 @@ func (uc *UserUseCase) GoogleNextJS(ctx context.Context, profile domain.GooglePr
 		userData := &domain.Individual{
 			Email:       profile.Email,
 			FirstName:    profile.GivenName,
-			LastName: profile.FamilyName,
+			MiddleName: profile.FamilyName,
 			ProfileImage:  profile.Picture,
 			IsVerified:  true,
 			AccountType: domain.User,

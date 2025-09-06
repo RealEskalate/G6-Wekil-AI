@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_localization/flutter_localization.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step2.dart';
 import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
 import 'package:wekil_ai_mobile_app/features/widget/progress_bar.dart';
@@ -106,12 +106,9 @@ class _ContractsTypesPagesState extends State<ContractsTypesPages> {
         borderRadius: BorderRadius.circular(12),
         splashColor: iconColor.withOpacity(0.1), // ripple effect
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CreateStep1(contractType: type),
-            ),
-          );
+          context.push('/contracts/step2', extra: {
+            'contractType': type,
+          });
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),

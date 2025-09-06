@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_localization/flutter_localization.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step1.dart';
 import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -148,14 +148,10 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
+      ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ContractsTypesPages(),
-                  ),
-                );
+        // Use declarative route; ensure route exists in app_route if needed
+        context.push('/contracts/types');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,

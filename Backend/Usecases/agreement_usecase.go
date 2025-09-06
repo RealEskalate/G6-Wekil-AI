@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -102,11 +101,11 @@ func (a *AgreementUseCase) CreateAgreementSave(intake *domain.Intake, save *doma
 			return nil, fmt.Errorf("empty acceptor email found")
 		}
 		parties := []*domain.Party{
-			&domain.Party{ // creator party
+			{ // creator party
 				ID:   save.CreatorParty.ID,
 				Name: save.CreatorParty.Email,
 			},
-			&domain.Party{ // acceptor party
+			{ // acceptor party
 				Name: acceptorEmail,
 			},
 		}
@@ -191,6 +190,21 @@ func (a *AgreementUseCase) GetAgreementByID(agreementID primitive.ObjectID, user
 	} else if resAgree.AcceptorID != userID && resAgree.CreatorID != userID {
 		return nil, fmt.Errorf("unauthorized access")
 	} else if resAgree.IsDeletedByAcceptor && resAgree.IsDeletedByCreator {
+		log.Println("❌ Indeed 🗑️ ed")
+		return nil, fmt.Errorf("trying to access deleted agreement")
+	}
+	return resAgree, nil
+}
+
+// GetAgreementByID implements domain.IAgreementUseCase.
+func (a *AgreementUseCase) GetAgreementByIDIntake(agreementID primitive.ObjectID, userID primitive.ObjectID) (*domain.AgreementIntake, error) {
+	resAgree, err := a.AgreementRepo.GetAgreementIntake(context.Background(), agreementID)
+
+	if err != nil {
+		return nil, err
+	} else if resAgree.AcceptorID != userID && resAgree.CreatorID != userID {
+		return nil, fmt.Errorf("unauthorized access")
+	} else if resAgree.IsDeletedByAcceptor && resAgree.IsDeletedByCreator {
 		return nil, fmt.Errorf("trying to access deleted agreement")
 	}
 	return resAgree, nil
@@ -213,28 +227,38 @@ func (a *AgreementUseCase) GetAgreementsByUserID(userID primitive.ObjectID, page
 }
 
 // SignAgreement implements domain.IAgreementUseCase.
-func (a *AgreementUseCase) SignAgreement(agreementID primitive.ObjectID, userID primitive.ObjectID) error {
-	agreement, err := a.AgreementRepo.GetAgreement(context.Background(), userID)
+// * I know that is't a bit complex but the logic is simple
+func (a *AgreementUseCase) SignAgreement(agreementID primitive.ObjectID, userID primitive.ObjectID, wantToSign bool) error {
+	agreement, err := a.AgreementRepo.GetAgreement(context.Background(), agreementID)
 	if err != nil {
 		return err
 	} else if userID != agreement.CreatorID && userID != agreement.AcceptorID {
 		return fmt.Errorf("unauthorized access")
+
+	} else if agreement.CreatorSigned && agreement.AcceptorSigned && !wantToSign {
+		return fmt.Errorf("can't unsign when both parties agreed to sign already")
+
 	}
+	
 	if userID == agreement.CreatorID {
-		agreement.CreatorSigned = true
+		agreement.CreatorSigned = wantToSign
 		if agreement.AcceptorSigned {
 			agreement.Status = domain.SIGNED_STATUS
 		} else {
 			agreement.Status = domain.PENDING_STATUS
 		}
+	
 	} else {
-		agreement.AcceptorSigned = true
+		agreement.AcceptorSigned = wantToSign
 		if agreement.CreatorSigned {
 			agreement.Status = domain.SIGNED_STATUS
 		} else {
 			agreement.Status = domain.PENDING_STATUS
 		}
+	
 	}
+	
+	
 	_, err = a.AgreementRepo.UpdateAgreement(context.Background(), agreementID, agreement)
 	return err
 }
@@ -256,10 +280,8 @@ func (a *AgreementUseCase) SoftDeleteAgreement(agreementID primitive.ObjectID, u
 	} else {
 		resAgree.IsDeletedByAcceptor = true
 	}
-	// if both parties want to delete the agreement then the deletedAt will have the time stamp of now
-	if resAgree.IsDeletedByAcceptor && resAgree.IsDeletedByCreator {
-		resAgree.DeletedAt = time.Now()
-	}
+	//? if both parties want to delete the agreement then the deletedAt will have the time stamp of now | edit* this function is handled at database level
+	
 	_, err = a.AgreementRepo.UpdateAgreement(context.Background(), resAgree.ID, resAgree)
 
 	return err
@@ -319,14 +341,10 @@ func (a *AgreementUseCase) DuplicateAgreement(originalAgreementID primitive.Obje
 		}
 		newIntake.Parties = newParties
 	}
-	intakeJSON, err := json.Marshal(newIntake)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal intake to JSON: %w", err)
-	}
 
 	// 4. Call the AI to generate a new draft from the modified intake.
 	// We're using the AI's GenerateDocumentDraft function as it's designed for this.
-	newDraft, err := a.AIInteraction.GenerateDocumentDraft(context.Background(), string(intakeJSON), "en")
+	newDraft, err := a.AIInteraction.GenerateDocumentDraft(context.Background(), &newIntake, "en")
 	if err != nil {
 		return nil, nil, err
 	}

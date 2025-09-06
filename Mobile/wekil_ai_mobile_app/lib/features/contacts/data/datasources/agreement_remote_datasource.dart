@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:wekil_ai_mobile_app/injection_container.dart' as di;
 
 class AgreementRemoteDatasource {
-  final String baseUrl = 'https://g6-wekil-ai-forserverdeployment.onrender.com/agreement/save';
+  final String basePath = '/agreement/save';
 
   Future<void> saveAgreement(Map<String, dynamic> payload) async {
     try {
-      final response = await http.post(
-        Uri.parse(baseUrl),
+      final client = di.sl<http.Client>(instanceName: 'authHttp');
+      final response = await client.post(
+        Uri.parse('${di.kBaseApiUrl}$basePath'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       );

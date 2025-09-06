@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wekil_ai_mobile_app/features/contacts/data/models/contact_data.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/entities/milestone.dart';
+import 'package:wekil_ai_mobile_app/injection_container.dart' as di;
 
 class PdfChangerPage extends StatefulWidget {
   final IntakeModel intakeModel;
@@ -186,7 +187,9 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
     final body = jsonEncode({'html': htmlContent});
 
     try {
-      final response = await http.post(url, headers: headers, body: body);
+  // Use base client for third-party (no auth refresh needed)
+  final baseClient = di.sl<http.Client>();
+  final response = await baseClient.post(url, headers: headers, body: body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -256,15 +259,15 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
   print(jsonEncode(payload));
 
   try {
-    final url = Uri.parse('https://g6-wekil-ai-forserverdeployment.onrender.com/agreement/save');
-    final response = await http.post(
-  url,
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YjU5OTdiN2M4NDNmY2IyYTkxMGQxZiIsImVtYWlsIjoiYW1pbm1hbWluZTYyMEBnbWFpbC5jb20iLCJpc192ZXJpZmllZCI6dHJ1ZSwiYWNjb3VudF90eXBlIjoidXNlciIsInRva2VuX3R5cGUiOiJhY2Nlc3NfdG9rZW4iLCJleHAiOjE3NTcxODg1MzQsImlhdCI6MTc1NzE4NzYzNH0.MPYesXkFj6xLPBwdsKJ9zV0FWud_BKQWJKnz5_nY7Jc', // <-- Add your token
-  },
-  body: jsonEncode(payload),
-);
+    final client = di.sl<http.Client>(instanceName: 'authHttp');
+    final url = Uri.parse('${di.kBaseApiUrl}/agreement/save');
+    final response = await client.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(payload),
+    );
 
      // 🔹 Print backend response to console
     print("=== Backend Response ===");

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 	domain "wekil_ai/Domain"
 	domainInterface "wekil_ai/Domain/Interfaces"
 
@@ -54,7 +55,7 @@ func (a *AgreementRepository) GetAgreementsByFilterAndPartyID(ctx context.Contex
 	if len(filterOr) > 0 {
 		and = append(and, bson.D{
 			{
-				Key: "$or",
+				Key:   "$or",
 				Value: filterOr,
 			},
 		})
@@ -149,6 +150,7 @@ func (a *AgreementRepository) GetAgreement(ctx context.Context, agreementID prim
 	}
 	return &singleAgreement, nil
 }
+
 // GetAgreement implements domain.IAgreementRepo.
 func (a *AgreementRepository) GetAgreementIntake(ctx context.Context, agreementID primitive.ObjectID) (*domain.AgreementIntake, error) {
 	filter := bson.M{"_id": agreementID}
@@ -156,7 +158,7 @@ func (a *AgreementRepository) GetAgreementIntake(ctx context.Context, agreementI
 	if err := a.collection.FindOne(ctx, filter).Decode(&singleAgreement); err != nil {
 		return nil, err
 	}
-		log.Print("data------------------------:-", singleAgreement)
+	log.Print("data------------------------:-", singleAgreement)
 
 	intakeFilter := bson.M{"_id": singleAgreement.IntakeID}
 	var intake domain.Intake
@@ -180,31 +182,48 @@ func (a *AgreementRepository) SaveAgreement(ctx context.Context, agreement *doma
 
 // UpdateAgreement implements domain.IAgreementRepo.
 func (a *AgreementRepository) UpdateAgreement(ctx context.Context, agreementID primitive.ObjectID, agreement *domain.Agreement) (*domain.Agreement, error) {
-	// update := bson.M{"$set": updates}
-	filter := bson.M{"_id": agreementID}
-	updateMapping := bson.M{"$set": map[string]interface{}{
+	// Exclude 'updated_at' from the initial update payload
+	updates := bson.M{
 		"acceptor_id":            agreement.AcceptorID,
-		"created_at":             agreement.CreatedAt,
-		"deleted_at":             agreement.DeletedAt,
-		"creator_id":             agreement.CreatorID,
 		"intake_id":              agreement.IntakeID,
 		"is_deleted_by_creator":  agreement.IsDeletedByCreator,
 		"is_deleted_by_acceptor": agreement.IsDeletedByAcceptor,
 		"pdf_url":                agreement.PDFURL,
 		"status":                 agreement.Status,
-		"updated_at":             agreement.UpdatedAt,
-	},
+		"creator_signed":         agreement.CreatorSigned,
+		"acceptor_signed":        agreement.AcceptorSigned,
 	}
-	updateResult, err := a.collection.UpdateOne(ctx, filter, updateMapping)
+	if agreement.IsDeletedByAcceptor && agreement.IsDeletedByCreator {
+		updates["deleted_at"] = time.Now()
+	}
+	filter := bson.M{"_id": agreementID}
+	
+	// This update will now correctly result in ModifiedCount: 0 if data is the same
+	updateResult, err := a.collection.UpdateOne(ctx, filter, bson.M{"$set": updates})
 	if err != nil {
 		return nil, err
 	}
-	if updateResult.ModifiedCount == 0 {
-		return nil, fmt.Errorf("no agreement was updated")
+	log.Println("▶️ modify count", updateResult.ModifiedCount)
+	
+	// This check will now work as you originally intended
+	if updateResult.ModifiedCount > 0 {
+		// If modified, perform a second update to set 'updated_at'
+		updateAtUpdate := bson.M{"$set": bson.M{"updated_at": time.Now()}}
+		_, err = a.collection.UpdateOne(ctx, filter, updateAtUpdate)
+		if err != nil {
+			return nil, err
+		}
 	}
-	agreement.ID = agreementID
-	return agreement, nil
-
+	// Fetch the final state of the document and return it
+	var updatedAgreement domain.Agreement
+	err = a.collection.FindOne(ctx, filter).Decode(&updatedAgreement)
+	if err != nil {
+		return nil, err
+	}
+	if updateResult.ModifiedCount == 0{
+		return &updatedAgreement, fmt.Errorf("no document modified")
+	}
+	return &updatedAgreement, nil
 }
 
 func NewAgreementRepository(client *mongo.Client, dbName, collectionName string) domainInterface.IAgreementRepo {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_localization/flutter_localization.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step3.dart';
 import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import '../../../widget/progress_bar.dart';
 import '../../data/models/contact_data.dart';
@@ -145,7 +145,7 @@ class _CreateStep1State extends State<CreateStep1> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.textDark,
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -176,16 +176,10 @@ class _CreateStep1State extends State<CreateStep1> {
                             ? descriptionController.text
                             : null,
                       );
-
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CreateStep2(
-                            intake: intake,
-                            contractType: widget.contractType,
-                          ),
-                        ),
-                      );
+                      context.push('/contracts/step3', extra: {
+                        'intake': intake,
+                        'contractType': widget.contractType,
+                      });
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,

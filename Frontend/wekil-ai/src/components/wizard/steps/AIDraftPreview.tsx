@@ -7,16 +7,21 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Loader2, Bot, Edit3, Send, Eye } from "lucide-react";
 import { ContractData, Language } from "@/components/wizard/ContractWizard";
 import { toast } from "sonner";
-import ContractPreview, {
-  ContractDraft,
-} from "@/components/ContractPreview/ContractPreview";
+import ContractPreview from "@/components/ContractPreview/ContractPreview";
+import { ContractDraft } from "@/types/Contracttype";
 import ContractDraftLoader from "@/components/ui/ContractDraftLoader";
+import { updateDraftFromPrompt } from "@/lib/redux/slices/aiSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/redux/store";
+import { Section } from "@/types/Contracttype";
 
 interface AIDraftPreviewProps {
   currentLanguage: Language;
   contractData: Partial<ContractData>;
   draftedData: ContractDraft;
   setDraftedData: (item: ContractDraft) => void;
+  textDraft?: string;
+  setTextDraft: (text: string) => void;
 }
 
 export function AIDraftPreview({
@@ -24,12 +29,14 @@ export function AIDraftPreview({
   contractData,
   draftedData,
   setDraftedData,
+  setTextDraft,
 }: AIDraftPreviewProps) {
   const [aiDraft, setAiDraft] = useState<ContractDraft>(draftedData);
   const [isGeneratingDraft] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [reprompt, setReprompt] = useState("");
   const [isReprompting, setIsReprompting] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
   const texts = {
     en: {
@@ -62,24 +69,6 @@ export function AIDraftPreview({
 
   const t = texts[currentLanguage];
 
-  // Mock API call to generate AI draft
-  // const generateDraft = async () => {
-  //   //
-
-  //   setIsGeneratingDraft(true);
-  //   // Simulate API delay
-  //   await new Promise((resolve) => setTimeout(resolve, 3000));
-
-  //   // Generate draft in the selected language
-  //   const mockDraft: ContractDraft = {
-  //     ...draftedData,
-  //   };
-
-  //   setAiDraft(mockDraft);
-  //   setDraftedData(mockDraft);
-  //   setIsGeneratingDraft(false);
-  // };
-
   const getContractTitle = () => {
     if (currentLanguage === "en") {
       switch (contractData.contractType) {
@@ -110,61 +99,83 @@ export function AIDraftPreview({
     }
   };
 
-  // const getPartiesSection = () => {
-  //   const parties = contractData.parties || [];
-  //   if (currentLanguage === "en") {
-  //     return `This agreement is between ${
-  //       parties[0]?.fullName || "Party A"
-  //     } and ${parties[1]?.fullName || "Party B"}.`;
-  //   } else {
-  //     return `ይህ ስምምነት በ${parties[0]?.fullName || "የመጀመሪያ ወገን"} እና በ${
-  //       parties[1]?.fullName || "ሁለተኛ ወገን"
-  //     } መካከል ነው።`;
-  //   }
-  // };
+  const getFullDraftText = (draft: ContractDraft) => {
+    let fullText = draft.title.replace(/<<.*?>>/g, ""); // remove <<placeholders>>
 
-  // const getTermsSection = () => {
-  //   const common = contractData.commonDetails;
-  //   if (!common) return "";
+    draft.sections.forEach((section: Section) => {
+      const heading = section.heading.replace(/<<.*?>>/g, "");
+      const description = section.description.replace(/<<.*?>>/g, "");
+      fullText += ` ${heading} ${description}`; // remove \n, use space
+    });
 
-  //   if (currentLanguage === "en") {
-  //     return `The total amount is ${common.totalAmount} ${common.currency}, effective from ${common.startDate} to ${common.endDate}.`;
-  //   } else {
-  //     return `ጠቅላላ መጠኑ ${common.totalAmount} ${common.currency} ሲሆን ከ${common.startDate} እስከ ${common.endDate} ድረስ የሚሰራ ነው።`;
-  //   }
-  // };
-
-  // Mock API call to update draft with reprompt
-  const updateDraftWithPrompt = async () => {
-    setIsReprompting(true);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-
-    // Place to implment Repromt Api
-
-    if (aiDraft) {
-      const updatedDraft = {
-        ...aiDraft,
-        sections: aiDraft.sections.map((section) => ({
-          ...section,
-          description: section.description + ` [Updated based on: ${reprompt}]`,
-        })),
-      };
-      setAiDraft(updatedDraft);
-      setDraftedData(updatedDraft);
-    }
-
-    setReprompt("");
-    setIsReprompting(false);
-    toast.success(
-      currentLanguage === "en"
-        ? "Draft updated successfully!"
-        : "ረቂቁ በተሳካ ሁኔታ ተዘምኗል!"
-    );
+    return fullText.trim();
   };
 
-  //   useEffect(() => {
-  //     generateDraft();
-  //   });
+  const updateDraftWithPrompt = async () => {
+    if (!aiDraft) return;
+    setIsReprompting(true);
+
+    try {
+      const draftText = getFullDraftText(aiDraft);
+      setTextDraft(draftText);
+
+      const resultAction = await dispatch(
+        updateDraftFromPrompt({
+          draft: draftText,
+          prompt: reprompt,
+          language:
+            contractData.agreementLanguage === "en" ? "English" : "Amharic",
+        })
+      );
+
+      if (updateDraftFromPrompt.fulfilled.match(resultAction)) {
+        const backendContract = resultAction.payload;
+
+        // Check if sections exist
+        if (backendContract.sections && backendContract.sections.length > 0) {
+          const updatedDraft: ContractDraft = {
+            title: backendContract.title || aiDraft.title,
+            party1: aiDraft.party1,
+            party2: aiDraft.party2,
+            sections: backendContract.sections.map((s) => ({
+              heading: s.heading || "",
+              description: s.text || "",
+            })),
+            sign1: backendContract.signatures.party_a || "",
+            sign2: backendContract.signatures.party_b || "",
+            place: backendContract.signatures.place || "",
+            date: backendContract.signatures.date || "",
+          };
+          console.log(updatedDraft, "Updated Draft from AI");
+          setAiDraft(updatedDraft);
+          setDraftedData(updatedDraft);
+
+          toast.success(
+            currentLanguage === "en"
+              ? "Draft updated successfully!"
+              : "ረቂቁ በተሳካ ሁኔታ ተዘምኗል!"
+          );
+        } else {
+          console.warn("Sections are null, retrying...");
+          toast.error(
+            currentLanguage === "en"
+              ? "Failed to update draft. try to be more descriptive or continue with these data!."
+              : "ረቂቁን ማዘመን አልተሳካም። ዝርዝር መግለጫ ለመስጠት ይሞክሩ ወይም በእነዚህ ውሂቦች ይቀጥሉ!"
+          );
+        }
+      } else {
+        console.error("Draft update failed:", resultAction);
+      }
+    } catch (err) {
+      console.error("Error updating draft:", err);
+      toast.error(
+        currentLanguage === "en" ? "Failed to update draft" : "ረቂቁ ማዘመን አልተሳካም"
+      );
+    } finally {
+      setReprompt("");
+      setIsReprompting(false);
+    }
+  };
 
   if (isGeneratingDraft) {
     return <ContractDraftLoader currentLanguage={currentLanguage} />;
@@ -224,10 +235,10 @@ export function AIDraftPreview({
                   <div key={index} className="space-y-2">
                     <input
                       className="min-h-8 font-semibold"
-                      value={section.title}
+                      value={section.heading}
                       onChange={(e) => {
                         const newDraft = { ...aiDraft };
-                        newDraft.sections[index].title = e.target.value;
+                        newDraft.sections[index].heading = e.target.value;
                         setAiDraft(newDraft);
                         setDraftedData(newDraft);
                       }}

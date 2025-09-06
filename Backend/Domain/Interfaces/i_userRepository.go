@@ -43,10 +43,11 @@ type IUserValidation interface {
 	Hashpassword(password string) string
 	ComparePassword(userPassword, password string) error
 }
-
-type INotification interface {
-	CreateNotification(ctx context.Context, notification *domain.Notification) (*domain.Notification, error)
-	FindByReceiverID(ctx context.Context, individualID string, page, limit int64) ([]domain.Notification, error)
+type INotification_ interface {
+	CreateNotification_(ctx context.Context, notification *domain.Notification_) (*domain.Notification_, error)
+	FindByReceiverID_(ctx context.Context, individualID string, page, limit int64) ([]*domain.Notification_, error)
+	CountByReceiverID_(ctx context.Context, receiverID string) (int64, error)
+	FindUserByEmail_(ctx context.Context, email string) ([]*domain.Notification_, error)
 }
 
 type IOTPService interface{

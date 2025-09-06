@@ -5,9 +5,7 @@ import toast from "react-hot-toast";
 import { FaEnvelope, FaLock, FaRobot } from "react-icons/fa";
 import { useLanguage } from "@/context/LanguageContext";
 import { authTranslations } from "@/lib/translations/authTranslations";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/lib/redux/store";
-import { loginWithGoogle } from "@/lib/redux/slices/authSlice";
+import { signIn } from "next-auth/react";
 
 interface LoginPageProps {
   onLoginComplete: (
@@ -34,7 +32,6 @@ export default function LoginPage({
 
   const { lang } = useLanguage();
   const t = authTranslations[lang];
-  const dispatch = useDispatch<AppDispatch>();
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -75,9 +72,21 @@ export default function LoginPage({
   };
 
   const handleGoogleLogin = async () => {
-    const res = await dispatch(loginWithGoogle());
-    console.log(res);
-    // window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
+    try {
+      const result = await signIn("google", {
+        callbackUrl: "/dashboard",
+        redirect: true,
+      });
+
+      if (result?.error) {
+        console.error("Google login failed:", result.error);
+        return;
+      }
+
+      toast.success("Google login success:");
+    } catch (err) {
+      console.error("Google login error:", err);
+    }
   };
 
   return (

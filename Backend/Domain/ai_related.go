@@ -3,6 +3,7 @@ package domain
 // These models are designed to correspond with the JSON outputs described in the prompts.
 
 import (
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -60,7 +61,7 @@ type Intake struct {
 
 	// Loan-specific fields
 	Principal      float64       `json:"principal,omitempty" bson:"principal,omitempty"`
-	Installments   []Installment `json:"installments,omitempty" bson:"installments,omitempty"`
+	Installments   *Installment `json:"installments,omitempty" bson:"installments,omitempty"`
 	LateFeePercent float64       `json:"late_fee_percent,omitempty" bson:"late_fee_percent,omitempty"`
 
 	// NDA fields
@@ -77,8 +78,8 @@ type Intake struct {
 type Party struct {
 	ID    primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Name  string             `json:"name" bson:"name"`
-	Phone string             `json:"phone,omitempty" bson:"phone,omitempty"`
-	Email string             `json:"email,omitempty" bson:"email,omitempty"`
+	Phone string             `json:"phone" bson:"phone,omitempty"`
+	Email string             `json:"email" bson:"email,omitempty"`
 }
 
 // Milestone represents a milestone in a service agreement.
@@ -111,6 +112,17 @@ type Draft struct {
 	Signatures Signatures `json:"signatures" bson:"signatures"`
 }
 
+func (b Draft) String() string { //? patching for The CreateAgreement end-point
+	sections := ""
+	for _, each_section := range b.Sections {
+		heading := each_section.Heading
+		txt := each_section.Text
+		sections += (heading + "\n")
+		sections += (txt + "\n")
+	}
+	return fmt.Sprintf("Title: %s\n %s ", b.Title, sections)
+}
+
 // Section represents a heading and text block within the draft.
 type Section struct {
 	Heading string `json:"heading" bson:"heading"`
@@ -123,4 +135,8 @@ type Signatures struct {
 	PartyB string `json:"party_b" bson:"party_b"` // signiture svg url
 	Place  string `json:"place" bson:"place"`
 	Date   string `json:"date" bson:"date"`
+}
+
+type JustForTitleSake struct {
+	Title string `json:"title"`
 }

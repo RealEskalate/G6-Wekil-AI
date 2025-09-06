@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/data/datasources/contract_api.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/data/repositories/contract_repository_impl.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/domain/usecases/generate_draft_usecase.dart.dart.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/domain/usecases/modify_draft_usecase.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wekil_ai_mobile_app/features/widget/progress_bar.dart';
 import '../../data/models/contact_data.dart';
 import '../../../widget/contract_specificatio.dart';
-import 'step6.dart';
 import '../../domain/entities/contract_type.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -54,16 +50,10 @@ class CreateStep4 extends StatelessWidget {
 
                   // final draftUrl = await generateDraft(intakeModel);
                   final draftUrl = "https://example.com/fake-contract.pdf";
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CreateStep5(
-                        intakeModel: intakeModel,
-                        draftContractPdfUrl: draftUrl,
-                        modifyDraft: null,
-                      ),
-                    ),
-                  );
+                  context.push('/contracts/step6', extra: {
+                    'intakeModel': intakeModel,
+                    'draftContractPdfUrl': draftUrl,
+                  });
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,

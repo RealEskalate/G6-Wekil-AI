@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class NavBar extends StatefulWidget implements PreferredSizeWidget {
-  const NavBar({Key? key}) : super(key: key);
+  final bool showBack;
+  final VoidCallback? onBack;
+  const NavBar({Key? key, this.showBack = false, this.onBack}) : super(key: key);
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -30,9 +33,16 @@ class _NavBarState extends State<NavBar> {
   Widget build(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textLight,
       elevation: 0,
       titleSpacing: 0,
+      leading: widget.showBack
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+              color: AppColors.textDark,
+              onPressed: widget.onBack ?? () => GoRouter.of(context).go('/dashboard', extra: 0),
+            )
+          : null,
       title: Row(
         children: [
           const SizedBox(width: 16),
@@ -41,7 +51,10 @@ class _NavBarState extends State<NavBar> {
             height: 40, // larger logo
           ),
           const SizedBox(width: 12),
-          Text('Wekil AI', style: AppTypography.heading(fontSize: 20)),
+          Text(
+            'Wekil AI',
+            style: AppTypography.heading(fontSize: 20).copyWith(color: AppColors.primary),
+          ),
         ],
       ),
       actions: [
@@ -68,7 +81,7 @@ class _NavBarState extends State<NavBar> {
                         const Icon(
                           Icons.check,
                           size: 18,
-                          color: Colors.green, // You can use AppColors.primary
+                          color: AppColors.accent,
                         ),
                     ],
                   ),
@@ -78,19 +91,14 @@ class _NavBarState extends State<NavBar> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isHovering
-                      ? Colors.green.withOpacity(0.8)
-                      : Colors.transparent, // AppColors.accent
+                  color: isHovering ? AppColors.accent : Colors.transparent,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.language,
-                      color: isHovering
-                          ? Colors.white
-                          : Colors
-                                .black87, // AppColors.textDark.withOpacity(0.7)
+                      color: isHovering ? AppColors.textLight : AppColors.textDark,
                       size: 18,
                     ),
                     const SizedBox(width: 4),
@@ -99,12 +107,12 @@ class _NavBarState extends State<NavBar> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: isHovering ? Colors.white : Colors.black87,
+                        color: isHovering ? AppColors.textLight : AppColors.textDark,
                       ),
                     ),
                     Icon(
                       Icons.arrow_drop_down,
-                      color: isHovering ? Colors.white : Colors.black54,
+                      color: isHovering ? AppColors.textLight : AppColors.textDark.withOpacity(0.6),
                       size: 18,
                     ),
                   ],
@@ -115,15 +123,21 @@ class _NavBarState extends State<NavBar> {
         ),
 
         // Settings button
-        IconButton(
-          icon: const Icon(Icons.settings),
-          iconSize: 18,
-          color: Colors.black54, // AppColors.textDark.withOpacity(0.7)
-          onPressed: () {
-            // Use GoRouter for navigation
-            // ignore: use_build_context_synchronously
-            GoRouter.of(context).go('/settings');
-          },
+        Tooltip(
+          message: 'Settings',
+          child: IconButton(
+            icon: const Icon(Icons.settings),
+            iconSize: 20,
+            color: AppColors.primary,
+            style: IconButton.styleFrom(
+              hoverColor: AppColors.accent.withOpacity(0.15),
+              focusColor: AppColors.accent.withOpacity(0.20),
+            ),
+            onPressed: () {
+              // Use GoRouter for navigation; push to keep back stack
+              GoRouter.of(context).push('/settings');
+            },
+          ),
         ),
       ],
     );

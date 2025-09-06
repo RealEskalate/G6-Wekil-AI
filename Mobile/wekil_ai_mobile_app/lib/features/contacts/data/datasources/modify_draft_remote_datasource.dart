@@ -12,7 +12,7 @@ class ModifyDraftRemoteDatasource {
     required String language,
   }) async {
     final response = await client.post(
-      Uri.parse("https://g6-wekil-ai-1.onrender.com/ai/draft-from-prompt"),
+  Uri.parse("https://g6-wekil-ai-forserverdeployment.onrender.com/ai/draft-from-prompt"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "draft": draft,

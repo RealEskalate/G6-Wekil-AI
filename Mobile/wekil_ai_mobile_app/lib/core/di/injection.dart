@@ -23,7 +23,7 @@ import '../../features/preview/presentation/bloc/preview_bloc.dart';
 final getIt = GetIt.instance;
 
 Future<void> setupDependencies({
-  String baseUrl = 'https://g6-wekil-ai-1.onrender.com',
+  String baseUrl = 'https://g6-wekil-ai-forserverdeployment.onrender.com',
   http.Client? client,
 }) async {
   // Data source

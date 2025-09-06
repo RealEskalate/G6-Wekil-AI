@@ -41,7 +41,7 @@ Future<void> init() async {
   // Resolve base API URL per platform/environment.
   // Use full URL with scheme.
   const defineUrl = String.fromEnvironment('API_BASE_URL');
-  kBaseApiUrl = defineUrl.isNotEmpty ? defineUrl : 'https://g6-wekil-ai-1.onrender.com';
+  kBaseApiUrl = defineUrl.isNotEmpty ? defineUrl : 'https://g6-wekil-ai-forserverdeployment.onrender.com';
   // Cloudinary config (can be overridden via --dart-define)
   const cloudNameDefine = String.fromEnvironment('CLOUDINARY_CLOUD_NAME');
   const uploadPresetDefine = String.fromEnvironment('CLOUDINARY_UPLOAD_PRESET');

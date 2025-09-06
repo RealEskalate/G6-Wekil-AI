@@ -7,7 +7,7 @@ class ClassifyRemoteDatasource {
 
   Future<Map<String, dynamic>> classifyText(String text) async {
     final response = await client.post(
-      Uri.parse("https://g6-wekil-ai-1.onrender.com/ai/classify"),
+  Uri.parse("https://g6-wekil-ai-forserverdeployment.onrender.com/ai/classify"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"text": text}),
     );

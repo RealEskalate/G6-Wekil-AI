@@ -14,7 +14,7 @@ class DashboardRemoteDataSource {
   final http.Client client;
 
   DashboardRemoteDataSource({String? baseUrl, http.Client? client})
-    : baseUrl = baseUrl ?? 'https://g6-wekil-ai-1.onrender.com',
+  : baseUrl = baseUrl ?? 'https://g6-wekil-ai-forserverdeployment.onrender.com',
       client = client ?? http.Client();
 
   // TODO: Replace with real backend call.

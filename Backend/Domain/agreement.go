@@ -80,7 +80,7 @@ type AgreementRequest struct {
 	Language     string               `json:"language"`
 }
 type JustForSaveSake struct {
-	CreatorID        primitive.ObjectID
+	CreatorParty     *Party
 	AgreementReqeust *AgreementRequest
 	AcceptorEmail    string
 }

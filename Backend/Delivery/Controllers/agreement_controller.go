@@ -345,7 +345,7 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 
 // GetAgreementByUserID implements domain.IAgreementController.
 // ? this one is only for pagination purpose
-// ? with 
+// ? with
 func (a *AgreementController) GetAgreementByUserID(ctx *gin.Context) {
 	userStringID := ctx.GetString("user_id")
 	pageNumber, err := strconv.Atoi(ctx.Query("page"))
@@ -464,7 +464,7 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 
 	// pass the intake to the CreateAgreementSave
 	passSave := &domain.JustForSaveSake{
-		CreatorID:        userID,
+		CreatorParty:     &domain.Party{Name: ctx.GetString("user_name"), ID: userID, Email: ownerEmail},
 		AgreementReqeust: &aR,
 		AcceptorEmail:    email_to_send,
 	}
@@ -479,10 +479,14 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 		})
 		return
 	}
+	saved_ := ""
+	if aR.AgrementInfo.Status == domain.PENDING_STATUS {
+		saved_ = "and saved "
+	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
-			"message":      "Agreement draft saved successfully.",
+			"message":      fmt.Sprintf("Agreement draft saved %ssuccessfully.", saved_),
 			"agreement_id": agreement.ID.Hex(),
 		},
 	})

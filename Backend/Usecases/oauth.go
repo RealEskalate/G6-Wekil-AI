@@ -46,6 +46,7 @@ func (uc *OAuthUsecase) HandleOAuthLogin(req *http.Request, res http.ResponseWri
 	}
 	accessclaims := &domain.UserClaims{
 		UserID: user.ID.Hex(),
+		UserName: user.FirstName + " " + user.MiddleName,
 		Email: user.Email,
 		IsVerified: true,
 		AccountType: domain.User,
@@ -59,6 +60,7 @@ func (uc *OAuthUsecase) HandleOAuthLogin(req *http.Request, res http.ResponseWri
 
 	refreshclaims := &domain.UserClaims{
 		UserID: user.ID.Hex(),
+		UserName: user.FirstName + " " + user.MiddleName,
 		Email: user.Email,
 		IsVerified: true,
 		AccountType: domain.User,

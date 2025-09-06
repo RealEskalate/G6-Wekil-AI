@@ -13,11 +13,11 @@ import (
 )
 
 type AgreementUseCase struct {
-	IntakeRepo       domainInter.IIntakeRepo
-	AgreementRepo    domainInter.IAgreementRepo
-	PendingRepo      domainInter.IPendingAgreementRepo
-	AIInteraction    domainInter.IAIInteraction
-	NotificatoinRepo domainInter.INotification
+	IntakeRepo        domainInter.IIntakeRepo
+	AgreementRepo     domainInter.IAgreementRepo
+	PendingRepo       domainInter.IPendingAgreementRepo
+	AIInteraction     domainInter.IAIInteraction
+	NotificatoinRepo_ domainInter.INotification_
 }
 
 // GetAgreementsByUserIDAndFilter implements domain.IAgreementUseCase.
@@ -26,7 +26,7 @@ func (a *AgreementUseCase) GetAgreementsByUserIDAndFilter(userID primitive.Objec
 }
 
 // SendAgreement implements domain.IAgreementUseCase.
-func (a *AgreementUseCase) SendAgreement(receiverEmail string, agreement *domain.Agreement) error {
+func (a *AgreementUseCase) SendAgreement(receiverEmail string, agreement *domain.Agreement, parties []*domain.Party) error {
 	pendingAgreement := domain.PendingAgreement{
 		AgreementID:   agreement.ID,
 		CreatorID:     agreement.CreatorID,
@@ -37,13 +37,29 @@ func (a *AgreementUseCase) SendAgreement(receiverEmail string, agreement *domain
 		return err
 	}
 	// send the notification to the user also
-	signRequestNotification := domain.Notification{
-		SenderID:    agreement.CreatorID,
-		Title:       "Signature Request: New Document to Sign",
-		Message:     "You have a new agreement to review and sign. ",
-		AgreementID: agreement.ID,
+	creator := parties[0]
+	acceptor := parties[1]
+	signRequestNotification := domain.Notification_{
+		Recipient: domain.User_{
+			UserName: acceptor.Name,
+			Email:    acceptor.Email,
+		},
+		Sender: domain.User_{
+			UserID:   creator.ID,
+			UserName: creator.Name,
+			Email:    creator.Email,
+		},
+		Type: "agreement_request",
+		Content: domain.Content_{
+			Title: "Signature Required",
+			Body:  fmt.Sprintf("%s has asked you to sign a new agreement. Please review the details.", creator.Name),
+		},
+		IsRead:     false,
+		IsArchived: false,
+		CreatedAt:  time.Now(),
+		TargetURL:  "/agreement/" + agreement.ID.Hex(),
 	}
-	_, err = a.NotificatoinRepo.CreateNotification(context.Background(), &signRequestNotification)
+	_, err = a.NotificatoinRepo_.CreateNotification_(context.Background(), &signRequestNotification)
 	return err
 }
 
@@ -68,7 +84,7 @@ func (a *AgreementUseCase) CreateAgreementSave(intake *domain.Intake, save *doma
 		AgreementTitle: aR.AgrementInfo.AgreementTitle,
 		IntakeID:       storedIntake.ID,
 		Status:         aR.AgrementInfo.Status,
-		CreatorID:      save.CreatorID,
+		CreatorID:      save.CreatorParty.ID,
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
 		CreatorSigned:  aR.AgrementInfo.CreatorSigned,
@@ -85,7 +101,16 @@ func (a *AgreementUseCase) CreateAgreementSave(intake *domain.Intake, save *doma
 		if acceptorEmail == "" {
 			return nil, fmt.Errorf("empty acceptor email found")
 		}
-		err := a.SendAgreement(acceptorEmail, storedAgreement)
+		parties := []*domain.Party{
+			&domain.Party{ // creator party
+				ID:   save.CreatorParty.ID,
+				Name: save.CreatorParty.Email,
+			},
+			&domain.Party{ // acceptor party
+				Name: acceptorEmail,
+			},
+		}
+		err := a.SendAgreement(acceptorEmail, storedAgreement, parties)
 		if err != nil {
 			return nil, err
 		}
@@ -122,15 +147,19 @@ func (a *AgreementUseCase) CreateAgreement(intake *domain.Intake, agreementStatu
 		return nil, err
 	}
 	// if the agreementStatus in pending then we will send an email request to the second user
-	if storedAgreement.Status == domain.PENDING_STATUS {
-		if acceptorEmail == "" {
-			return nil, fmt.Errorf("empty acceptor email found")
+	//! send functionality OFF
+	/*
+		if storedAgreement.Status == domain.PENDING_STATUS {
+			if acceptorEmail == "" {
+				return nil, fmt.Errorf("empty acceptor email found")
+			}
+			err := a.SendAgreement(acceptorEmail, storedAgreement)
+			if err != nil {
+				return nil, err
+			}
 		}
-		err := a.SendAgreement(acceptorEmail, storedAgreement)
-		if err != nil {
-			return nil, err
-		}
-	}
+	*/
+
 	return storedAgreement, nil
 }
 
@@ -305,12 +334,13 @@ func (a *AgreementUseCase) DuplicateAgreement(originalAgreementID primitive.Obje
 	// 5. Return the new intake and draft. The frontend will handle PDF creation and saving.
 	return &newIntake, newDraft, nil
 }
-func NewAgreementUseCase(intakeRepo domainInter.IIntakeRepo, agreementRepo domainInter.IAgreementRepo, pendingRepo domainInter.IPendingAgreementRepo, aiInteraction domainInter.IAIInteraction) domainInter.IAgreementUseCase {
+func NewAgreementUseCase(intakeRepo domainInter.IIntakeRepo, agreementRepo domainInter.IAgreementRepo, pendingRepo domainInter.IPendingAgreementRepo, aiInteraction domainInter.IAIInteraction, sweetNotification domainInter.INotification_) domainInter.IAgreementUseCase {
 
 	return &AgreementUseCase{
-		IntakeRepo:    intakeRepo,
-		AgreementRepo: agreementRepo,
-		PendingRepo:   pendingRepo,
-		AIInteraction: aiInteraction,
+		IntakeRepo:        intakeRepo,
+		AgreementRepo:     agreementRepo,
+		PendingRepo:       pendingRepo,
+		AIInteraction:     aiInteraction,
+		NotificatoinRepo_: sweetNotification,
 	}
 }

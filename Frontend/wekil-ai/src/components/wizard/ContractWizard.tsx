@@ -309,6 +309,8 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
       toast.error("Draft generation failed. Please try again later.");
     } else if (currentStep === 5) {
       const text = getFullDraftText(intialDraftdata!);
+      console.log("Final draft text:", text);
+
       const res = await dispatch(
         finalPreview({
           draft: text,
@@ -545,7 +547,11 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
           />
         )}
         {currentStep === 6 && (
-          <FinalPreview currentLanguage={lang} draftedData={intialDraftdata!} />
+          <FinalPreview
+            currentLanguage={lang}
+            draftedData={intialDraftdata!}
+            contractData={contractData as ContractData}
+          />
         )}
       </div>
       {/* Footer navigation */}

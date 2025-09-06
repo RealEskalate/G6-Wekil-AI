@@ -3,23 +3,32 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Globe, Download, Send, FileText, AlertTriangle } from "lucide-react";
-import { Language } from "@/components/wizard/ContractWizard";
+import { ContractData, Language } from "@/components/wizard/ContractWizard";
 import { toast } from "sonner";
 import ContractPreview from "@/components/ContractPreview/ContractPreview";
 import { ContractDraft } from "@/types/Contracttype";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/redux/store";
+import { createAgreement } from "@/lib/redux/slices/agreementsSlice";
+import { useSession } from "next-auth/react";
 
 interface FinalPreviewProps {
   currentLanguage: Language;
   draftedData: ContractDraft;
+  contractData: ContractData;
 }
 
 export function FinalPreview({
   currentLanguage,
   draftedData,
+  contractData,
 }: FinalPreviewProps) {
   const [isTranslating, setIsTranslating] = useState(false);
   const [previewLanguage, setPreviewLanguage] = useState(currentLanguage);
   const [isExporting, setIsExporting] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const { data: session } = useSession();
+  const accessToken = session?.user?.accessToken;
 
   const texts = {
     en: {
@@ -75,6 +84,38 @@ export function FinalPreview({
   };
 
   const handleSaveDraft = () => {
+    if (!accessToken) {
+      toast.error("You must be logged in to save a draft");
+      return;
+    }
+    const result = dispatch(
+      createAgreement({
+        agreementData: {
+          pdf_url: "",
+          status: "pending",
+          draft: {
+            title: draftedData.title,
+            sections: draftedData.sections.map((section) => ({
+              heading: section.heading,
+              text: section.description,
+            })),
+          },
+          party_a: {
+            name: contractData.parties?.[0]?.fullName ?? "",
+            email: contractData.parties?.[0]?.email ?? "",
+            phone: contractData.parties?.[0]?.phone ?? "",
+          },
+          party_b: {
+            name: contractData.parties?.[1]?.fullName ?? "",
+            email: contractData.parties?.[1]?.email ?? "",
+            phone: contractData.parties?.[1]?.phone ?? "",
+          },
+        },
+        token: accessToken,
+      })
+    );
+
+    console.log("Save draft result:", result);
     toast.success(
       previewLanguage === "en"
         ? "Draft saved successfully!"

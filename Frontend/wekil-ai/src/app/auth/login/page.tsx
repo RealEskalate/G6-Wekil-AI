@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { FaEnvelope, FaLock, FaRobot } from "react-icons/fa";
+import { FaEnvelope, FaLock } from "react-icons/fa";
 import { useLanguage } from "@/context/LanguageContext";
 import { authTranslations } from "@/lib/translations/authTranslations";
 import { signIn } from "next-auth/react";
+import Image from "next/image";
 
 interface LoginPageProps {
   onLoginComplete: (
@@ -96,8 +97,10 @@ export default function LoginPage({
       <div className="w-full max-w-md bg-white/95 rounded-xl shadow-lg overflow-hidden backdrop-blur-sm">
         <div className="p-4 sm:p-6">
           <div className="text-center mb-6">
-            <div className="bg-blue-600 text-white p-2 rounded-lg inline-block mb-3">
-              <FaRobot className="text-xl" />
+            <div className="flex justify-center mb-2 animate-pulse">
+              <div className="bg-gray-50 p-2 rounded-lg">
+                <Image src="/logo.ico" alt="Logo" width={48} height={48} />
+              </div>
             </div>
             <h2 className="text-lg font-bold text-gray-800 mb-1">
               {t.welcomeBack}

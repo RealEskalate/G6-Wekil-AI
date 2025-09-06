@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaRobot } from "react-icons/fa";
 import { translations } from "@/lib/translations/generalTranslations";
 import { useLanguage } from "@/context/LanguageContext";
+import Image from "next/image";
 
 interface HeaderProps {
   activeSection: string;
@@ -40,9 +40,10 @@ export default function Header({
     >
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center cursor-pointer">
-          <div className="bg-blue-600 text-white p-2 rounded-lg mr-2 animate-pulse">
-            <FaRobot className="text-xl" />
+          <div className="bg-gray-50 text-white p-2 rounded-lg mr-2 animate-pulse">
+            <Image src="/logo.ico" alt="Logo" width={24} height={24} />
           </div>
+
           <span className="text-2xl font-bold text-blue-800">
             {t.headerBrand}
           </span>

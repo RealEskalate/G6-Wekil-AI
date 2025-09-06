@@ -149,7 +149,8 @@ class _CreateStep2State extends State<CreateStep2> {
               ),
              
               const SizedBox(height: 20),
-              const StepProgressBar(currentStep: 3,  stepLabels: ["Type","Basic Info","Parties","Genera","Specific","Preview","Success",]),
+              const StepProgressBar(currentStep: 3,  stepLabels: ["Type","Basic Info","Parties","Genera","Specific","Preview","Success",], totalSteps: 7
+              ,),
               const SizedBox(height: 24),
 
               // User Party Selection Toggle

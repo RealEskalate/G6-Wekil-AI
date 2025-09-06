@@ -43,7 +43,7 @@ class _ContractsTypesPagesState extends State<ContractsTypesPages> {
                 "Specific",
                 "Preview",
                 "Success",
-              ],
+              ], totalSteps: 7,
             ),
             const SizedBox(height: 24),
 

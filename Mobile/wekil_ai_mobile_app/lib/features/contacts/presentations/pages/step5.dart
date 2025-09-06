@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
+
 import 'package:http/http.dart' as http;
 import 'package:wekil_ai_mobile_app/features/contacts/data/datasources/contract_api.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/data/datasources/draft_remote_datasource.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/data/repositories/contract_repository_impl.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/usecases/create_draft_usecase.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/domain/usecases/generate_draft_usecase.dart.dart.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/usecases/modify_draft_usecase.dart';
-=======
+
 import 'package:go_router/go_router.dart';
->>>>>>> 653810666dc2b095ee44bd8ee6978bb6cdf4a170
+import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step6.dart';
+
 import 'package:wekil_ai_mobile_app/features/widget/progress_bar.dart';
 import '../../data/models/contact_data.dart';
 import '../../../widget/contract_specificatio.dart';
@@ -49,7 +49,7 @@ class _CreateStep4State extends State<CreateStep4> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            StepProgressBar(currentStep: 5,  stepLabels: ["Type","Basic Info","Parties","Genera","Specific","Preview","Success",]),
+            StepProgressBar(currentStep: 5,  stepLabels: ["Type","Basic Info","Parties","Genera","Specific","Preview","Success",], totalSteps: 7,),
             Expanded(
               child: ContractSpecificDetails(
                 key: detailsKey,
@@ -73,7 +73,6 @@ class _CreateStep4State extends State<CreateStep4> {
                           );
                           final createDraft = CreateDraftUseCase(datasource);
 
-<<<<<<< HEAD
                           final draftPayload = {
                             "title": widget.contractType.name,
                             "sections": [
@@ -103,7 +102,8 @@ class _CreateStep4State extends State<CreateStep4> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
-                                  "Sections not ready yet. Please try again.",
+                                  //"Sections not ready yet. Please try again.",
+                                  "Oops, there might be a network error."
                                 ),
                               ),
                             );
@@ -141,15 +141,7 @@ class _CreateStep4State extends State<CreateStep4> {
                           );
                         }
                       },
-=======
-                  // final draftUrl = await generateDraft(intakeModel);
-                  final draftUrl = "https://example.com/fake-contract.pdf";
-                  context.push('/contracts/step6', extra: {
-                    'intakeModel': intakeModel,
-                    'draftContractPdfUrl': draftUrl,
-                  });
-                },
->>>>>>> 653810666dc2b095ee44bd8ee6978bb6cdf4a170
+
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: AppColors.textLight,

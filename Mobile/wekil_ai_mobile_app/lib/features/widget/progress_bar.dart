@@ -9,7 +9,7 @@ class StepProgressBar extends StatelessWidget {
   const StepProgressBar({
     Key? key,
     required this.currentStep,
-    required this.stepLabels,
+    required this.stepLabels, required int totalSteps,
   }) : super(key: key);
 
   @override

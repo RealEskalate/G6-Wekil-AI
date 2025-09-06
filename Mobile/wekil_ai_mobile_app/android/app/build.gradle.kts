@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.example.wekil_ai_mobile_app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "28.0.11721562"
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

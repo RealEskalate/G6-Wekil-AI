@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AgreementRemoteDatasource {
-  final String baseUrl = 'https://g6-wekil-ai-1.onrender.com/agreement/save';
+  final String baseUrl = 'https://g6-wekil-ai-forserverdeployment.onrender.com/agreement/save';
 
   Future<void> saveAgreement(Map<String, dynamic> payload) async {
     try {

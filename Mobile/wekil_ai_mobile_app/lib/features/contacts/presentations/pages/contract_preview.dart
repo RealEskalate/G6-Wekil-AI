@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ContractPreview extends StatelessWidget {
   final Map<String, dynamic> contractData;
@@ -103,7 +104,7 @@ class ContractPreview extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                     child: Text("← Back to Home"),
                   ),
                 ),

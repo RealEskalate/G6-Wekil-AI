@@ -384,8 +384,6 @@ export default function SpecificDetails({
             <div className="flex items-center gap-2">
               <label className="font-medium">{t.isMutual}</label>
               <Input
-                type="checkbox"
-                checked={Boolean(specificDetails.isMutual)}
                 onChange={(e) =>
                   updateSpecificDetails("isMutual", e.target.checked)
                 }

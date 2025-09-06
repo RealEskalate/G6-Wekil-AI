@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:http/http.dart' as http;
 
 import '../../features/dashboard/data/datasources/dashboard_remote_data_source.dart';
 import '../../features/dashboard/data/repositories/dashboard_repository_impl.dart';
@@ -10,13 +11,13 @@ final getIt = GetIt.instance;
 
 Future<void> setupDependencies({
   String baseUrl = 'https://g6-wekil-ai-1.onrender.com',
-  Future<String?> Function()? tokenProvider,
+  http.Client? client,
 }) async {
   // Data source
   getIt.registerLazySingleton<DashboardRemoteDataSource>(
     () => DashboardRemoteDataSource(
       baseUrl: baseUrl,
-      tokenProvider: tokenProvider,
+      client: client ?? http.Client(),
     ),
   );
 

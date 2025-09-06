@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step4.dart';
+import 'package:go_router/go_router.dart';
 import '../../../widget/progress_bar.dart';
 import '../../data/models/contact_data.dart';
 import '../../domain/entities/contract_type.dart';
@@ -108,11 +108,6 @@ class _CreateStep2State extends State<CreateStep2> {
         return {
           "partyA": "Party A (Disclosing Party)",
           "partyB": "Party B (Receiving Party)",
-        };
-      default:
-        return {
-          "partyA": "Party A (First Party)",
-          "partyB": "Party B (Second Party)",
         };
     }
   }
@@ -244,7 +239,7 @@ class _CreateStep2State extends State<CreateStep2> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
+                          onPressed: () => context.pop(),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.textDark,
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -275,15 +270,10 @@ class _CreateStep2State extends State<CreateStep2> {
                               ),
                             );
 
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => CreateStep3(
-                                intake: widget.intake,
-                                contractType: widget.contractType,
-                              ),
-                            ),
-                          );
+                               context.push('/contracts/step4', extra: {
+                                 'intakeModel': widget.intake,
+                                 'contractType': widget.contractType,
+                               });
                         }
                       },
                       style: ElevatedButton.styleFrom(

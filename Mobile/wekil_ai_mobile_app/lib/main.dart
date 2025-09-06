@@ -1,4 +1,3 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 
@@ -9,3 +8,5 @@ Future<void> main() async {
   await FlutterLocalization.instance.ensureInitialized(); // 👈 REQUIRED
   await bootstrapAndRun();
 }
+
+

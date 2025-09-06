@@ -474,13 +474,15 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
 
   return (
     <div
-      className={`h-full p-5 flex flex-col bg-gray-50 ${
+      className={`h-full p-2 sm:p-5 flex flex-col bg-gray-50 ${
         lang === "am" ? "font-ethiopic" : ""
       }`}
     >
       {/* Header */}
-      <div className="flex py-10 items-center justify-between">
-        <h1 className=" text-xl px-10 font-semibold">{t[lang].title}</h1>
+      <div className="flex flex-col sm:flex-row py-6 sm:py-10 items-center justify-between gap-4">
+        <h1 className="text-lg sm:text-xl px-0 sm:px-10 font-semibold">
+          {t[lang].title}
+        </h1>
         <Button
           variant="ghost"
           className="cursor-pointer"
@@ -493,12 +495,12 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
       </div>
 
       {/* Step indicator */}
-      <div className="">
+      <div className="w-full">
         <StepIndicator steps={steps} currentStep={currentStep} />
       </div>
 
       {/* Step Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto mt-4">
         {currentStep === 0 && (
           <ChooseContractType
             currentLanguage={lang}

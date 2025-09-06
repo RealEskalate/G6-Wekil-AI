@@ -13,8 +13,7 @@ import 'route/app_route.dart';
 // Temporary override access token for testing. Change this constant to use a
 // specific Bearer token without touching secure storage. Set to null to use
 // the stored token instead.
-const String? kTempAccessToken =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YjU5OTdiN2M4NDNmY2IyYTkxMGQxZiIsImVtYWlsIjoiYW1pbm1hbWluZTYyMEBnbWFpbC5jb20iLCJpc192ZXJpZmllZCI6dHJ1ZSwiYWNjb3VudF90eXBlIjoidXNlciIsInRva2VuX3R5cGUiOiJhY2Nlc3NfdG9rZW4iLCJleHAiOjE3NTcxMTEwNTIsImlhdCI6MTc1NzExMDE1Mn0.o76vh6_RU6v9_WXvdfFTcvZr-83lzNWyWrP-ImXg6T4";
+const String? kTempAccessToken = null;
 
 Future<void> bootstrapAndRun() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +41,7 @@ Future<void> bootstrapAndRun() async {
   FlutterNativeSplash.remove();
 
   // Configure router; splash will navigate to sign-in or dashboard
-  final router = GoRouter(initialLocation: '/dashboard', routes: appRoutes);
+  final router = GoRouter(initialLocation: '/splash', routes: appRoutes);
 
   runApp(
     BlocProvider<AuthBloc>(

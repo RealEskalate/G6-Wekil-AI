@@ -4,7 +4,7 @@ import { Handshake, Banknote, ScrollText, Shield } from "lucide-react";
 export const contractTypes = {
   service: {
     icon: (
-      <Handshake className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all rounded-full text-blue-500 " />
+      <Handshake className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all rounded-full text-blue-950 " />
     ),
     title: { en: "Service Agreement", am: "የአገልግሎት ስምምነት" },
     description: {
@@ -14,7 +14,7 @@ export const contractTypes = {
   },
   sale: {
     icon: (
-      <Banknote className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all rounded-full text-blue-500 " />
+      <Banknote className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all rounded-full text-blue-950" />
     ),
     title: { en: "Sale of Goods", am: "የዕቃ ሽያጭ" },
     description: {
@@ -24,7 +24,7 @@ export const contractTypes = {
   },
   loan: {
     icon: (
-      <ScrollText className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all rounded-full text-blue-500 " />
+      <ScrollText className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all rounded-full text-blue-950" />
     ),
     title: { en: "Simple Loan", am: "ቀለል ያለ ብድር" },
     description: {
@@ -34,7 +34,7 @@ export const contractTypes = {
   },
   nonDisclosure: {
     icon: (
-      <Shield className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all rounded-full text-blue-500 " />
+      <Shield className="w-1/5 h-1/5 hover:w-1/4 hover:h-1/4 transition-all rounded-full text-blue-950" />
     ),
     title: { en: "Non-Disclosure Agreement", am: "የሚስጥር ጥበቃ ስምምነት" },
     description: {

@@ -11,6 +11,7 @@ import {
   Settings,
   Bot,
   Eye,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -66,6 +67,7 @@ export interface ContractData {
     effectiveDate?: string;
     confidentialityPeriod?: number;
     purpose?: string;
+    isMutual?: boolean;
   };
   aiDraft?: Record<string, unknown>;
 }
@@ -335,13 +337,13 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
 
   return (
     <div
-      className={`h-full p-5 flex flex-col bg-gray-50 ${
+      className={`h-full p-2 sm:p-5 flex flex-col bg-gray-50 ${
         lang === "am" ? "font-ethiopic" : ""
       }`}
     >
       {/* Header */}
-      <div className="flex py-10 items-center justify-between">
-        <h1 className=" text-xl px-10 font-semibold">{t[lang].title}</h1>
+      <div className="flex flex-col sm:flex-row py-6 sm:py-10 items-center justify-between gap-4">
+        <h1 className="text-lg sm:text-xl px-0 sm:px-10 font-semibold">{t[lang].title}</h1>
         <Button
           variant="ghost"
           className="cursor-pointer"
@@ -354,12 +356,12 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
       </div>
 
       {/* Step indicator */}
-      <div className="">
+      <div className="w-full">
         <StepIndicator steps={steps} currentStep={currentStep} />
       </div>
 
       {/* Step Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto mt-4">
         {currentStep === 0 && (
           <ChooseContractType
             currentLanguage={lang}
@@ -415,31 +417,38 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
       </div>
 
       {/* Footer navigation */}
-      <div className="px-6 py-4 flex justify-between">
-        <Button
-          className="cursor-pointer hover:bg-gray-200"
-          variant="ghost"
-          size="sm"
-          onClick={handleBack}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          {t[lang].back}
-        </Button>
-        {currentStep < steps.length - 1 ? (
+      <div className="px-2 sm:px-6 py-4 flex flex-col sm:flex-row gap-2 sm:gap-0 sm:justify-between">
+        <div className="flex flex-row gap-2 sm:gap-0 w-full sm:w-auto">
           <Button
-            onClick={handleFooterNext}
-            className="bg-gray-600 hover:bg-gray-700 text-white cursor-pointer"
+            className="cursor-pointer hover:bg-gray-200 w-1/2 sm:w-auto"
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
           >
-            {t[lang].next}
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {t[lang].back}
           </Button>
-        ) : (
-          <Button
-            onClick={() => handleNext({})}
-            className="bg-slate-800 hover:bg-slate-700 text-white"
-          >
-            {t[lang].finish}
-          </Button>
-        )}
+          {currentStep < steps.length - 1 ? (
+            <Button
+            className="cursor-pointer hover:bg-gray-200 w-1/2 sm:w-auto"
+            variant="ghost"
+            size="sm"
+
+              onClick={handleFooterNext}
+              
+            >
+              {t[lang].next}
+              <ArrowRight className="h-4 w-4 mr-2" />
+            </Button>
+          ) : (
+            <Button
+              onClick={() => handleNext({})}
+              className="bg-gray-600 hover:bg-slate-700 text-white w-1/2 sm:w-auto"
+            >
+              {t[lang].finish}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

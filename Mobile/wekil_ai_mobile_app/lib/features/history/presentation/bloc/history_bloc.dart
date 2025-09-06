@@ -14,6 +14,15 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
     on<HistoryLoadMore>(_onLoadMore);
   }
 
+  List<Agreement> _dedupKeepOrder(List<Agreement> items) {
+    final seen = <String>{};
+    final result = <Agreement>[];
+    for (final a in items) {
+      if (seen.add(a.id)) result.add(a);
+    }
+    return result;
+  }
+
   Future<void> _onStarted(HistoryStarted event, Emitter<HistoryState> emit) async {
     emit(state.copyWith(loading: true, page: event.page, limit: event.limit, error: ''));
     try {
@@ -36,15 +45,18 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
     emit(state.copyWith(loading: true, page: 1, error: ''));
     try {
       final res = await getPage(page: 1, limit: state.limit);
-      emit(
-        state.copyWith(
-          loading: false,
-          items: res.items,
-          page: res.page,
-          limit: res.limit,
-          hasMore: res.hasMore,
-        ),
-      );
+      // Prepend freshly reloaded items on top of current list and deduplicate by id.
+      final merged = _dedupKeepOrder([
+        ...res.items,
+        ...state.items,
+      ]);
+      emit(state.copyWith(
+        loading: false,
+        items: merged,
+        page: 1,
+        limit: res.limit,
+        hasMore: true, // allow loading older pages again
+      ));
     } catch (e) {
       emit(state.copyWith(loading: false, error: e.toString()));
     }
@@ -56,15 +68,14 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
     try {
       final nextPage = state.page + 1;
       final res = await getPage(page: nextPage, limit: state.limit);
-      emit(
-        state.copyWith(
-          loading: false,
-          items: [...state.items, ...res.items],
-          page: res.page,
-          limit: res.limit,
-          hasMore: res.hasMore,
-        ),
-      );
+      final appended = _dedupKeepOrder([...state.items, ...res.items]);
+      emit(state.copyWith(
+        loading: false,
+        items: appended,
+        page: res.page,
+        limit: res.limit,
+        hasMore: res.hasMore,
+      ));
     } catch (e) {
       emit(state.copyWith(loading: false, error: e.toString()));
     }

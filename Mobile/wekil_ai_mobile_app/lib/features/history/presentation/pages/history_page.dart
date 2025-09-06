@@ -24,20 +24,22 @@ class HistoryPage extends StatelessWidget {
       body: SafeArea(
   child: BlocBuilder<HistoryBloc, HistoryState>(
           builder: (context, state) {
-      if (state.loading) {
+            // Show full-screen loader only when first loading (no items yet)
+            if (state.loading && state.items.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }
-      if (state.error != null) {
+            // Show full-screen error only when nothing to display yet
+            if (state.error != null && state.items.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.error_outline, color: Colors.redAccent),
                     const SizedBox(height: 8),
-        Text(state.error!, style: const TextStyle(color: Colors.redAccent)),
+                    Text(state.error!, style: const TextStyle(color: Colors.redAccent)),
                     const SizedBox(height: 12),
                     ElevatedButton(
-          onPressed: () => context.read<HistoryBloc>().add(HistoryStarted()),
+                      onPressed: () => context.read<HistoryBloc>().add(HistoryStarted()),
                       child: const Text('Retry'),
                     ),
                   ],
@@ -46,28 +48,38 @@ class HistoryPage extends StatelessWidget {
             }
 
             return RefreshIndicator(
-        onRefresh: () async => context.read<HistoryBloc>().add(HistoryRefreshed()),
+              onRefresh: () async => context.read<HistoryBloc>().add(HistoryRefreshed()),
               child: ListView.separated(
                 padding: const EdgeInsets.all(12),
                 itemBuilder: (context, index) {
-      if (index == state.items.length) {
-        context.read<HistoryBloc>().add(HistoryLoadMore());
+                  final int baseCount = state.items.length;
+                  final bool hasMore = state.hasMore;
+
+                  // Bottom load-more sentinel
+                  if (hasMore && index == baseCount) {
+                    if (!state.loading) {
+                      // Trigger next page load, but don't show a button; spinner only while loading
+                      context.read<HistoryBloc>().add(HistoryLoadMore());
+                      return const SizedBox.shrink();
+                    }
                     return const Padding(
                       padding: EdgeInsets.symmetric(vertical: 12),
                       child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
                     );
                   }
+
+                  if (index >= baseCount) return const SizedBox.shrink();
+
                   final a = state.items[index];
                   return RecentContractCard(
                     contract: a,
                     onTap: () {
-                      // navigate to agreement detail route using go_router
-                      context.push('/agreement/${a.id}');
+                      context.push('/preview/${a.id}');
                     },
                   );
                 },
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemCount: state.hasMore ? state.items.length + 1 : state.items.length,
+                itemCount: state.items.length + (state.hasMore ? 1 : 0),
               ),
             );
           },

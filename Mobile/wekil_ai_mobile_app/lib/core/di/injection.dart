@@ -13,6 +13,12 @@ import '../../features/history/data/repositories/history_repository_impl.dart';
 import '../../features/history/domain/repositories/history_repository.dart';
 import '../../features/history/domain/usecases/get_history_page.dart';
 import '../../features/history/presentation/bloc/history_bloc.dart';
+// Preview
+import '../../features/preview/data/datasources/preview_remote_data_source.dart';
+import '../../features/preview/data/repositories/preview_repository_impl.dart';
+import '../../features/preview/domain/repositories/preview_repository.dart';
+import '../../features/preview/domain/usecases/get_agreement_preview.dart';
+import '../../features/preview/presentation/bloc/preview_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -58,5 +64,22 @@ Future<void> setupDependencies({
   );
   getIt.registerFactory<HistoryBloc>(
     () => HistoryBloc(getIt<GetHistoryPage>()),
+  );
+
+  // Preview DI
+  getIt.registerLazySingleton<PreviewRemoteDataSource>(
+    () => PreviewRemoteDataSource(
+      baseUrl: baseUrl,
+      client: di_all.sl<http.Client>(instanceName: 'authHttp'),
+    ),
+  );
+  getIt.registerLazySingleton<PreviewRepository>(
+    () => PreviewRepositoryImpl(remote: getIt<PreviewRemoteDataSource>()),
+  );
+  getIt.registerFactory<GetAgreementPreview>(
+    () => GetAgreementPreview(getIt<PreviewRepository>()),
+  );
+  getIt.registerFactory<PreviewBloc>(
+    () => PreviewBloc(getIt<GetAgreementPreview>()),
   );
 }

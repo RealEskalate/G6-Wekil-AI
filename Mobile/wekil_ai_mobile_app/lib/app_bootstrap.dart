@@ -14,7 +14,7 @@ import 'route/app_route.dart';
 // specific Bearer token without touching secure storage. Set to null to use
 // the stored token instead.
 const String? kTempAccessToken =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YjU5OTdiN2M4NDNmY2IyYTkxMGQxZiIsImVtYWlsIjoiYW1pbm1hbWluZTYyMEBnbWFpbC5jb20iLCJpc192ZXJpZmllZCI6dHJ1ZSwiYWNjb3VudF90eXBlIjoidXNlciIsInRva2VuX3R5cGUiOiJhY2Nlc3NfdG9rZW4iLCJleHAiOjE3NTcxMTEwNTIsImlhdCI6MTc1NzExMDE1Mn0.o76vh6_RU6v9_WXvdfFTcvZr-83lzNWyWrP-ImXg6T4";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YjU5OTdiN2M4NDNmY2IyYTkxMGQxZiIsImVtYWlsIjoiYW1pbm1hbWluZTYyMEBnbWFpbC5jb20iLCJpc192ZXJpZmllZCI6dHJ1ZSwiYWNjb3VudF90eXBlIjoidXNlciIsInRva2VuX3R5cGUiOiJhY2Nlc3NfdG9rZW4iLCJleHAiOjE3NTcxNTEzNDEsImlhdCI6MTc1NzE1MDQ0MX0.qD_VvVcXdQ5JtKYC8thYF7fJkizBgeA-ke68UssViKE";
 
 Future<void> bootstrapAndRun() async {
   WidgetsFlutterBinding.ensureInitialized();

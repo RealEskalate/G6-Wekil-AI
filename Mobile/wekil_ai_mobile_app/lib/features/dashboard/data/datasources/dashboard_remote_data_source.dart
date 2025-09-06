@@ -28,15 +28,11 @@ class DashboardRemoteDataSource {
   }
 
   // Fetch the list of agreements; backend sorts by default. We'll take top N in repo.
-  Future<List<Agreement>> fetchAgreements({
-    String? userId,
-    int page = 1,
-  }) async {
-    // Backend endpoint examples:
-    // - /agreement?page=1
-    // - /agreement/<userId>?page=1
-
-    final uri = Uri.parse('$baseUrl/agreement?page=1');
+  Future<List<Agreement>> fetchAgreements() async {
+    // Use the exact endpoint provided
+    final uri = Uri.parse(
+      'https://g6-wekil-ai-1.onrender.com/agreement/userID?page=1',
+    );
     final headers = <String, String>{'Content-Type': 'application/json'};
     final raw = (await tokenProvider?.call())?.trim();
     if (raw != null && raw.isNotEmpty) {

@@ -21,7 +21,10 @@ import { LanguageAndDescription } from "@/components/wizard/steps/LanguageAndDes
 import { PartiesInformation } from "@/components/wizard/steps/PartiesInformation";
 import CommonDetails from "@/components/wizard/steps/CommonDetails";
 import SpecificDetails from "@/components/wizard/steps/SpecificDetails";
-import { AIDraftPreview } from "@/components/wizard/steps/AIDraftPreview";
+import {
+  AIDraftPreview,
+  getFullDraftText,
+} from "@/components/wizard/steps/AIDraftPreview";
 import { FinalPreview } from "@/components/wizard/steps/FinalPreview";
 import { useLanguage } from "@/context/LanguageContext";
 import WeKilAILoader from "../ui/WekilAILoader";
@@ -143,7 +146,6 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   const [specificDetails, setSpecificDetails] = useState<
     NonNullable<ContractData["specificDetails"]>
   >({});
-  const [textDraft, setTextDraft] = useState<string>("");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -304,19 +306,12 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
         }
       }
 
-      toast.error(
-        "Draft generation failed after 3 attempts. Please try again later."
-      );
+      toast.error("Draft generation failed. Please try again later.");
     } else if (currentStep === 5) {
-      console.log("Finalizing with text draft:", textDraft);
-      if (!textDraft.trim()) {
-        toast.error("Text draft is empty. Please generate a draft first.");
-        return;
-      }
-
+      const text = getFullDraftText(intialDraftdata!);
       const res = await dispatch(
         finalPreview({
-          draft: textDraft,
+          draft: text,
           parties: parties.map((item) => ({
             name: item.fullName,
             address: "",
@@ -474,13 +469,15 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
 
   return (
     <div
-      className={`h-full p-5 flex flex-col bg-gray-50 ${
+      className={`h-full p-2 sm:p-5 flex flex-col bg-gray-50 ${
         lang === "am" ? "font-ethiopic" : ""
       }`}
     >
       {/* Header */}
-      <div className="flex py-10 items-center justify-between">
-        <h1 className=" text-xl px-10 font-semibold">{t[lang].title}</h1>
+      <div className="flex flex-col sm:flex-row py-6 sm:py-10 items-center justify-between gap-4">
+        <h1 className="text-lg sm:text-xl px-0 sm:px-10 font-semibold">
+          {t[lang].title}
+        </h1>
         <Button
           variant="ghost"
           className="cursor-pointer"
@@ -493,12 +490,12 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
       </div>
 
       {/* Step indicator */}
-      <div className="">
+      <div className="w-full">
         <StepIndicator steps={steps} currentStep={currentStep} />
       </div>
 
       {/* Step Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto mt-4">
         {currentStep === 0 && (
           <ChooseContractType
             currentLanguage={lang}
@@ -545,8 +542,6 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
             contractData={contractData}
             draftedData={intialDraftdata!}
             setDraftedData={setIntialDraftdata}
-            textDraft={textDraft}
-            setTextDraft={setTextDraft}
           />
         )}
         {currentStep === 6 && (

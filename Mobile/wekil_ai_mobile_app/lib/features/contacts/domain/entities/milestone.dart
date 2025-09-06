@@ -8,4 +8,8 @@ class Milestone {
     this.amount,
     this.dueDate,
   });
+  @override
+  String toString(){
+    return 'Milestone (description: $description amount: $amount dueDate: $dueDate';
+  }
 }

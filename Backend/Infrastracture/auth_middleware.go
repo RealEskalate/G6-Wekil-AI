@@ -2,6 +2,7 @@ package infrastracture
 
 import (
 	"log"
+	"log"
 	"net/http"
 	"strings"
 
@@ -38,6 +39,11 @@ func (a *AuthMiddleware) JWTAuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		log.Println("------------------------")
+		log.Printf("%+v\n", claims)
+		log.Println()
+		log.Println("------------------------")
+		c.Set("user_name", claims.UserName)
 		log.Println("------------------------")
 		log.Printf("%+v\n", *claims)
 		log.Println()

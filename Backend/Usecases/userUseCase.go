@@ -20,7 +20,7 @@ type UserUseCase struct {
 	unverifiedUserCollection domainInterface.IOTPRepository
 	auth                     domainInterface.IAuthentication
 	userValidation           domainInterface.IUserValidation
-	NotificationCollection   domainInterface.INotification
+	NotificationCollection   domainInterface.INotification_
 	OTPSevice                domainInterface.IOTPService
 }
 
@@ -134,6 +134,7 @@ func (u *UserUseCase) ReSendAccessToken(jwtToken string) (string, string, error)
 	if userClaim.TokenType != domainInterface.RefreshToken {
 		return "", "", fmt.Errorf("invalid token type")
 	}
+	
 	//? Even thoug the current User claim has the tokenType == refreshToken inside genereateToken it will be changed
 	accessTokenString, err := u.auth.GenerateToken(userClaim, domainInterface.AccessToken)
 	if err != nil {
@@ -184,6 +185,7 @@ func (a *UserUseCase) Login(email, password string) (string,string, string,error
 	}
 	accessClaims := &domain.UserClaims{
 		UserID:      user.ID.Hex(),
+		UserName: user.FirstName + " " + user.MiddleName,
 		Email:       user.Email,
 		IsVerified:  true,
 		AccountType: user.AccountType,
@@ -195,9 +197,9 @@ func (a *UserUseCase) Login(email, password string) (string,string, string,error
 	}
 	refreshClaims := &domain.UserClaims{
 		UserID:      user.ID.Hex(),
+		UserName: user.FirstName + " " + user.MiddleName,
 		Email:       user.Email,
 		IsVerified:  true,
-		AccountType: user.AccountType,
 		TokenType:   domainInterface.AccessToken,
 	}
 	// Generate Refresh Token
@@ -263,8 +265,8 @@ func (u *UserUseCase) UpdateProfile(ctx context.Context, email string, updateReq
 	return u.userCollection.UpdateProfile(ctx, email, updateData)
 }
 
-func (u *UserUseCase) GetNotifications(userID string, page, limit int64) ([]domain.Notification, error) {
-	notify, err := u.NotificationCollection.FindByReceiverID(context.Background(), userID, page, limit)
+func (u *UserUseCase) GetNotifications(userID string, page, limit int64) ([]*domain.Notification_, error) {
+	notify, err := u.NotificationCollection.FindByReceiverID_(context.Background(), userID, page, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +304,71 @@ func (u *UserUseCase) GetAllUsers(ctx context.Context, page, limit int64, sort s
 	return users, totalUsers, nil
 }
 
-func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository, notify domainInterface.INotification,OtpService domainInterface.IOTPService) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
+
+
+// OAuthLogin handles Google login/signup and token generation
+func (uc *UserUseCase) GoogleNextJS(ctx context.Context, profile domain.GoogleProfile) (*domain.Individual, string, string, error) {
+	// 1. Check if user exists
+	existingUser, _ := uc.userCollection.FindByEmail(ctx, profile.Email)
+	var user *domain.Individual
+	if existingUser != nil {
+		user = existingUser
+	} else {
+		// 2. Create new user
+		userData := &domain.Individual{
+			Email:       profile.Email,
+			FirstName:    profile.GivenName,
+			MiddleName: profile.FamilyName,
+			ProfileImage:  profile.Picture,
+			IsVerified:  true,
+			AccountType: domain.User,
+		}
+		newUser, err := uc.userCollection.CreateIndividual(ctx, userData)
+		if err != nil {
+			return nil, "", "", err
+		}
+		user = newUser
+	}
+
+	// 3. Generate access token
+	accessClaims := &domain.UserClaims{
+		UserID:      user.ID.Hex(),
+		UserName: user.FirstName + " " + user.MiddleName,
+		Email:       user.Email,
+		IsVerified:  user.IsVerified,
+		AccountType: user.AccountType,
+		TokenType:   domainInterface.AccessToken,
+	}
+	accessToken, err := uc.auth.GenerateToken(accessClaims, domainInterface.AccessToken)
+	if err != nil {
+		return nil, "", "", err
+	}
+
+	// 4. Generate refresh token
+	refreshClaims := &domain.UserClaims{
+		UserID:      user.ID.Hex(),
+		UserName: user.FirstName + " " + user.MiddleName,
+		Email:       user.Email,
+		IsVerified:  user.IsVerified,
+		AccountType: user.AccountType,
+		TokenType:   domainInterface.RefreshToken,
+	}
+	refreshToken, err := uc.auth.GenerateToken(refreshClaims, domainInterface.RefreshToken)
+	if err != nil {
+		return nil, "", "", err
+	}
+
+	// 5. Update user with refresh token
+	update := bson.M{"refresh_token": refreshToken}
+	user.RefreshToken = refreshToken
+	if err := uc.userCollection.UpdateIndividual(ctx, user.ID, update); err != nil {
+		return nil, "", "", err
+	}
+
+	return user, accessToken, refreshToken, nil
+}
+
+func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository, notify domainInterface.INotification_,OtpService domainInterface.IOTPService) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
 	return &UserUseCase{
 		auth:                     AUTH,
 		userCollection:           UserColl,

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
-import 'dart:math' as math;
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../core/di/injection.dart';
@@ -15,10 +14,6 @@ import '../domain/repositories/dashboard_repository.dart' as d;
 import '../domain/usecases/get_dashboard_data.dart' as u;
 import '../data/repositories/dashboard_repository_impl.dart' as impl;
 import '../data/datasources/dashboard_remote_data_source.dart' as ds;
-import '../domain/entities/dashboard_summary.dart';
-import '../domain/entities/agreement.dart';
-import '../domain/entities/individual.dart';
-import '../domain/entities/app_notification.dart';
 
 class DashboardPage extends StatefulWidget {
   final VoidCallback? onCreate;
@@ -370,7 +365,9 @@ class _RecentContracts extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 child: RecentContractCard(
                   contract: c,
-                  onTap: () {},
+                  onTap: () {
+                    GoRouter.of(context).push('/agreement/${c.id}');
+                  },
                   onEdit: () {},
                 ),
               ),

@@ -27,38 +27,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
             const SizedBox(height: 24),
             _buildSelectContractTypeCard(context),
             const SizedBox(height: 24),
-            _buildFeatureTile(
-              icon: Icons.access_time,
-              title: LocalesData.Fast_and_Simple.getString(context) ,
-              subtitle: LocalesData.Create_contracts_in_minutes.getString(context),
-              iconColor: Colors.green,
-              titleSize: 13, // smaller font
-              titleColor: Colors.green.shade800,
-              subtitleSize: 11,
-              subtitleColor: AppColors.primaryDark, // custom color
-            ),
-
-            _buildFeatureTile(
-              icon: Icons.translate,
-              title: LocalesData.Bilingual_Support.getString(context),
-              subtitle:  LocalesData.Available_in_Amharic_and_English.getString(context),
-              iconColor: Colors.blue,
-              titleSize: 13,
-              titleColor: Colors.blue.shade800,
-              subtitleSize: 11,
-              subtitleColor: AppColors.primaryDark,
-            ),
-
-            _buildFeatureTile(
-              icon: Icons.storage,
-              title: LocalesData.Locally_Stored.getString(context) ,
-              subtitle: LocalesData.All_contracts_stored_on_your_device.getString(context),
-              iconColor: Colors.purple,
-              titleSize: 13,
-              titleColor: Colors.purple.shade800,
-              subtitleSize: 11,
-              subtitleColor: AppColors.primaryDark,
-            ),
+            _buildWarningCard()
           ],
         ),
       ),
@@ -182,54 +151,83 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
     );
   }
 
-  // Feature tiles
-  Widget _buildFeatureTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color iconColor,
-    Color? subtitleColor,
-    double? subtitleSize, // optional font size
-    double? titleSize, // optional font size
-    Color? titleColor, // optional color
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+  // 
+  
+   Widget _buildWarningCard() {
+    return Card(
+      color: Colors.amber.shade50,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.amber.shade200, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.amber.shade800),
+                const SizedBox(width: 8),
+                Text(
+                  LocalesData.Not_for_Complex_Agreements.getString(context),
+                  style: AppTypography.body().copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark,
+                  ),
+                ),
+              ],
             ),
-            child: Icon(icon, color: iconColor, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: AppTypography.body().copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: titleSize ?? 16, // default size
-                  color: titleColor ?? AppColors.textDark, // default color
-                ),
+            const SizedBox(height: 8),
+            Text(
+              LocalesData.This_tool_is_designed_for_basic_agreements_only_Please_consult_a_lawyer_for.getString(context),
+              style: AppTypography.body().copyWith(
+                fontSize: 14,
+                color: AppColors.textDark.withOpacity(0.7),
               ),
-              Text(
-                subtitle,
-                style: AppTypography.body().copyWith(
-                  color: AppColors.textDark.withOpacity(0.7),
-                  fontSize: subtitleSize ?? 14, // default size
-                ),
+            ),
+            const SizedBox(height: 8),
+            _buildBulletedText(
+              LocalesData.Employment_contracts.getString(context),
+              color: AppColors.textDark.withOpacity(0.7),
+            ),
+            _buildBulletedText(
+              LocalesData.Real_estate_or_land_transfers.getString(context),
+              color: AppColors.textDark.withOpacity(0.7),
+            ),
+            _buildBulletedText(
+              LocalesData.Corporate_or_shareholder_agreements.getString(context),
+              color: AppColors.textDark.withOpacity(0.7),
+            ),
+            _buildBulletedText(
+              LocalesData.Government_tenders_or_regulated_industries.getString(context),
+              color: AppColors.textDark.withOpacity(0.7),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBulletedText(String text, {Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('• ', style: TextStyle(color: color ?? AppColors.textDark)),
+          Expanded(
+            child: Text(
+              text,
+              style: AppTypography.body().copyWith(
+                color: color ?? AppColors.textDark,
               ),
-            ],
+            ),
           ),
         ],
       ),
     );
   }
 }
+
+  

@@ -29,7 +29,7 @@ class CreateStep4 extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            StepProgressBar(currentStep: 5, totalSteps: 7),
+            StepProgressBar(currentStep: 5,  stepLabels: ["Type","Basic Info","Parties","Genera","Specific","Preview","Success",]),
             Expanded(
               child: ContractSpecificDetails(
                 key: detailsKey,

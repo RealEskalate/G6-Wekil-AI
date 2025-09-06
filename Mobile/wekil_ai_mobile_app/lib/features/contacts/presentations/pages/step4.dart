@@ -105,7 +105,7 @@ class _CreateStep3State extends State<CreateStep3> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const StepProgressBar(currentStep: 3, totalSteps: 7),
+              const StepProgressBar(currentStep: 3,  stepLabels: ["Type","Basic Info","Parties","Genera","Specific","Preview","Success",]),
               const SizedBox(height: 24),
               Card(
                 color: AppColors.textLight,

@@ -25,6 +25,9 @@ import '../features/contacts/presentations/pages/step7.dart';
 import '../features/contacts/data/models/contact_data.dart';
 import '../features/contacts/domain/entities/contract_type.dart';
 import '../features/dashboard/presentation/pages/view_agreement_page.dart';
+import '../core/di/injection.dart' as dash_di;
+import '../features/history/domain/usecases/get_history_page.dart';
+import '../features/history/presentation/pages/history_page.dart';
 
 final List<GoRoute> appRoutes = [
   GoRoute(
@@ -107,6 +110,15 @@ final List<GoRoute> appRoutes = [
       final initial =
           state.extra as int?; // 0: Dashboard, 1: Create, 2: History/Contracts
       return MainScreen(initialIndex: initial);
+    },
+  ),
+
+  // History list route
+  GoRoute(
+    path: '/history',
+    builder: (context, state) {
+      final usecase = dash_di.getIt<GetHistoryPage>();
+      return HistoryPage.provider(usecase: usecase);
     },
   ),
 

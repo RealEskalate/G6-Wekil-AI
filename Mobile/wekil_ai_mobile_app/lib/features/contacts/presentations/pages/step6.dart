@@ -73,7 +73,7 @@ class _CreateStep5State extends State<CreateStep5> {
       ),
       body: Column(
         children: [
-          StepProgressBar(currentStep: 6, totalSteps: 7),
+          StepProgressBar(currentStep: 6, stepLabels: ["Type","Basic Info","Parties","Genera","Specific","Preview","Success",]),
           Expanded(child: SfPdfViewer.network(widget.draftContractPdfUrl)),
           Padding(
             padding: const EdgeInsets.all(16.0),

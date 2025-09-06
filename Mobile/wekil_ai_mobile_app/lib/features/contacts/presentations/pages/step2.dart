@@ -42,15 +42,10 @@ class _CreateStep1State extends State<CreateStep1> {
               
               style: AppTypography.heading().copyWith(fontSize: 20),
             ),
-            const SizedBox(height: 4),
-            Text(
-              "Step 2 of 7: Basic Info",
-              style: AppTypography.body().copyWith(color: Colors.grey[700]),
-            ),
             const SizedBox(height: 20),
 
             // Step Progress Indicator
-            const StepProgressBar(currentStep: 2, totalSteps: 7),
+            const StepProgressBar(currentStep: 2,  stepLabels: ["Type","Basic Info","Parties","Genera","Specific","Preview","Success",]),
             const SizedBox(height: 24),
 
             // Card for form

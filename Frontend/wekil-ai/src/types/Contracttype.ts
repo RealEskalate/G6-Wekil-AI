@@ -126,3 +126,20 @@ export const data4: ContractFormat = {
   createdAt: "2025-08-30",
   status: "completed",
 };
+
+
+export interface Section {
+  heading: string;
+  description: string; // map from backend's "text"
+}
+
+export interface ContractDraft {
+  party1: Party;
+  party2: Party;
+  title: string;
+  sections: Section[];
+  sign1: string; 
+  sign2: string; 
+  place: string; 
+  date: string; 
+}

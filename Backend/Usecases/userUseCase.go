@@ -183,7 +183,7 @@ func (a *UserUseCase) Login(email, password string) (string,string, string,error
 		return "", "", "", errors.New("invalid password")
 	}
 	accessClaims := &domain.UserClaims{
-		UserID:      user.ID.String(),
+		UserID:      user.ID.Hex(),
 		Email:       user.Email,
 		IsVerified:  true,
 		AccountType: user.AccountType,
@@ -194,7 +194,7 @@ func (a *UserUseCase) Login(email, password string) (string,string, string,error
 		panic(err)
 	}
 	refreshClaims := &domain.UserClaims{
-		UserID:      user.ID.String(),
+		UserID:      user.ID.Hex(),
 		Email:       user.Email,
 		IsVerified:  true,
 		AccountType: user.AccountType,

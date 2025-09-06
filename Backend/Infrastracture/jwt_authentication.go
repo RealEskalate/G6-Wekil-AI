@@ -25,6 +25,7 @@ type JWTAuthentication struct {
 // It sets the correct expiration time based on the tokenType.
 func (j *JWTAuthentication) GenerateToken(claims *domain.UserClaims, tokenType string) (string, error) {
 	// Set the token type and expiration time on the claims.
+	log.Printf("⚠️ GenerateToken %#v \n", *claims)
 	claims.TokenType = tokenType
 	switch tokenType {
 	case AccessToken:
@@ -80,6 +81,7 @@ func (j *JWTAuthentication) ParseTokenToClaim(tokenString string) (*domain.UserC
 	}
 
 	// Return the claims if the token is valid.
+	log.Printf("❗while parsing: %+v\n", *claims)
 	return claims, nil
 }
 

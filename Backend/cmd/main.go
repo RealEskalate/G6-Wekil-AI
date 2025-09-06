@@ -50,7 +50,7 @@ func main() {
 	intakeRepo := repository.NewIntakeRepository(mongoClient.Client,config.MONGODB,"intake")
 	agreementRepo := repository.NewAgreementRepository(mongoClient.Client,config.MONGODB,"agreement")
 	agreementUsecase := usecases.NewAgreementUseCase(intakeRepo, agreementRepo, pendingRepo,aiInfra)
-	agreementController := controllers.NewAgreementController(agreementUsecase)
+	agreementController := controllers.NewAgreementController(agreementUsecase, aiInfra)
     routers.Router(userController, aiController, agreementController)
 }
 

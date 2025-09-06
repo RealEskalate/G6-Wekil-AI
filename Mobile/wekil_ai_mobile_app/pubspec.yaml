@@ -24,6 +24,7 @@ dependencies:
   dartz: ^0.10.1
   connectivity_plus: ^6.1.1
   http: ^1.4.0
+  path_provider: ^2.1.5
   shared_preferences: ^2.5.3
   flutter_secure_storage: ^9.2.4
   flutter_native_splash: ^2.4.6

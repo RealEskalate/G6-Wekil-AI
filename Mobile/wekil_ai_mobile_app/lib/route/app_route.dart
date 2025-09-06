@@ -28,6 +28,8 @@ import '../features/dashboard/presentation/pages/view_agreement_page.dart';
 import '../core/di/injection.dart' as dash_di;
 import '../features/history/domain/usecases/get_history_page.dart';
 import '../features/history/presentation/pages/history_page.dart';
+import '../features/preview/domain/usecases/get_agreement_preview.dart';
+import '../features/preview/presentation/pages/preview_page.dart';
 
 final List<GoRoute> appRoutes = [
   GoRoute(
@@ -126,6 +128,15 @@ final List<GoRoute> appRoutes = [
   GoRoute(
     path: '/contracts/start',
     builder: (context, state) => const CreateContractScreen(),
+  ),
+  // Preview
+  GoRoute(
+    path: '/preview/:id',
+    builder: (context, state) {
+      final id = state.pathParameters['id']!;
+      final usecase = dash_di.getIt<GetAgreementPreview>();
+      return PreviewPage.provider(usecase: usecase, agreementId: id);
+    },
   ),
   GoRoute(
     path: '/contracts/types',

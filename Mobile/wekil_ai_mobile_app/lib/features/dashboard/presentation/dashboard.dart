@@ -363,10 +363,10 @@ class _RecentContracts extends StatelessWidget {
                   ],
                 ),
                 padding: const EdgeInsets.all(12),
-                child: RecentContractCard(
+        child: RecentContractCard(
                   contract: c,
                   onTap: () {
-                    GoRouter.of(context).push('/agreement/${c.id}');
+          GoRouter.of(context).push('/preview/${c.id}');
                   },
                   onEdit: () {},
                 ),

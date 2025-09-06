@@ -14,7 +14,6 @@ interface SpecificDetailsProps {
   setSpecificDetails: (
     details: NonNullable<ContractData["specificDetails"]>
   ) => void;
-  contract: Partial<ContractData>;
 }
 
 export default function SpecificDetails({
@@ -105,30 +104,32 @@ export default function SpecificDetails({
   const renderMilestones = () => (
     <div>
       <label className="block mb-2 font-medium">{t.milestones}</label>
-      {(specificDetails.milestones || []).map((milestone: { description: string; date: string }, idx: number) => (
-        <div key={idx} className="flex gap-2 mb-2 items-center">
-          <Input
-            placeholder={t.milestoneDescription}
-            value={milestone.description}
-            onChange={e => {
-              const milestones = [...(specificDetails.milestones || [])];
-              milestones[idx].description = e.target.value;
-              updateSpecificDetails("milestones", milestones);
-            }}
-            className="w-1/2"
-          />
-          <Input
-            type="date"
-            placeholder={t.milestoneDate}
-            value={milestone.date || ""}
-            onChange={e => {
-              const milestones = [...(specificDetails.milestones || [])];
-              milestones[idx].date = e.target.value;
-              updateSpecificDetails("milestones", milestones);
-            }}
-          />
-        </div>
-      ))}
+      {(specificDetails.milestones || []).map(
+        (milestone: { description: string; date: string }, idx: number) => (
+          <div key={idx} className="flex gap-2 mb-2 items-center">
+            <Input
+              placeholder={t.milestoneDescription}
+              value={milestone.description}
+              onChange={(e) => {
+                const milestones = [...(specificDetails.milestones || [])];
+                milestones[idx].description = e.target.value;
+                updateSpecificDetails("milestones", milestones);
+              }}
+              className="w-1/2"
+            />
+            <Input
+              type="date"
+              placeholder={t.milestoneDate}
+              value={milestone.date || ""}
+              onChange={(e) => {
+                const milestones = [...(specificDetails.milestones || [])];
+                milestones[idx].date = e.target.value;
+                updateSpecificDetails("milestones", milestones);
+              }}
+            />
+          </div>
+        )
+      )}
       <Button
         variant="outline"
         size="sm"
@@ -148,39 +149,44 @@ export default function SpecificDetails({
   const renderItems = () => (
     <div>
       <label className="block mb-2 font-medium">{t.items}</label>
-      {(specificDetails.items || []).map((item: { description: string; quantity: number; unitPrice: number }, idx: number) => (
-        <div key={idx} className="grid grid-cols-3 gap-4 mb-2">
-          <Input
-            placeholder={t.itemDescription}
-            value={item.description}
-            onChange={e => {
-              const items = [...(specificDetails.items || [])];
-              items[idx].description = e.target.value;
-              updateSpecificDetails("items", items);
-            }}
-          />
-          <Input
-            type="number"
-            placeholder={t.quantity}
-            value={item.quantity}
-            onChange={e => {
-              const items = [...(specificDetails.items || [])];
-              items[idx].quantity = Number(e.target.value);
-              updateSpecificDetails("items", items);
-            }}
-          />
-          <Input
-            type="number"
-            placeholder={t.unitPrice}
-            value={item.unitPrice}
-            onChange={e => {
-              const items = [...(specificDetails.items || [])];
-              items[idx].unitPrice = Number(e.target.value);
-              updateSpecificDetails("items", items);
-            }}
-          />
-        </div>
-      ))}
+      {(specificDetails.items || []).map(
+        (
+          item: { description: string; quantity: number; unitPrice: number },
+          idx: number
+        ) => (
+          <div key={idx} className="grid grid-cols-3 gap-4 mb-2">
+            <Input
+              placeholder={t.itemDescription}
+              value={item.description}
+              onChange={(e) => {
+                const items = [...(specificDetails.items || [])];
+                items[idx].description = e.target.value;
+                updateSpecificDetails("items", items);
+              }}
+            />
+            <Input
+              type="number"
+              placeholder={t.quantity}
+              value={item.quantity}
+              onChange={(e) => {
+                const items = [...(specificDetails.items || [])];
+                items[idx].quantity = Number(e.target.value);
+                updateSpecificDetails("items", items);
+              }}
+            />
+            <Input
+              type="number"
+              placeholder={t.unitPrice}
+              value={item.unitPrice}
+              onChange={(e) => {
+                const items = [...(specificDetails.items || [])];
+                items[idx].unitPrice = Number(e.target.value);
+                updateSpecificDetails("items", items);
+              }}
+            />
+          </div>
+        )
+      )}
       <Button
         variant="outline"
         size="sm"
@@ -200,31 +206,33 @@ export default function SpecificDetails({
   const renderInstallments = () => (
     <div>
       <label className="block mb-2 font-medium">{t.installments}</label>
-      {(specificDetails.installments || []).map((installment: { amount: number; dueDate: string }, idx: number) => (
-        <div key={idx} className="flex items-center gap-2 mb-2">
-          <Input
-            type="number"
-            placeholder={t.installmentAmount}
-            value={installment.amount}
-            onChange={e => {
-              const installments = [...(specificDetails.installments || [])];
-              installments[idx].amount = Number(e.target.value);
-              updateSpecificDetails("installments", installments);
-            }}
-            className="w-1/2"
-          />
-          <Input
-            type="date"
-            placeholder={t.installmentDueDate}
-            value={installment.dueDate || ""}
-            onChange={e => {
-              const installments = [...(specificDetails.installments || [])];
-              installments[idx].dueDate = e.target.value;
-              updateSpecificDetails("installments", installments);
-            }}
-          />
-        </div>
-      ))}
+      {(specificDetails.installments || []).map(
+        (installment: { amount: number; dueDate: string }, idx: number) => (
+          <div key={idx} className="flex items-center gap-2 mb-2">
+            <Input
+              type="number"
+              placeholder={t.installmentAmount}
+              value={installment.amount}
+              onChange={(e) => {
+                const installments = [...(specificDetails.installments || [])];
+                installments[idx].amount = Number(e.target.value);
+                updateSpecificDetails("installments", installments);
+              }}
+              className="w-1/2"
+            />
+            <Input
+              type="date"
+              placeholder={t.installmentDueDate}
+              value={installment.dueDate || ""}
+              onChange={(e) => {
+                const installments = [...(specificDetails.installments || [])];
+                installments[idx].dueDate = e.target.value;
+                updateSpecificDetails("installments", installments);
+              }}
+            />
+          </div>
+        )
+      )}
       <Button
         variant="outline"
         size="sm"
@@ -247,10 +255,14 @@ export default function SpecificDetails({
         return (
           <div className="space-y-6">
             <div>
-              <label className="block mb-2 font-medium">{t.servicesDescription}</label>
+              <label className="block mb-2 font-medium">
+                {t.servicesDescription}
+              </label>
               <Textarea
                 value={specificDetails.servicesDescription || ""}
-                onChange={e => updateSpecificDetails("servicesDescription", e.target.value)}
+                onChange={(e) =>
+                  updateSpecificDetails("servicesDescription", e.target.value)
+                }
                 placeholder={t.servicesDescription}
                 className="w-full"
               />
@@ -262,7 +274,9 @@ export default function SpecificDetails({
                 type="number"
                 placeholder={t.revisions}
                 value={specificDetails.revisions || ""}
-                onChange={e => updateSpecificDetails("revisions", Number(e.target.value))}
+                onChange={(e) =>
+                  updateSpecificDetails("revisions", Number(e.target.value))
+                }
               />
             </div>
           </div>
@@ -272,10 +286,14 @@ export default function SpecificDetails({
           <div className="space-y-6">
             {renderItems()}
             <div>
-              <label className="block mb-2 font-medium">{t.deliveryTerms}</label>
+              <label className="block mb-2 font-medium">
+                {t.deliveryTerms}
+              </label>
               <Textarea
                 value={specificDetails.deliveryTerms || ""}
-                onChange={e => updateSpecificDetails("deliveryTerms", e.target.value)}
+                onChange={(e) =>
+                  updateSpecificDetails("deliveryTerms", e.target.value)
+                }
                 placeholder={t.deliveryTerms}
                 className="w-full"
               />
@@ -286,22 +304,36 @@ export default function SpecificDetails({
         return (
           <div className="space-y-6">
             <div>
-              <label className="block mb-2 font-medium">{t.principalAmount}</label>
+              <label className="block mb-2 font-medium">
+                {t.principalAmount}
+              </label>
               <Input
                 type="number"
                 placeholder={t.principalAmount}
                 value={specificDetails.principalAmount || ""}
-                onChange={e => updateSpecificDetails("principalAmount", Number(e.target.value))}
+                onChange={(e) =>
+                  updateSpecificDetails(
+                    "principalAmount",
+                    Number(e.target.value)
+                  )
+                }
               />
             </div>
             {renderInstallments()}
             <div>
-              <label className="block mb-2 font-medium">{t.lateFeePercentage}</label>
+              <label className="block mb-2 font-medium">
+                {t.lateFeePercentage}
+              </label>
               <Input
                 type="number"
                 placeholder={t.lateFeePercentage}
                 value={specificDetails.lateFeePercentage || ""}
-                onChange={e => updateSpecificDetails("lateFeePercentage", Number(e.target.value))}
+                onChange={(e) =>
+                  updateSpecificDetails(
+                    "lateFeePercentage",
+                    Number(e.target.value)
+                  )
+                }
               />
             </div>
           </div>
@@ -313,35 +345,48 @@ export default function SpecificDetails({
               <label className="block mb-2 font-medium">{t.purpose}</label>
               <Textarea
                 value={specificDetails.purpose || ""}
-                onChange={e => updateSpecificDetails("purpose", e.target.value)}
+                onChange={(e) =>
+                  updateSpecificDetails("purpose", e.target.value)
+                }
                 placeholder={t.purpose}
                 className="w-full"
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium">{t.effectiveDate}</label>
+              <label className="block mb-2 font-medium">
+                {t.effectiveDate}
+              </label>
               <Input
                 type="date"
                 placeholder={t.effectiveDate}
                 value={specificDetails.effectiveDate || ""}
-                onChange={e => updateSpecificDetails("effectiveDate", e.target.value)}
+                onChange={(e) =>
+                  updateSpecificDetails("effectiveDate", e.target.value)
+                }
               />
             </div>
             <div>
-              <label className="block mb-2 font-medium">{t.confidentialityPeriod}</label>
+              <label className="block mb-2 font-medium">
+                {t.confidentialityPeriod}
+              </label>
               <Input
                 type="number"
                 placeholder={t.confidentialityPeriod}
                 value={specificDetails.confidentialityPeriod || ""}
-                onChange={e => updateSpecificDetails("confidentialityPeriod", Number(e.target.value))}
+                onChange={(e) =>
+                  updateSpecificDetails(
+                    "confidentialityPeriod",
+                    Number(e.target.value)
+                  )
+                }
               />
             </div>
             <div className="flex items-center gap-2">
               <label className="font-medium">{t.isMutual}</label>
               <Input
-                type="checkbox"
-                checked={Boolean(specificDetails.isMutual)}
-                onChange={e => updateSpecificDetails("isMutual", e.target.checked)}
+                onChange={(e) =>
+                  updateSpecificDetails("isMutual", e.target.checked)
+                }
                 className="w-4 h-4"
               />
             </div>
@@ -349,7 +394,11 @@ export default function SpecificDetails({
           </div>
         );
       default:
-        return <p className="text-gray-500">No specific fields for this contract type.</p>;
+        return (
+          <p className="text-gray-500">
+            No specific fields for this contract type.
+          </p>
+        );
     }
   };
 

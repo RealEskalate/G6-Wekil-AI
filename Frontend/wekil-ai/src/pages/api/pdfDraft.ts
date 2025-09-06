@@ -1,4 +1,4 @@
-import { ContractDraft } from "@/components/ContractPreview/ContractPreview";
+import { ContractDraft, Section } from "@/types/Contracttype";
 import type { NextApiRequest, NextApiResponse } from "next";
 export default async function handler(
   req: NextApiRequest,
@@ -31,7 +31,7 @@ export default async function handler(
               phone: draft.party2.phone,
             },
             description: "",
-            sections: draft.sections,
+            sections: draft.sections.map((section: Section) => ({title: section.heading, description: section.description})),
             sign1: draft.sign1,
             sign2: draft.sign2,
           },

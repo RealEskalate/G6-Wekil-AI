@@ -8,6 +8,7 @@ interface ExtendedJWT extends JWT {
   rememberMe?: boolean;
   error?: string;
   accessToken?: string;
+  accessTokenExpires?: number;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
@@ -22,9 +23,13 @@ async function refreshBackendSession(token: ExtendedJWT): Promise<ExtendedJWT> {
 
     if (!res.ok) {
       console.warn("Refresh failed:", res.status, await res.text());
-      return { ...token, error: "RefreshTokenError" };
+      return { ...token, };
     }
-    return { ...token, error: undefined };
+    return { ...token,
+      accessToken: res.headers.get("Authorization")?.replace("Bearer ", ""),
+      accessTokenExpires: Date.now() + 10 * 60 * 1000,
+      error: undefined
+    };
   } catch (err) {
     console.error("Error refreshing session:", err);
     return { ...token, error: "RefreshTokenError" };
@@ -60,7 +65,8 @@ export const authOptions: NextAuthOptions = {
       image: profile.picture,
       account_type,
       accessToken,
-    } as User & { account_type?: string; accessToken?: string };
+      accessTokenExpires: Date.now() + 10 * 60 * 1000,
+    } as User & { account_type?: string; accessToken?: string; accessTokenExpires?: number};
   },
     }),
 
@@ -74,7 +80,6 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-
         const res = await fetch(`${API_URL}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -97,6 +102,7 @@ export const authOptions: NextAuthOptions = {
           account_type,
           rememberMe: credentials?.rememberMe === "true",
           accessToken: accessToken,
+          
         } as User & {
           account_type?: string;
           rememberMe?: boolean;
@@ -135,11 +141,12 @@ export const authOptions: NextAuthOptions = {
           account_type: user.account_type,
           rememberMe: user.rememberMe,
           accessToken: user.accessToken,
+          accessTokenExpires: Date.now() + 10 * 60 * 1000,
           error: undefined,
         };
       }
 
-      if (token.rememberMe && token.accessTokenExpires && Date.now() > token.accessTokenExpires) {
+      if (token.rememberMe && Date.now() > (token.accessTokenExpires ?? 0)) {
         return await refreshBackendSession(token);
       }
 

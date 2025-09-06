@@ -23,14 +23,23 @@ import CommonDetails from "@/components/wizard/steps/CommonDetails";
 import SpecificDetails from "@/components/wizard/steps/SpecificDetails";
 import { AIDraftPreview } from "@/components/wizard/steps/AIDraftPreview";
 import { FinalPreview } from "@/components/wizard/steps/FinalPreview";
-import {
-  ContractDraft,
-  IntialDraftdata,
-} from "../ContractPreview/ContractPreview";
 import { useLanguage } from "@/context/LanguageContext";
 import WeKilAILoader from "../ui/WekilAILoader";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/redux/store";
+import {
+  classifyApi,
+  finalPreview,
+  generateDraft,
+} from "@/lib/redux/slices/aiSlice";
+import {
+  ApiContractDraft,
+  convertContractFormatToIntake,
+  convertInterfaceContractDraft,
+} from "@/types/BackendTypes";
+import { ContractDraft } from "@/types/Contracttype";
 
 export interface Step {
   id: string;
@@ -49,20 +58,33 @@ export interface CommonDetail {
 export type Language = "en" | "am";
 
 export interface ContractData {
+  id: string;
   contractType?: string;
   agreementLanguage?: Language;
   description?: string;
-  parties?: { fullName: string; phone: string; email: string }[];
+  parties?: {
+    fullName: string;
+    phone: string;
+    email: string;
+    address?: string;
+  }[];
   commonDetails: CommonDetail;
   specificDetails?: {
+    //service
     servicesDescription?: string;
     milestones?: { description: string; date: string }[];
     revisions?: number;
+
+    // sales
     items?: { description: string; quantity: number; unitPrice: number }[];
     deliveryTerms?: string;
+
+    //loan
     principalAmount?: number;
     installments?: { amount: number; dueDate: string }[];
     lateFeePercentage?: number;
+
+    //nda
     effectiveDate?: string;
     confidentialityPeriod?: number;
     purpose?: string;
@@ -104,8 +126,7 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const router = useRouter();
   const [agreementLanguage, setAgreementLanguage] = useState<Language>("en");
-  const [intialDraftdata, setIntialDraftdata] =
-    useState<ContractDraft>(IntialDraftdata);
+  const [intialDraftdata, setIntialDraftdata] = useState<ContractDraft>();
   const [description, setDescription] = useState<string>("");
   const [commonDetails, setCommonDetails] = useState<
     ContractData["commonDetails"]
@@ -117,9 +138,12 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
     endDate: "",
     dueDates: [],
   });
+  const [isNextLoading, setIsNextLoading] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
   const [specificDetails, setSpecificDetails] = useState<
     NonNullable<ContractData["specificDetails"]>
   >({});
+  const [textDraft, setTextDraft] = useState<string>("");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -194,25 +218,134 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
     },
   };
 
-  const handleNext = (data: Partial<ContractData>) => {
+  const handleNext = async (data: Partial<ContractData>) => {
     setContractData({ ...contractData, ...data });
 
     if (currentStep === 1) {
       setIsCheckingComplexity(true);
-      setTimeout(() => {
-        setIsCheckingComplexity(false);
-        //place to call Classify API
-        setCurrentStep(currentStep + 1);
-      }, 1000);
-    } else if (currentStep == 4) {
-      // place to call Draft API
 
-      setCurrentStep(currentStep + 1);
-    } else if (currentStep == 5) {
-      // place to call FinalReview API
-      setCurrentStep(currentStep + 1);
+      const res = await dispatch(
+        classifyApi({ text: description, language: agreementLanguage })
+      );
+
+      setIsCheckingComplexity(false);
+
+      if (classifyApi.fulfilled.match(res) && res.payload) {
+        const classification = (
+          res.payload as {
+            data?: { payload?: { category?: string; reasons?: string[] } };
+          }
+        )?.data?.payload;
+
+        const type = classification?.category;
+
+        if (type === "basic") {
+          toast.success("Your prompt is Basic");
+          setCurrentStep((prev) => prev + 1);
+        } else if (type) {
+          toast.error(
+            `Your prompt is ${type} due to ${
+              classification?.reasons?.[0] ?? "unspecified reason"
+            }, please consult a lawyer.`
+          );
+        } else {
+          toast.error("Invalid classification response");
+        }
+      } else {
+        toast.error(
+          (res as { payload?: { message?: string } }).payload?.message ??
+            "Classification failed"
+        );
+      }
+    } else if (currentStep === 4) {
+      setContractData({
+        ...contractData,
+        specificDetails,
+      });
+
+      const intakeData = convertContractFormatToIntake(
+        contractData as ContractData
+      );
+
+      let draftData: ApiContractDraft | undefined;
+      let attempts = 0;
+
+      while (attempts < 3) {
+        attempts += 1;
+
+        const resultAction = await dispatch(
+          generateDraft({
+            intake: intakeData,
+            language: contractData.agreementLanguage,
+          })
+        );
+
+        if (generateDraft.fulfilled.match(resultAction)) {
+          draftData = (resultAction.payload as { payload?: ApiContractDraft })
+            ?.payload;
+
+          if (draftData?.sections) {
+            const draft = convertInterfaceContractDraft(draftData);
+            setIntialDraftdata(draft);
+            toast.success(
+              attempts === 1
+                ? "Draft generated successfully"
+                : `Draft generated successfully (attempt ${attempts})`
+            );
+            setCurrentStep((prev) => prev + 1);
+            return;
+          }
+        } else {
+          toast.error(
+            (resultAction as { payload?: { message?: string } }).payload
+              ?.message ?? "Draft generation failed"
+          );
+          return;
+        }
+      }
+
+      toast.error(
+        "Draft generation failed after 3 attempts. Please try again later."
+      );
+    } else if (currentStep === 5) {
+      console.log("Finalizing with text draft:", textDraft);
+      if (!textDraft.trim()) {
+        toast.error("Text draft is empty. Please generate a draft first.");
+        return;
+      }
+
+      const res = await dispatch(
+        finalPreview({
+          draft: textDraft,
+          parties: parties.map((item) => ({
+            name: item.fullName,
+            address: "",
+            email: item.email,
+          })),
+          language: agreementLanguage || "en",
+        })
+      );
+
+      if (finalPreview.fulfilled.match(res) && res.payload) {
+        const category = res.payload.classification.category;
+        if (category !== "basic") {
+          toast.error(
+            `Your agreement is classified as ${category}: ${res.payload.classification.reasons.join(
+              ", "
+            )}`
+          );
+        } else {
+          toast.success("Your agreement is Basic");
+        }
+        setCurrentStep((prev) => prev + 1);
+      } else {
+        toast.error(
+          (res as { payload?: { message?: string } })?.payload?.message ||
+            "Final preview failed"
+        );
+      }
     } else if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep((prev) => prev + 1);
     } else {
       toast.success(t[lang].finish);
       if (onBackToDashboard) onBackToDashboard();
@@ -297,10 +430,15 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
     }
   };
 
-  const handleFooterNext = () => {
+  const handleFooterNext = async () => {
     const data = validateAndGetStepData();
     if (data) {
-      handleNext(data);
+      setIsNextLoading(true);
+      try {
+        await handleNext(data); // always async now
+      } finally {
+        setIsNextLoading(false); // ensure reset
+      }
     }
   };
 
@@ -342,7 +480,9 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
     >
       {/* Header */}
       <div className="flex flex-col sm:flex-row py-6 sm:py-10 items-center justify-between gap-4">
-        <h1 className="text-lg sm:text-xl px-0 sm:px-10 font-semibold">{t[lang].title}</h1>
+        <h1 className="text-lg sm:text-xl px-0 sm:px-10 font-semibold">
+          {t[lang].title}
+        </h1>
         <Button
           variant="ghost"
           className="cursor-pointer"
@@ -399,50 +539,66 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
             contractType={contractData.contractType}
             specificDetails={specificDetails}
             setSpecificDetails={setSpecificDetails}
-            contract={contractData}
           />
         )}
         {currentStep === 5 && (
           <AIDraftPreview
             currentLanguage={lang}
             contractData={contractData}
-            draftedData={intialDraftdata}
+            draftedData={intialDraftdata!}
             setDraftedData={setIntialDraftdata}
+            textDraft={textDraft}
+            setTextDraft={setTextDraft}
           />
         )}
         {currentStep === 6 && (
-          <FinalPreview currentLanguage={lang} draftedData={intialDraftdata} />
+          <FinalPreview currentLanguage={lang} draftedData={intialDraftdata!} />
         )}
       </div>
-
       {/* Footer navigation */}
-      <div className="px-2 sm:px-6 py-4 flex flex-col sm:flex-row gap-2 sm:gap-0 sm:justify-between">
-        <div className="flex flex-row gap-2 sm:gap-0 w-full sm:w-auto">
+      <div className="px-6 py-4 flex justify-between">
+        <Button
+          className="cursor-pointer hover:bg-gray-200"
+          variant="ghost"
+          size="sm"
+          onClick={handleBack}
+          disabled={isNextLoading} // disable Back while loading if you want
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          {t[lang].back}
+        </Button>
+
+        {currentStep < steps.length - 1 ? (
           <Button
-            className="cursor-pointer hover:bg-gray-200 w-1/2 sm:w-auto"
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
+            onClick={handleFooterNext}
+            className="bg-gray-600 hover:bg-gray-700 text-white cursor-pointer flex items-center gap-2"
+            disabled={isNextLoading}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {t[lang].back}
+            {isNextLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              t[lang].next
+            )}
           </Button>
-          {currentStep < steps.length - 1 ? (
-            <Button
-              onClick={handleFooterNext}
-              className="bg-gray-600 hover:bg-gray-700 text-white cursor-pointer w-1/2 sm:w-auto"
-            >
-              {t[lang].next}
-            </Button>
-          ) : (
-            <Button
-              onClick={() => handleNext({})}
-              className="bg-slate-800 hover:bg-slate-700 text-white w-1/2 sm:w-auto"
-            >
-              {t[lang].finish}
-            </Button>
-          )}
-        </div>
+        ) : (
+          <Button
+            onClick={() => handleNext({})}
+            className="bg-slate-800 hover:bg-slate-700 text-white flex items-center gap-2"
+            disabled={isNextLoading}
+          >
+            {isNextLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              t[lang].finish
+            )}
+          </Button>
+        )}
       </div>
     </div>
   );

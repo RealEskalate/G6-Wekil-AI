@@ -1,4 +1,4 @@
-const baseUrl = "https://g6-wekil-ai-1.onrender.com";
+const baseUrl = process.env.NEXT_PUBLIC_API_URL
 export async function getAgreementDetailById(id:string,accessToken:string){
     try{
         const res = await fetch(`${baseUrl}/agreement`,{

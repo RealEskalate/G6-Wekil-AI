@@ -95,7 +95,6 @@ type UpdateProfileRequestDTO struct {
 
 // Notification represents a notification document sent to users.
 
-
 type ChangePasswordRequestDTO struct {
 	OldPassword string `json:"old_password" bson:"old_password" binding:"required,min=6,max=50"`
 	NewPassword string `json:"new_password" bson:"new_password" binding:"required,min=6,max=50"`
@@ -116,16 +115,16 @@ type GoogleProfile struct {
 
 // ? well today is saturday and smn is not responding so:
 type Notification_ struct {
-	ID         string    `json:"_id" bson:"_id"`
-	Recipient  User_     `json:"recipient" bson:"recipient"`
-	Sender     User_     `json:"sender" bson:"sender"`
-	Type       string    `json:"type" bson:"type"`
-	Content    Content_  `json:"content" bson:"content"`
-	IsRead     bool      `json:"is_read" bson:"is_read"`
-	IsArchived bool      `json:"is_archived" bson:"is_archived"`
-	CreatedAt  time.Time `json:"created_at" bson:"created_at"`
-	ReadAt     time.Time `json:"read_at" bson:"read_at,omitempty"`
-	TargetURL  string    `json:"target_url" bson:"target_url"`
+	ID         primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
+	Recipient  User_              `json:"recipient" bson:"recipient"`
+	Sender     User_              `json:"sender" bson:"sender"`
+	Type       string             `json:"type" bson:"type"`
+	Content    Content_           `json:"content" bson:"content"`
+	IsRead     bool               `json:"is_read" bson:"is_read"`
+	IsArchived bool               `json:"is_archived" bson:"is_archived"`
+	CreatedAt  time.Time          `json:"created_at" bson:"created_at"`
+	ReadAt     time.Time          `json:"read_at" bson:"read_at,omitempty"`
+	TargetURL  string             `json:"target_url" bson:"target_url"`
 }
 
 type User_ struct {

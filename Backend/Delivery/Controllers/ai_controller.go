@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-	"wekil_ai/Domain"
+	domain "wekil_ai/Domain"
 	infrastracture "wekil_ai/Infrastracture"
-	"wekil_ai/Usecases"
+	usecases "wekil_ai/Usecases"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,29 +28,29 @@ func (c *AIController) Extract(ctx *gin.Context) {
 		Language string `json:"language" binding:"required"`
 	}
 
-	 // Request validation error
-    if err := ctx.ShouldBindJSON(&req); err != nil {
-        ctx.JSON(http.StatusBadRequest, infrastracture.NewErrorResponse(err.Error(), infrastracture.ValidationError))
-        return
-    }
+	// Request validation error
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, infrastracture.NewErrorResponse(err.Error(), infrastracture.ValidationError))
+		return
+	}
 	// Call to usecase/service
-    result, err := c.aiUsecase.Extract(context.Background(), req.Text, req.Language)
+	result, err := c.aiUsecase.Extract(context.Background(), req.Text, req.Language)
 
-    // Internal server error from usecase
-    if err != nil {
+	// Internal server error from usecase
+	if err != nil {
 
-        if err.Error() == "some service is down" {
-             ctx.JSON(http.StatusServiceUnavailable, infrastracture.NewErrorResponse(err.Error(), infrastracture.ServiceUnavailable))
-             return
-        }
+		if err.Error() == "some service is down" {
+			ctx.JSON(http.StatusServiceUnavailable, infrastracture.NewErrorResponse(err.Error(), infrastracture.ServiceUnavailable))
+			return
+		}
 
-        // Generic internal error
-        ctx.JSON(http.StatusInternalServerError, infrastracture.NewErrorResponse(err.Error(), infrastracture.InternalServerError))
-        return
-    }
+		// Generic internal error
+		ctx.JSON(http.StatusInternalServerError, infrastracture.NewErrorResponse(err.Error(), infrastracture.InternalServerError))
+		return
+	}
 
-    // Success response
-    ctx.JSON(http.StatusOK, infrastracture.NewSuccessResponse("Extraction successful", result))
+	// Success response
+	ctx.JSON(http.StatusOK, infrastracture.NewSuccessResponse("Extraction successful", result))
 }
 
 // POST /ai/classify
@@ -64,38 +64,35 @@ func (c *AIController) Classify(ctx *gin.Context) {
 	}
 	result, err := c.aiUsecase.Classify(context.Background(), req.Text)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, infrastracture.NewErrorResponse(err.Error(),infrastracture.InternalServerError))
+		ctx.JSON(http.StatusInternalServerError, infrastracture.NewErrorResponse(err.Error(), infrastracture.InternalServerError))
 		return
 	}
 	ctx.JSON(http.StatusOK, infrastracture.NewSuccessResponse("Classification success", result))
 }
 
 type DraftRequest struct {
-    Draft    domain.Intake `json:"draft" binding:"required"`
-    Language string       `json:"language" binding:"required"`
+	Draft    domain.Intake `json:"draft" binding:"required"`
+	Language string        `json:"language" binding:"required"`
 }
-
 
 // POST /ai/draft
 func (c *AIController) Draft(ctx *gin.Context) {
-    var req DraftRequest
+	var req DraftRequest
 
-    // Bind JSON once
-    if err := ctx.ShouldBindJSON(&req); err != nil {
-        ctx.JSON(http.StatusBadRequest, infrastracture.NewErrorResponse(err.Error(), infrastracture.ValidationError))
-        return
-    }
+	// Bind JSON once
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, infrastracture.NewErrorResponse(err.Error(), infrastracture.ValidationError))
+		return
+	}
 
-    result, err := c.aiUsecase.Draft(context.Background(), &req.Draft, req.Language)
-    if err != nil {
-        ctx.JSON(http.StatusInternalServerError, infrastracture.NewErrorResponse(err.Error(), infrastracture.InternalServerError))
-        return
-    }
+	result, err := c.aiUsecase.Draft(context.Background(), &req.Draft, req.Language)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, infrastracture.NewErrorResponse(err.Error(), infrastracture.InternalServerError))
+		return
+	}
 
-    ctx.JSON(http.StatusOK, infrastracture.NewSuccessResponse("Classification success", result))
+	ctx.JSON(http.StatusOK, infrastracture.NewSuccessResponse("Classification success", result))
 }
-
-
 
 // POST /ai/draft-from-prompt
 func (c *AIController) DraftFromPrompt(ctx *gin.Context) {
@@ -105,63 +102,38 @@ func (c *AIController) DraftFromPrompt(ctx *gin.Context) {
 		Language   string `json:"language" binding:"required"`
 	}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, infrastracture.NewErrorResponse(err.Error(), infrastracture.ValidationError))
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": "",
+			"data": gin.H{
+				"message": "Invalid request data",
+				"error":   err.Error(),
+			},
+		})
 		return
 	}
 
-	var draft domain.Draft
-	err := json.Unmarshal([]byte(req.Draft), &draft)
-	if err != nil || draft.Title == "" {
-		// Not valid structured draft → Extract intake first
-		intake, err := c.aiUsecase.Extract(context.Background(), req.Draft, req.Language)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, infrastracture.NewErrorResponse(err.Error(), infrastracture.InternalServerError))
-			return
-		}
+	//? the newly injected ai interaction
+	newDraft, err := c.aiUsecase.GenerateDraftFromPromptString(context.Background(), req.Draft, req.PromptText, req.Language)
 
-		// Safe fallback for title
-		title := intake.AgreementType
-		if title == "" {
-			title = "Draft Agreement"
-		}
-
-		// Build a minimal base draft with at least one section
-		sectionText := req.Draft
-		if intakeSummary, err := json.Marshal(intake); err == nil {
-			sectionText += "\n\nIntake Summary: " + string(intakeSummary)
-		}
-
-		draft = domain.Draft{
-			Title: intake.AgreementType,
-			Sections: []domain.Section{
-				{
-					Heading: "Summary",
-					Text:    req.Draft,
-				},
-			},
-			Signatures: domain.Signatures{
-				PartyA: "<<Signature A>>",
-				PartyB: "<<Signature B>>",
-				Place:  "<<Place>>",
-				Date:   "<<Date>>",
-			},
-		}
-	}
-
-	newDraft, err := c.aiUsecase.DraftFromPrompt(
-		context.Background(),
-		&draft,
-		req.PromptText,
-		req.Language,
-	)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, infrastracture.NewErrorResponse(err.Error(), infrastracture.InternalServerError))
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"success": "",
+			"data": gin.H{
+				"message": "Failed to generate draft",
+				"error":   err.Error(),
+			},
+		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, infrastracture.NewSuccessResponse("Draft updated from prompt successfully", newDraft))
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"message": "Draft updated from prompt successfully",
+			"draft":   newDraft,
+		},
+	})
 }
-
 
 func (c *AIController) FinalPreview(ctx *gin.Context) {
 	var req struct {

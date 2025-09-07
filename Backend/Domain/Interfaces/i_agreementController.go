@@ -7,6 +7,7 @@ type IAgreementController interface {
 	DeleteAgreement(ctx *gin.Context)
 	DuplicateAgreement(ctx *gin.Context)
 	GetAgreementByID(ctx *gin.Context)
+	GetAgreementByID_GET(ctx *gin.Context)
 	// this is where pagination will be passed
 	GetAgreementByUserID(ctx *gin.Context)
 	SaveAgreement(ctx *gin.Context)

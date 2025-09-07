@@ -52,12 +52,14 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
         .replaceAll(RegExp(r'<\s*Party A\s*>'), partyA.name)
         .replaceAll(RegExp(r'<<\s*Party B\s*>>'), partyB?.name ?? '')
         .replaceAll(RegExp(r'<\s*Party B\s*>'), partyB?.name ?? '')
+
         // .replaceAll(RegExp(r'<<\s*Date\s*>>'), '$startDateController to $endDateController'  )
         // .replaceAll(RegExp(r'<<\s*ቀን\s*>>'), '$startDateController to $endDateController' )
         // Amharic placeholders
       .replaceAll(RegExp(r'<<\s*ፖርቲይሀ\s*>>'), partyA.name)
       .replaceAll(RegExp(r'<<\s*ፖርቲይለ\s*>>'), partyB?.name ?? '')
       // Remove any other remaining <<...>> placeholders
+
         .replaceAll(RegExp(r'<<.*?>>'), ''); // optional: remove any other remaining << >>
   }
 
@@ -118,7 +120,6 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
     startDateController.dispose();
     endDateController.dispose();
     relevantControllers.values.forEach((c) => c.dispose());
-
 
     // 🔹 NEW
     titleController.dispose();
@@ -258,8 +259,6 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
       titleController.text,
       ...sectionControllers.map((s) => "${s['heading']!.text}\n${s['text']!.text}")
     ].join("\n\n");
-
-
     final payload = {
       "agreement": {
         "agreement_type": widget.intakeModel.contractType.name,

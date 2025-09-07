@@ -196,6 +196,7 @@ func (a *AgreementUseCase) GetAgreementByID(agreementID primitive.ObjectID, user
 	return resAgree, nil
 }
 
+
 // GetAgreementByID implements domain.IAgreementUseCase.
 func (a *AgreementUseCase) GetAgreementByIDIntake(agreementID primitive.ObjectID, userID primitive.ObjectID) (*domain.AgreementIntake, error) {
 	resAgree, err := a.AgreementRepo.GetAgreementIntake(context.Background(), agreementID)

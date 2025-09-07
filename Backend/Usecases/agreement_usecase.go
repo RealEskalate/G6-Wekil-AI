@@ -7,16 +7,20 @@ import (
 	"time"
 	domain "wekil_ai/Domain"
 	domainInter "wekil_ai/Domain/Interfaces"
+	infrastracture "wekil_ai/Infrastracture"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
+const (
+	BASE_URL = "https://demo.wekilai.com"
+)
 type AgreementUseCase struct {
 	IntakeRepo        domainInter.IIntakeRepo
 	AgreementRepo     domainInter.IAgreementRepo
 	PendingRepo       domainInter.IPendingAgreementRepo
 	AIInteraction     domainInter.IAIInteraction
 	NotificatoinRepo_ domainInter.INotification_
+	EmailService      *infrastracture.GeneralEmailService
 }
 
 // GetAgreementsByUserIDAndFilter implements domain.IAgreementUseCase.
@@ -41,7 +45,7 @@ func (a *AgreementUseCase) SendAgreement(receiverEmail string, agreement *domain
 	signRequestNotification := domain.Notification_{
 		Recipient: domain.User_{
 			UserName: acceptor.Name,
-			Email:    acceptor.Email,
+			Email:    receiverEmail,
 		},
 		Sender: domain.User_{
 			UserID:   creator.ID,
@@ -58,6 +62,11 @@ func (a *AgreementUseCase) SendAgreement(receiverEmail string, agreement *domain
 		CreatedAt:  time.Now(),
 		TargetURL:  "/agreement/" + agreement.ID.Hex(),
 	}
+	// send email
+	log.Println("toEmail: ", receiverEmail, "  agreementID: ", agreement.ID.Hex())
+	a.EmailService.SendAgreementLink(acceptor.Email, BASE_URL + "/agreement/" + agreement.ID.Hex())
+
+	// send notification
 	_, err = a.NotificatoinRepo_.CreateNotification_(context.Background(), &signRequestNotification)
 	return err
 }
@@ -102,11 +111,12 @@ func (a *AgreementUseCase) CreateAgreementSave(intake *domain.Intake, save *doma
 		}
 		parties := []*domain.Party{
 			{ // creator party
-				ID:   save.CreatorParty.ID,
-				Name: save.CreatorParty.Email,
+				ID:    save.CreatorParty.ID,
+				Name:  save.CreatorParty.Name,
+				Email: save.CreatorParty.Email,
 			},
 			{ // acceptor party
-				Name: acceptorEmail,
+				Email: acceptorEmail,
 			},
 		}
 		err := a.SendAgreement(acceptorEmail, storedAgreement, parties)
@@ -239,7 +249,7 @@ func (a *AgreementUseCase) SignAgreement(agreementID primitive.ObjectID, userID 
 		return fmt.Errorf("can't unsign when both parties agreed to sign already")
 
 	}
-	
+
 	if userID == agreement.CreatorID {
 		agreement.CreatorSigned = wantToSign
 		if agreement.AcceptorSigned {
@@ -247,7 +257,7 @@ func (a *AgreementUseCase) SignAgreement(agreementID primitive.ObjectID, userID 
 		} else {
 			agreement.Status = domain.PENDING_STATUS
 		}
-	
+
 	} else {
 		agreement.AcceptorSigned = wantToSign
 		if agreement.CreatorSigned {
@@ -255,10 +265,9 @@ func (a *AgreementUseCase) SignAgreement(agreementID primitive.ObjectID, userID 
 		} else {
 			agreement.Status = domain.PENDING_STATUS
 		}
-	
+
 	}
-	
-	
+
 	_, err = a.AgreementRepo.UpdateAgreement(context.Background(), agreementID, agreement)
 	return err
 }
@@ -281,7 +290,7 @@ func (a *AgreementUseCase) SoftDeleteAgreement(agreementID primitive.ObjectID, u
 		resAgree.IsDeletedByAcceptor = true
 	}
 	//? if both parties want to delete the agreement then the deletedAt will have the time stamp of now | edit* this function is handled at database level
-	
+
 	_, err = a.AgreementRepo.UpdateAgreement(context.Background(), resAgree.ID, resAgree)
 
 	return err
@@ -352,7 +361,7 @@ func (a *AgreementUseCase) DuplicateAgreement(originalAgreementID primitive.Obje
 	// 5. Return the new intake and draft. The frontend will handle PDF creation and saving.
 	return &newIntake, newDraft, nil
 }
-func NewAgreementUseCase(intakeRepo domainInter.IIntakeRepo, agreementRepo domainInter.IAgreementRepo, pendingRepo domainInter.IPendingAgreementRepo, aiInteraction domainInter.IAIInteraction, sweetNotification domainInter.INotification_) domainInter.IAgreementUseCase {
+func NewAgreementUseCase(intakeRepo domainInter.IIntakeRepo, agreementRepo domainInter.IAgreementRepo, pendingRepo domainInter.IPendingAgreementRepo, aiInteraction domainInter.IAIInteraction, sweetNotification domainInter.INotification_, emailService *infrastracture.GeneralEmailService) domainInter.IAgreementUseCase {
 
 	return &AgreementUseCase{
 		IntakeRepo:        intakeRepo,
@@ -360,5 +369,6 @@ func NewAgreementUseCase(intakeRepo domainInter.IIntakeRepo, agreementRepo domai
 		PendingRepo:       pendingRepo,
 		AIInteraction:     aiInteraction,
 		NotificatoinRepo_: sweetNotification,
+		EmailService:      emailService,
 	}
 }

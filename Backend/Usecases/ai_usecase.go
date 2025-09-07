@@ -82,7 +82,9 @@ func (u *AIUsecase) Draft(ctx context.Context, intake *domain.Intake, language s
 func (u *AIUsecase) DraftFromPrompt(ctx context.Context, draft *domain.Draft, promptText, language string) (*domain.Draft, error) {
 	return u.aiRepo.GenerateDraftFromPrompt(ctx, draft, promptText, language)
 }
-
+func (u *AIUsecase)GenerateDraftFromPromptString(ctx context.Context, draftContent, promptText, language string) (*domain.Draft, error){
+	return u.aiRepo.GenerateDraftFromPromptString(ctx, draftContent, promptText, language)
+}
 // FinalPreview applies party replacements and returns the finalized draft
 func (u *AIUsecase) FinalPreview(ctx context.Context, draft *domain.Draft, parties []domain.Party) (*domain.Draft, error) {
 	// make a copy so you don’t overwrite the stored draft accidentally

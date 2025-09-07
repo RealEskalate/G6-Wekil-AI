@@ -20,12 +20,13 @@ var (
 	CLIENT_ID                string
 	CLIENT_SECRET            string
 	CLIENT_CALLBACK_URL      string
+	GEMINI_API_KEYS          string
 )
 
 func InitEnv() {
 	// Try to load .env (for local dev), but don't fail if not found
 	_ = godotenv.Load()
-
+	GEMINI_API_KEYS = getEnv("GEMINI_API_KEYS")
 	MONGODB_URI = getEnv("MONGODB_URI")
 	JWT_ACCESS_TOKEN_SECRET = getEnv("JWT_ACCESS_TOKEN_SECRET")
 	JWT_REFRESH_TOKEN_SECRET = getEnv("JWT_REFRESH_TOKEN_SECRET")

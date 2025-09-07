@@ -19,6 +19,10 @@ type UserController struct {
 	OAuthUseCase domainInterface.IOAuthUsecase
 }
 
+const (
+	WEKIL_COOKIE = "WEKIL-API-REFRESH-TOKEN"
+)
+
 // RegisterIndividual implements domain.IUserController.
 func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 	var unverifiedUser domain.UnverifiedUserDTO
@@ -27,7 +31,7 @@ func (u *UserController) RegisterIndividualOnly(ctx *gin.Context) {
 			"success": false,
 			"code":    "BAD_REQUEST",
 			"message": "Invalid input data. Please check your request and try again.",
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -157,7 +161,7 @@ func (uc *UserController) ChangePasswordHandler(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "Invalid input",
-			"error": "Invalid input",
+			"error":   "Invalid input",
 			"success": false})
 		return
 	}
@@ -166,9 +170,9 @@ func (uc *UserController) ChangePasswordHandler(ctx *gin.Context) {
 	err := uc.userUseCase.ChangePassword(ctx, email, req.OldPassword, req.NewPassword)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-			"message":   "Failed to change password. Please ensure your old password is correct and try again.",
-			 "success": false,
+			"error":   err.Error(),
+			"message": "Failed to change password. Please ensure your old password is correct and try again.",
+			"success": false,
 		})
 		return
 	}
@@ -183,12 +187,12 @@ func (uc *UserController) ChangePasswordHandler(ctx *gin.Context) {
 
 func (u *UserController) RefreshTokenHandler(ctx *gin.Context) {
 	// get refresh token from cookie
-	refreshToken, err := ctx.Cookie("WEKIL-API-REFRESH-TOKEN") //! don't forget to make the string in the cookie to a const
+	refreshToken, err := ctx.Cookie(WEKIL_COOKIE) 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"message": "Refresh token cookie not found",
-			"error": "Refresh token cookie not found",
-	})
+			"error":   "Refresh token cookie not found",
+		})
 		return
 	}
 	// validate refresh token and if the refresh token is valid then
@@ -198,7 +202,7 @@ func (u *UserController) RefreshTokenHandler(ctx *gin.Context) {
 			"success": false,
 			"code":    "INVALID_REFRESH_TOKEN",
 			"message": "The provided refresh token is invalid or has expired. Please log in again.",
-			"error": "The provided refresh token is invalid or has expired. Please log in again.",
+			"error":   "The provided refresh token is invalid or has expired. Please log in again.",
 		})
 		return
 	}
@@ -232,7 +236,7 @@ func (uc *UserController) HandleLogin(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"error":   err.Error(),
 			"code":    "LOGIN_FAILED",
 			"message": "Login failed. Please check your email and password and try again.",
 		})
@@ -271,9 +275,9 @@ func (uc *UserController) UpdateProfile(ctx *gin.Context) {
 	err := uc.userUseCase.UpdateProfile(ctx, email, &updateReq)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to update profile",
+			"error":   "Failed to update profile",
 			"message": "Failed to update profile",
-			 "success": false})
+			"success": false})
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully", "success": true})
@@ -299,9 +303,9 @@ func (uc UserController) Logout(ctx *gin.Context) {
 	err := uc.userUseCase.Logout(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": "logout failed*****",
+			"error":   "logout failed*****",
 			"message": "logout failed*****",
-			 "success": false})
+			"success": false})
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
@@ -316,19 +320,18 @@ func (u *UserController) SendResetOTP(c *gin.Context) {
 	var req domain.ForgotPasswordRequestDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),
-		"message":   "Invalid input data. Please check your request and try again.",
-		"success": false})
+			"message": "Invalid input data. Please check your request and try again.",
+			"success": false})
 		return
 	}
-
 
 	err := u.userUseCase.SendResetOTP(c, req.Email)
 	if err != nil {
 		log.Println("SendResetOTP error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to send reset OTP",
+			"error":   "Failed to send reset OTP",
 			"message": "Failed to send reset OTP",
-			 "success": false})
+			"success": false})
 		return
 	}
 
@@ -350,8 +353,8 @@ func (uc *UserController) ResetPassword(c *gin.Context) {
 	err := uc.userUseCase.ResetPassword(c, req.Email, req.OTP, req.NewPassword)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),
-		"message": "Failed to reset password. Please ensure the OTP is correct and try again.",
-		 "success": false})
+			"message": "Failed to reset password. Please ensure the OTP is correct and try again.",
+			"success": false})
 		return
 	}
 
@@ -384,12 +387,12 @@ func (uc *UserController) CallbackHandler(c *gin.Context) {
 	// fmt.Println("^^^^^",provider)
 	// req = req.WithContext(context.WithValue(c.Request.Context(), "provider", provider))
 
-	_,accessToken,refreshToken, err := uc.OAuthUseCase.HandleOAuthLogin(c.Request, c.Writer)
+	_, accessToken, refreshToken, err := uc.OAuthUseCase.HandleOAuthLogin(c.Request, c.Writer)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error(),
-	        "code":    "OAUTH_LOGIN_FAILED",
-			"message": "Failed to complete OAuth login. Please try again later.",})
+			"code":    "OAUTH_LOGIN_FAILED",
+			"message": "Failed to complete OAuth login. Please try again later."})
 		return
 	}
 	c.SetCookie(
@@ -402,7 +405,7 @@ func (uc *UserController) CallbackHandler(c *gin.Context) {
 		true,       // httpOnly
 	)
 
-	c.Header("Authorization", "Bearer " + accessToken)
+	c.Header("Authorization", "Bearer "+accessToken)
 	// redirectURL := "http://localhost:3000/"
 	// c.Redirect(http.StatusFound, redirectURL)
 	c.JSON(http.StatusOK, gin.H{
@@ -421,7 +424,6 @@ func (uc *UserController) CallbackHandler(c *gin.Context) {
 	// 		"user": user,
 	// 	},
 	// })
-
 
 	// c.JSON(http.StatusOK, gin.H{"message": "Logged in", "user": user})
 
@@ -455,17 +457,17 @@ func (uc *UserController) Success(c *gin.Context) {
 }
 
 func (uc *UserController) GoogleAuthHandler(c *gin.Context) {
-  var profile domain.GoogleProfile
-  if err := c.ShouldBindJSON(&profile); err != nil {
-    c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-    return
-  }
-user, accessToken, refreshToken, err := uc.userUseCase.GoogleNextJS(c.Request.Context(), profile)
+	var profile domain.GoogleProfile
+	if err := c.ShouldBindJSON(&profile); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+	user, accessToken, refreshToken, err := uc.userUseCase.GoogleNextJS(c.Request.Context(), profile)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Failed to login with Google",
-			"error": "Failed to login with Google",
-	})
+			"error":   "Failed to login with Google",
+		})
 		return
 	}
 
@@ -476,8 +478,8 @@ user, accessToken, refreshToken, err := uc.userUseCase.GoogleNextJS(c.Request.Co
 		60*60*24*7, // 7 days
 		"/",
 		"",
-		true,  // secure
-		true,  // httpOnly
+		true, // secure
+		true, // httpOnly
 	)
 
 	// Set access token in header
@@ -490,7 +492,7 @@ user, accessToken, refreshToken, err := uc.userUseCase.GoogleNextJS(c.Request.Co
 			"message":      "Google login successful",
 			"account_type": user.AccountType,
 			"access_token": accessToken,
-			"user":user,
+			"user":         user,
 		},
 	})
 }
@@ -509,7 +511,7 @@ func (uc *UserController) HandleNotifications(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error":   err.Error(),
-			"message":   "Failed to retrieve notifications. Please try again later.",
+			"message": "Failed to retrieve notifications. Please try again later.",
 			"success": false,
 		})
 		return
@@ -536,7 +538,7 @@ func (uc *UserController) GetAllUsers(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error":   err.Error(),
-			"message":   "An unexpected error occurred while fetching users. Please try again later.",
+			"message": "An unexpected error occurred while fetching users. Please try again later.",
 			"success": false,
 		})
 		return

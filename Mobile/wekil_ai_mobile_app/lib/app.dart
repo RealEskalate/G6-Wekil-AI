@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
 import 'package:flutter_localization/flutter_localization.dart';
+import 'core/theme/app_colors.dart';
 
 import 'features/dashboard/presentation/dashboard.dart';
 import 'features/contacts/presentations/pages/create_start_page.dart';
@@ -45,6 +46,14 @@ class _MyAppState extends State<MyApp> {
         hoverColor: hover,
         highlightColor: hover,
         splashColor: pressed,
+        scaffoldBackgroundColor: AppColors.background,
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            textStyle: GoogleFonts.inter(fontWeight: FontWeight.w600),
+          ),
+        ),
       ),
       supportedLocales: localization.supportedLocales,
       localizationsDelegates: localization.localizationsDelegates,

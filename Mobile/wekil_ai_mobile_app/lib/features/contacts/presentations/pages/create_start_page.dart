@@ -4,6 +4,7 @@ import 'package:flutter_localization/flutter_localization.dart';
 import 'package:wekil_ai_mobile_app/features/localization/locales.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
+// Nav/Bottom bars are provided by MainScreen when used as a tab.
 
 class CreateContractScreen extends StatefulWidget {
   const CreateContractScreen({Key? key}) : super(key: key);
@@ -16,6 +17,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+  // AppBar/BottomNav intentionally omitted here to prevent duplication
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

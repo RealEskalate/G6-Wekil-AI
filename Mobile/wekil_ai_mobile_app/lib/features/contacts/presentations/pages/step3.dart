@@ -6,6 +6,11 @@ import '../../domain/entities/contract_type.dart';
 import '../../domain/entities/party.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
+import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
+import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
+import '../../../../injection_container.dart' as di;
+import 'package:wekil_ai_mobile_app/features/settings/domain/usecase/get_profile_usecase.dart';
+import 'package:wekil_ai_mobile_app/features/settings/domain/entities/user_profile.dart';
 
 class CreateStep2 extends StatefulWidget {
   final IntakeModel intake;
@@ -33,11 +38,7 @@ class _CreateStep2State extends State<CreateStep2> {
   late TextEditingController partyBEmailController;
 
   bool isUserPartyA = true; // Default selection
-  final userProfile = Party(
-    name: "User Name",
-    phone: "+251912345678",
-    email: "user@example.com",
-  );
+  Party? _userParty; // built from signed-in user profile
 
   @override
   void initState() {
@@ -58,18 +59,52 @@ class _CreateStep2State extends State<CreateStep2> {
     partyBPhoneController = TextEditingController(text: partyB.phone);
     partyBEmailController = TextEditingController(text: partyB.email);
 
-    _populateUserParty();
+    // Attempt to prefill from signed-in user profile
+    Future.microtask(_prefillFromProfile);
   }
 
-  void _populateUserParty() {
+  Future<void> _prefillFromProfile() async {
+    try {
+      final usecase = di.sl<GetProfileUseCase>();
+      final result = await usecase();
+      result.fold(
+        (failure) {
+          // ignore failure; keep fields as-is
+        },
+        (UserProfile p) {
+          // Build display name
+          final fullName = [p.firstName, if (p.middleName != null && p.middleName!.trim().isNotEmpty) p.middleName!, p.lastName]
+              .where((e) => e.trim().isNotEmpty)
+              .join(' ');
+          _userParty = Party(name: fullName, phone: p.telephone, email: p.email);
+          _populateUserPartyIfEmpty();
+        },
+      );
+    } catch (_) {
+      // ignore errors; do not disrupt UX
+    }
+  }
+
+  void _populateUserPartyIfEmpty() {
+    if (_userParty == null) return;
     if (isUserPartyA) {
-      partyANameController.text = userProfile.name;
-      partyAPhoneController.text = userProfile.phone!;
-      partyAEmailController.text = userProfile.email!;
+      final isEmptyA = partyANameController.text.trim().isEmpty &&
+          partyAPhoneController.text.trim().isEmpty &&
+          partyAEmailController.text.trim().isEmpty;
+      if (isEmptyA) {
+        partyANameController.text = _userParty!.name;
+        partyAPhoneController.text = _userParty!.phone ?? '';
+        partyAEmailController.text = _userParty!.email ?? '';
+      }
     } else {
-      partyBNameController.text = userProfile.name;
-      partyBPhoneController.text = userProfile.phone!;
-      partyBEmailController.text = userProfile.email!;
+      final isEmptyB = partyBNameController.text.trim().isEmpty &&
+          partyBPhoneController.text.trim().isEmpty &&
+          partyBEmailController.text.trim().isEmpty;
+      if (isEmptyB) {
+        partyBNameController.text = _userParty!.name;
+        partyBPhoneController.text = _userParty!.phone ?? '';
+        partyBEmailController.text = _userParty!.email ?? '';
+      }
     }
   }
 
@@ -109,11 +144,6 @@ class _CreateStep2State extends State<CreateStep2> {
           "partyA": "Party A (Disclosing Party)",
           "partyB": "Party B (Receiving Party)",
         };
-      default:
-        return {
-          "partyA": "Party A",
-          "partyB": "Party B",
-        };
     }
   }
 
@@ -136,10 +166,14 @@ class _CreateStep2State extends State<CreateStep2> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: const BackButton(color: AppColors.textDark),
+      appBar: const NavBar(),
+      bottomNavigationBar: BottomNav(
+        currentIndex: 1,
+        onItemSelected: (index) {
+          if (index == 0) context.go('/dashboard', extra: 0);
+          if (index == 2) context.go('/dashboard', extra: 2);
+        },
+        onCreatePressed: () {},
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -169,7 +203,17 @@ class _CreateStep2State extends State<CreateStep2> {
                       onChanged: (val) {
                         setState(() {
                           isUserPartyA = val!;
-                          _populateUserParty();
+                          // Clear the opposite party when switching
+                          if (isUserPartyA) {
+                            partyBNameController.clear();
+                            partyBPhoneController.clear();
+                            partyBEmailController.clear();
+                          } else {
+                            partyANameController.clear();
+                            partyAPhoneController.clear();
+                            partyAEmailController.clear();
+                          }
+                          _populateUserPartyIfEmpty();
                         });
                       },
                     ),
@@ -182,7 +226,17 @@ class _CreateStep2State extends State<CreateStep2> {
                       onChanged: (val) {
                         setState(() {
                           isUserPartyA = val!;
-                          _populateUserParty();
+                          // Clear the opposite party when switching
+                          if (isUserPartyA) {
+                            partyBNameController.clear();
+                            partyBPhoneController.clear();
+                            partyBEmailController.clear();
+                          } else {
+                            partyANameController.clear();
+                            partyAPhoneController.clear();
+                            partyAEmailController.clear();
+                          }
+                          _populateUserPartyIfEmpty();
                         });
                       },
                     ),
@@ -240,10 +294,11 @@ class _CreateStep2State extends State<CreateStep2> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
-                          onPressed: () => context.pop(),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.textDark,
+                    child: ElevatedButton(
+                      onPressed: () => context.pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         textStyle: AppTypography.button(),
                       ),
@@ -280,6 +335,7 @@ class _CreateStep2State extends State<CreateStep2> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         textStyle: AppTypography.button(),
                       ),

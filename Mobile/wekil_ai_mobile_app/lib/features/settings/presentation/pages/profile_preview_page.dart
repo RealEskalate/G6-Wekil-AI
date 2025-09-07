@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../domain/entities/user_profile.dart';
 import '../bloc/setting_bloc.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
+import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class ProfilePreviewPage extends StatefulWidget {
   const ProfilePreviewPage({super.key});
@@ -22,6 +25,16 @@ class _ProfilePreviewPageState extends State<ProfilePreviewPage> {
   bool _obConfirm = true;
 
   @override
+  void initState() {
+    super.initState();
+    // Refresh profile when entering this page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<SettingBloc>().add(GetProfileEvent());
+    });
+  }
+
+  @override
   void dispose() {
     _oldCtrl.dispose();
     _newCtrl.dispose();
@@ -32,21 +45,17 @@ class _ProfilePreviewPageState extends State<ProfilePreviewPage> {
   @override
   Widget build(BuildContext context) {
   return Scaffold(
-        backgroundColor: const Color(0xFFF7F9FB),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF1A2B3C)),
-            onPressed: () => context.pop(),
-          ),
-          centerTitle: true,
-          title: const Text(
-            'Edit Profile',
-            style: TextStyle(color: Color(0xFF1A2B3C), fontWeight: FontWeight.bold),
-          ),
-    ),
-    body: BlocConsumer<SettingBloc, SettingState>(
+        backgroundColor: AppColors.background,
+        appBar: const NavBar(showBack: true),
+        bottomNavigationBar: BottomNav(
+          currentIndex: 0,
+          onItemSelected: (index) {
+            if (index == 0) context.go('/dashboard', extra: 0);
+            if (index == 2) context.go('/dashboard', extra: 2);
+          },
+          onCreatePressed: () => context.go('/dashboard', extra: 1),
+        ),
+  body: BlocConsumer<SettingBloc, SettingState>(
           listener: (context, state) {
             if (state is ChangePasswordSuccess) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -89,11 +98,17 @@ class _ProfilePreviewPageState extends State<ProfilePreviewPage> {
             }
 
             final UserProfile? profile = state is SettingLoaded ? state.profile : null;
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+            // Pull-to-refresh + ensure reload when entering
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<SettingBloc>().add(GetProfileEvent());
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                   Card(
                     elevation: 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -268,7 +283,6 @@ class _ProfilePreviewPageState extends State<ProfilePreviewPage> {
                                             : const Icon(Icons.lock_reset),
                                         label: const Text('Change Password'),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(0xFF0A2540),
                                           padding: const EdgeInsets.symmetric(vertical: 14),
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                         ),
@@ -276,7 +290,7 @@ class _ProfilePreviewPageState extends State<ProfilePreviewPage> {
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: OutlinedButton(
+                                      child: ElevatedButton(
                                         onPressed: state is ChangePasswordLoading
                                             ? null
                                             : () {
@@ -284,6 +298,10 @@ class _ProfilePreviewPageState extends State<ProfilePreviewPage> {
                                                 _newCtrl.clear();
                                                 _confirmCtrl.clear();
                                               },
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(vertical: 14),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        ),
                                         child: const Text('Cancel'),
                                       ),
                                     ),
@@ -298,7 +316,8 @@ class _ProfilePreviewPageState extends State<ProfilePreviewPage> {
                   ),
                 ],
               ),
-            );
+            ),
+          );
           },
     ),
   );

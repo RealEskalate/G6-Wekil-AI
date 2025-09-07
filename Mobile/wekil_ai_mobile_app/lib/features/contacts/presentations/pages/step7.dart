@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:wekil_ai_mobile_app/features/contacts/data/models/contact_data.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/domain/entities/milestone.dart';
+import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
+import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'package:wekil_ai_mobile_app/injection_container.dart' as di;
 
 class PdfChangerPage extends StatefulWidget {
@@ -49,6 +52,14 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
         .replaceAll(RegExp(r'<\s*Party A\s*>'), partyA.name)
         .replaceAll(RegExp(r'<<\s*Party B\s*>>'), partyB?.name ?? '')
         .replaceAll(RegExp(r'<\s*Party B\s*>'), partyB?.name ?? '')
+
+        // .replaceAll(RegExp(r'<<\s*Date\s*>>'), '$startDateController to $endDateController'  )
+        // .replaceAll(RegExp(r'<<\s*ቀን\s*>>'), '$startDateController to $endDateController' )
+        // Amharic placeholders
+      .replaceAll(RegExp(r'<<\s*ፖርቲይሀ\s*>>'), partyA.name)
+      .replaceAll(RegExp(r'<<\s*ፖርቲይለ\s*>>'), partyB?.name ?? '')
+      // Remove any other remaining <<...>> placeholders
+
         .replaceAll(RegExp(r'<<.*?>>'), ''); // optional: remove any other remaining << >>
   }
 
@@ -248,7 +259,6 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
       titleController.text,
       ...sectionControllers.map((s) => "${s['heading']!.text}\n${s['text']!.text}")
     ].join("\n\n");
-
     final payload = {
       "agreement": {
         "agreement_type": widget.intakeModel.contractType.name,
@@ -310,7 +320,8 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Edit & Generate PDF')),
+      backgroundColor: AppColors.background,
+      appBar: const NavBar(showBack: true),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -363,6 +374,7 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
                     ...sectionControllers.asMap().entries.map((entry) {
                       final index = entry.key;
                       final controllers = entry.value;
+
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,6 +432,23 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
             //   SelectableText(_pdfLink!, style: TextStyle(color: Colors.blue)),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNav(
+        currentIndex: 1,
+        onItemSelected: (index) {
+          switch (index) {
+            case 0:
+              context.go('/dashboard', extra: 0);
+              break;
+            case 1:
+              context.go('/dashboard', extra: 1);
+              break;
+            case 2:
+              context.go('/dashboard', extra: 2);
+              break;
+          }
+        },
+        onCreatePressed: () => context.go('/dashboard', extra: 1),
       ),
     );
   }

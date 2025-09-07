@@ -13,6 +13,8 @@ import '../../data/models/contact_data.dart';
 import '../../domain/entities/contract_type.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
+import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
+import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
 
 class CreateStep1 extends StatefulWidget {
   final ContractType contractType;
@@ -32,10 +34,14 @@ class _CreateStep1State extends State<CreateStep1> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: const BackButton(color: AppColors.textDark),
+      appBar: const NavBar(),
+      bottomNavigationBar: BottomNav(
+        currentIndex: 1,
+        onItemSelected: (index) {
+          if (index == 0) context.go('/dashboard', extra: 0);
+          if (index == 2) context.go('/dashboard', extra: 2);
+        },
+        onCreatePressed: () {},
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -161,10 +167,11 @@ class _CreateStep1State extends State<CreateStep1> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: ElevatedButton(
                     onPressed: () => context.pop(),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textDark,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       textStyle: AppTypography.button(),
                     ),
@@ -173,9 +180,7 @@ class _CreateStep1State extends State<CreateStep1> {
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-
-                  child: Expanded(
-                    child:ElevatedButton(
+                  child: ElevatedButton(
   onPressed: isLoading
       ? null // disable button when loading
       : () async {
@@ -247,6 +252,7 @@ class _CreateStep1State extends State<CreateStep1> {
         },
   style: ElevatedButton.styleFrom(
     backgroundColor: AppColors.primary,
+    foregroundColor: Colors.white,
     padding: const EdgeInsets.symmetric(vertical: 16),
     textStyle: AppTypography.button(),
   ),
@@ -268,8 +274,6 @@ class _CreateStep1State extends State<CreateStep1> {
           ],
         ),
 )
-
-                  ),
                 ),
               ],
             ),

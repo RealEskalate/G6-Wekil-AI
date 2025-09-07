@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class ContractPreview extends StatelessWidget {
   final Map<String, dynamic> contractData;
@@ -9,7 +10,7 @@ class ContractPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF7F7FA),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -117,7 +118,6 @@ class ContractPreview extends StatelessWidget {
                     icon: Icon(Icons.picture_as_pdf),
                     label: Text("Export PDF"),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green.shade700,
                       padding: EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),

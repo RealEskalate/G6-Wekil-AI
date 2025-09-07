@@ -10,6 +10,7 @@ import '../../domain/usecases/get_agreement_preview.dart';
 import '../bloc/preview_bloc.dart';
 import '../../../widget/nav_bar.dart';
 import '../../../widget/bottom_nav.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class PreviewPage extends StatefulWidget {
   final String agreementId;
@@ -30,8 +31,19 @@ class _PreviewPageState extends State<PreviewPage> {
   bool _downloading = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Re-trigger load when entering
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<PreviewBloc>().add(PreviewRetried());
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: const NavBar(),
       bottomNavigationBar: BottomNav(
         currentIndex: 2, // Contracts tab context
@@ -49,10 +61,14 @@ class _PreviewPageState extends State<PreviewPage> {
           }
         },
         onCreatePressed: () {
-          GoRouter.of(context).push('/contracts/start');
+          GoRouter.of(context).go('/dashboard', extra: 1);
         },
       ),
-      body: BlocBuilder<PreviewBloc, PreviewState>(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          context.read<PreviewBloc>().add(PreviewRetried());
+        },
+        child: BlocBuilder<PreviewBloc, PreviewState>(
         builder: (context, state) {
           if (state.loading) {
             return const Center(child: CircularProgressIndicator());
@@ -100,6 +116,7 @@ class _PreviewPageState extends State<PreviewPage> {
           );
         },
       ),
+    ),
       floatingActionButton: BlocBuilder<PreviewBloc, PreviewState>(
         builder: (context, state) {
           final p = state.data;

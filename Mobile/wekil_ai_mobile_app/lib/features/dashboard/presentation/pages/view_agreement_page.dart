@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
 import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../bloc/dashboard_cubit.dart';
 import '../bloc/dashboard_state.dart';
 
@@ -15,6 +16,7 @@ class ViewAgreementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: const NavBar(),
       bottomNavigationBar: BottomNav(
         currentIndex: 0, // Assuming this page is part of the Dashboard tab

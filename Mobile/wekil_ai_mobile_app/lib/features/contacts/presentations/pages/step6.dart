@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/data/datasources/draft_remote_datasource.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/domain/usecases/regenerate_draft_usecase.dart';
 import 'package:wekil_ai_mobile_app/features/contacts/presentations/pages/step7.dart';
@@ -8,6 +7,9 @@ import 'package:wekil_ai_mobile_app/features/widget/progress_bar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../data/models/contact_data.dart';
+import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
+import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
+import 'package:go_router/go_router.dart';
 
 class CreateStep5 extends StatefulWidget {
   final IntakeModel intakeModel;
@@ -108,11 +110,14 @@ class _CreateStep5State extends State<CreateStep5> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: const BackButton(color: AppColors.textDark),
-        title: Text("AI Generated Contract", style: AppTypography.heading()),
+      appBar: const NavBar(),
+      bottomNavigationBar: BottomNav(
+        currentIndex: 1,
+        onItemSelected: (index) {
+          if (index == 0) context.go('/dashboard', extra: 0);
+          if (index == 2) context.go('/dashboard', extra: 2);
+        },
+        onCreatePressed: () {},
       ),
       body: Column(
         children: [
@@ -175,8 +180,8 @@ class _CreateStep5State extends State<CreateStep5> {
                             }
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      foregroundColor: AppColors.textLight,
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -195,8 +200,8 @@ class _CreateStep5State extends State<CreateStep5> {
                     onPressed: _isLoadingAI ? null : _generateAI,
 
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: AppColors.textLight,
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

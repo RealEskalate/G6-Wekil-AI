@@ -6,6 +6,8 @@ import '../../../widget/progress_bar.dart';
 import '../../data/models/contact_data.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
+import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
+import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
 
 class CreateStep3 extends StatefulWidget {
   final IntakeModel intake;
@@ -89,14 +91,14 @@ class _CreateStep3State extends State<CreateStep3> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: const BackButton(color: AppColors.textDark),
-        title: Text(
-          "Create ${_getContractTitle(widget.contractType)}",
-          style: AppTypography.heading().copyWith(fontSize: 20),
-        ),
+      appBar: const NavBar(),
+      bottomNavigationBar: BottomNav(
+        currentIndex: 1,
+        onItemSelected: (index) {
+          if (index == 0) context.go('/dashboard', extra: 0);
+          if (index == 2) context.go('/dashboard', extra: 2);
+        },
+        onCreatePressed: () {},
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -209,15 +211,13 @@ class _CreateStep3State extends State<CreateStep3> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  OutlinedButton.icon(
+                  ElevatedButton.icon(
                     onPressed: () => context.pop(),
                     icon: const Icon(Icons.arrow_back_ios),
                     label: const Text("Back"),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textDark,
-                      side: BorderSide(
-                        color: AppColors.textDark.withOpacity(0.3),
-                      ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -252,8 +252,8 @@ class _CreateStep3State extends State<CreateStep3> {
                     icon: const Icon(Icons.arrow_forward_ios),
                     label: const Text("Next"),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      foregroundColor: AppColors.textLight,
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -273,16 +273,4 @@ class _CreateStep3State extends State<CreateStep3> {
     );
   }
 
-  String _getContractTitle(ContractType type) {
-    switch (type) {
-      case ContractType.serviceAgreement:
-        return "Service Agreement";
-      case ContractType.simpleLoan:
-        return "Simple Loan (IOU)";
-      case ContractType.salesOfGoods:
-        return "Sale of Goods";
-      case ContractType.basicNDA:
-        return "Basic NDA";
-    }
-  }
 }

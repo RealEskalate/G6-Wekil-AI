@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:wekil_ai_mobile_app/features/contacts/data/models/contact_data.dart';
-import 'package:wekil_ai_mobile_app/features/contacts/domain/entities/milestone.dart';
+import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
+import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'package:wekil_ai_mobile_app/injection_container.dart' as di;
 
 class PdfChangerPage extends StatefulWidget {
@@ -37,6 +40,27 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
   late TextEditingController startDateController;
   late TextEditingController endDateController;
 
+  // 🔹 NEW: Replace placeholders with real party names
+  String replacePlaceholders(String text) {
+    if (widget.intakeModel.parties.isEmpty) return text;
+
+    final partyA = widget.intakeModel.parties[0];
+    final partyB = widget.intakeModel.parties.length > 1 ? widget.intakeModel.parties[1] : null;
+
+    return text
+        .replaceAll(RegExp(r'<<\s*Party A\s*>>'), partyA.name)
+        .replaceAll(RegExp(r'<\s*Party A\s*>'), partyA.name)
+        .replaceAll(RegExp(r'<<\s*Party B\s*>>'), partyB?.name ?? '')
+        .replaceAll(RegExp(r'<\s*Party B\s*>'), partyB?.name ?? '')
+        // .replaceAll(RegExp(r'<<\s*Date\s*>>'), '$startDateController to $endDateController'  )
+        // .replaceAll(RegExp(r'<<\s*ቀን\s*>>'), '$startDateController to $endDateController' )
+        // Amharic placeholders
+      .replaceAll(RegExp(r'<<\s*ፖርቲይሀ\s*>>'), partyA.name)
+      .replaceAll(RegExp(r'<<\s*ፖርቲይለ\s*>>'), partyB?.name ?? '')
+      // Remove any other remaining <<...>> placeholders
+        .replaceAll(RegExp(r'<<.*?>>'), ''); // optional: remove any other remaining << >>
+  }
+
   // Controllers for relevant fields
   late Map<String, TextEditingController> relevantControllers;
 
@@ -69,17 +93,21 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
       );
     });
 
-    // 🔹 NEW: init draft title & sections
-    titleController = TextEditingController(text: widget.draftTitle ?? "");
+    // 🔹 NEW: init draft title & sections with placeholder replacement
+    titleController = TextEditingController(text: replacePlaceholders(widget.draftTitle ?? ""));
     sectionControllers = widget.draftSections
         .map<Map<String, TextEditingController>>(
           (s) => {
-            "heading": TextEditingController(text: s["heading"] ?? ""),
-            "text": TextEditingController(text: s["text"] ?? ""),
+            "heading": TextEditingController(
+                text: replacePlaceholders(s["heading"] ?? "")
+            ),
+            "text": TextEditingController(
+                text: replacePlaceholders(s["text"] ?? "")
+            ),
           },
         )
         .toList();
-  }
+  } // 🔹 Closing initState
 
   @override
   void dispose() {
@@ -90,7 +118,7 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
     startDateController.dispose();
     endDateController.dispose();
     relevantControllers.values.forEach((c) => c.dispose());
-    super.dispose();
+
 
     // 🔹 NEW
     titleController.dispose();
@@ -99,10 +127,9 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
       s["text"]?.dispose();
     }
 
-    super.dispose();
+    super.dispose(); // call super.dispose() only once
   }
 
-  /// Generates HTML from current controllers
   /// Generates HTML from current controllers
   String generateHtmlFromControllers() {
     // Editable AI draft
@@ -187,9 +214,9 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
     final body = jsonEncode({'html': htmlContent});
 
     try {
-  // Use base client for third-party (no auth refresh needed)
-  final baseClient = di.sl<http.Client>();
-  final response = await baseClient.post(url, headers: headers, body: body);
+      // Use base client for third-party (no auth refresh needed)
+      final baseClient = di.sl<http.Client>();
+      final response = await baseClient.post(url, headers: headers, body: body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -212,101 +239,90 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
     }
   }
 
-
-
   Future<void> saveAgreement({required bool share}) async {
-  if (_pdfLink == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Please generate PDF first")),
-    );
-    return;
-  }
-
-  setState(() {
-    _isLoading = true;
-  });
-
-  final partyA = widget.intakeModel.parties.isNotEmpty ? widget.intakeModel.parties[0] : null;
-  final partyB = widget.intakeModel.parties.length > 1 ? widget.intakeModel.parties[1] : null;
-
-  final draftText = [
-    titleController.text,
-    ...sectionControllers.map((s) => "${s['heading']!.text}\n${s['text']!.text}")
-  ].join("\n\n");
-
-  final payload = {
-    "agreement": {
-      "agreement_type": widget.intakeModel.contractType.name,
-      "pdf_url": _pdfLink,
-      "creator_signed": true,
-      "status": share ? "PENDING" : "DRAFT",
-      "party_a": {
-        "name": partyA?.name ?? "",
-        "email": partyA?.email ?? "",
-        "phone": partyA?.phone ?? ""
-      },
-      "party_b": {
-        "name": partyB?.name ?? "",
-        "email": partyB?.email ?? "",
-        "phone": partyB?.phone ?? ""
-      }
-    },
-    "draft_text": draftText,
-    "language": widget.intakeModel.language
-  };
-  // 🔹 Print payload to console
-  print("=== Agreement Payload ===");
-  print(jsonEncode(payload));
-
-  try {
-    final client = di.sl<http.Client>(instanceName: 'authHttp');
-    final url = Uri.parse('${di.kBaseApiUrl}/agreement/save');
-    final response = await client.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(payload),
-    );
-
-     // 🔹 Print backend response to console
-    print("=== Backend Response ===");
-    print("Status Code: ${response.statusCode}");
-    print("Body: ${response.body}");
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
+    if (_pdfLink == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Agreement saved successfully!")),
+        SnackBar(content: Text("Please generate PDF first")),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to save: ${response.body}")),
-      );
+      return;
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error: $e")),
-    );
-  } finally {
+
     setState(() {
-      _isLoading = false;
+      _isLoading = true;
     });
+
+    final partyA = widget.intakeModel.parties.isNotEmpty ? widget.intakeModel.parties[0] : null;
+    final partyB = widget.intakeModel.parties.length > 1 ? widget.intakeModel.parties[1] : null;
+
+    final draftText = [
+      titleController.text,
+      ...sectionControllers.map((s) => "${s['heading']!.text}\n${s['text']!.text}")
+    ].join("\n\n");
+
+
+    final payload = {
+      "agreement": {
+        "agreement_type": widget.intakeModel.contractType.name,
+        "pdf_url": _pdfLink,
+        "creator_signed": true,
+        "status": share ? "PENDING" : "DRAFT",
+        "party_a": {
+          "name": partyA?.name ?? "",
+          "email": partyA?.email ?? "",
+          "phone": partyA?.phone ?? ""
+        },
+        "party_b": {
+          "name": partyB?.name ?? "",
+          "email": partyB?.email ?? "",
+          "phone": partyB?.phone ?? ""
+        }
+      },
+      "draft_text": draftText,
+      "language": widget.intakeModel.language
+    };
+    print("=== Agreement Payload ===");
+    print(jsonEncode(payload));
+
+    try {
+      final client = di.sl<http.Client>(instanceName: 'authHttp');
+      final url = Uri.parse('${di.kBaseApiUrl}/agreement/save');
+      final response = await client.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(payload),
+      );
+
+      print("=== Backend Response ===");
+      print("Status Code: ${response.statusCode}");
+      print("Body: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Agreement saved successfully!")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to save: ${response.body}")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-  
-}
-
-
-
-
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Edit & Generate PDF')),
+      backgroundColor: AppColors.background,
+      appBar: const NavBar(showBack: true),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -342,7 +358,6 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
                     ),
                     SizedBox(height: 16),
 
-                   
                     SizedBox(height: 24),
                     Text(
                       "AI Draft",
@@ -360,6 +375,7 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
                     ...sectionControllers.asMap().entries.map((entry) {
                       final index = entry.key;
                       final controllers = entry.value;
+
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,25 +406,24 @@ class _PdfChangerPageState extends State<PdfChangerPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
-  child: ElevatedButton(
-    onPressed: _isLoading ? null : () async {
-      await generatePdfFromControllers();
-      await saveAgreement(share: false); // Save only
-    },
-    child: Text('Save'),
-  ),
-),
-SizedBox(width: 16),
-Expanded(
-  child: ElevatedButton(
-    onPressed: _isLoading ? null : () async {
-      await generatePdfFromControllers();
-      await saveAgreement(share: true); // Save & Share
-    },
-    child: Text('Save & Share'),
-  ),
-),
-
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : () async {
+                      await generatePdfFromControllers();
+                      await saveAgreement(share: false); // Save only
+                    },
+                    child: Text('Save'),
+                  ),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : () async {
+                      await generatePdfFromControllers();
+                      await saveAgreement(share: true); // Save & Share
+                    },
+                    child: Text('Save & Share'),
+                  ),
+                ),
               ],
             ),
             SizedBox(height: 16),
@@ -418,6 +433,23 @@ Expanded(
             //   SelectableText(_pdfLink!, style: TextStyle(color: Colors.blue)),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNav(
+        currentIndex: 1,
+        onItemSelected: (index) {
+          switch (index) {
+            case 0:
+              context.go('/dashboard', extra: 0);
+              break;
+            case 1:
+              context.go('/dashboard', extra: 1);
+              break;
+            case 2:
+              context.go('/dashboard', extra: 2);
+              break;
+          }
+        },
+        onCreatePressed: () => context.go('/dashboard', extra: 1),
       ),
     );
   }

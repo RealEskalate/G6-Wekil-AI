@@ -8,6 +8,9 @@ import '../../../../core/services/cloudinary_uploader.dart';
 import '../../../../injection_container.dart' as di;
 import '../../../settings/presentation/bloc/setting_bloc.dart';
 // import 'package:mobile/core/services/cloudinary_uploader.dart';
+import 'package:wekil_ai_mobile_app/features/widget/nav_bar.dart';
+import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class SignaturePage extends StatefulWidget {
   const SignaturePage({super.key});
@@ -88,12 +91,16 @@ class _SignaturePageState extends State<SignaturePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Digital Signature'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
+      backgroundColor: AppColors.background,
+      appBar: const NavBar(showBack: true),
+      bottomNavigationBar: BottomNav(
+        currentIndex: 0,
+        onItemSelected: (index) {
+          if (index == 0) context.go('/dashboard', extra: 0);
+          if (index == 1) context.go('/dashboard', extra: 1);
+          if (index == 2) context.go('/dashboard', extra: 2);
+        },
+        onCreatePressed: () => context.go('/dashboard', extra: 1),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -119,25 +126,30 @@ class _SignaturePageState extends State<SignaturePage> {
             const SizedBox(height: 12),
             Row(
               children: [
-                OutlinedButton.icon(
-                  onPressed: _controller.clear,
-                  icon: const Icon(Icons.clear),
-                  label: const Text('Clear'),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _controller.clear,
+                    icon: const Icon(Icons.clear),
+                    label: const Text('Clear'),
+                  ),
                 ),
                 const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: _controller.undo,
-                  icon: const Icon(Icons.undo),
-                  label: const Text('Undo'),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _controller.undo,
+                    icon: const Icon(Icons.undo),
+                    label: const Text('Undo'),
+                  ),
                 ),
-                const Spacer(),
-                ElevatedButton.icon(
-                  onPressed: _saving ? null : _save,
-                  icon: _saving
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.check),
-                  label: const Text('Save'),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0A2540)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _saving ? null : _save,
+                    icon: _saving
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.check),
+                    label: const Text('Save'),
+                  ),
                 ),
               ],
             ),

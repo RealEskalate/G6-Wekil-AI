@@ -47,6 +47,7 @@ class SettingsPage extends StatelessWidget {
                         const SizedBox(height: 12),
                         ElevatedButton(
                           onPressed: () => context.read<SettingBloc>().add(GetProfileEvent()),
+                          style: ElevatedButton.styleFrom(),
                           child: const Text('Retry'),
                         )
                       ],
@@ -57,11 +58,16 @@ class SettingsPage extends StatelessWidget {
                 if (state is SettingLoaded) {
                   profile = state.profile;
                 }
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<SettingBloc>().add(GetProfileEvent());
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                       SizedBox(
                         width: double.infinity,
                         child: Stack(
@@ -71,7 +77,7 @@ class SettingsPage extends StatelessWidget {
                               alignment: Alignment.centerLeft,
                               child: IconButton(
                                 icon: const Icon(Icons.arrow_back_ios_new),
-                                color: AppColors.primary,
+                                color: AppColors.textDark,
                                 tooltip: 'Back',
                                 onPressed: () => GoRouter.of(context).go('/dashboard', extra: 0),
                               ),
@@ -90,7 +96,7 @@ class SettingsPage extends StatelessWidget {
                                   child: const Icon(Icons.settings, size: 40, color: AppColors.primary),
                                 ),
                                 const SizedBox(height: 8),
-                                Text('Settings', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary)),
+            Text('Settings', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                                 const SizedBox(height: 16),
                               ],
                             ),
@@ -106,31 +112,29 @@ class SettingsPage extends StatelessWidget {
                       _SupportSection(),
                       const SizedBox(height: 24),
                       _SignOutButton(),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
             ),
             bottomNavigationBar: BottomNav(
-              currentIndex: 1,
+              currentIndex: 0,
               onItemSelected: (index) {
                 switch (index) {
                   case 0:
-                    // Go to Dashboard tab
                     GoRouter.of(context).go('/dashboard', extra: 0);
                     break;
                   case 1:
-                    // Already on Settings; do nothing
+                    GoRouter.of(context).go('/dashboard', extra: 1);
                     break;
                   case 2:
-                    // Go to Contracts/History tab in dashboard shell
                     GoRouter.of(context).go('/dashboard', extra: 2);
                     break;
                 }
               },
               onCreatePressed: () {
-                // Use the dedicated contracts flow start page
-                GoRouter.of(context).push('/contracts/start');
+                GoRouter.of(context).go('/dashboard', extra: 1);
               },
             ),
           ),
@@ -296,6 +300,7 @@ class _SwitchTile extends StatelessWidget {
         ),
         Switch(
           value: value,
+          activeColor: AppColors.accent,
           onChanged: (v) {},
         ),
       ],
@@ -392,9 +397,8 @@ class _SignOutButton extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFF44336),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         onPressed: () {
           context.read<SettingBloc>().add(LogoutEvent());

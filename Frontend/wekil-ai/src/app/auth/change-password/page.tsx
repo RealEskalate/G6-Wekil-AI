@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FaArrowLeft, FaRobot, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/context/LanguageContext";
@@ -10,12 +10,13 @@ import { authTranslations } from "@/lib/translations/authTranslations";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/lib/redux/store";
 import { resetPassword, forgotPassword } from "@/lib/redux/slices/authSlice";
+import Image from "next/image";
 
 function ChangePasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams?.get("email") ?? "";
-  
+
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -57,11 +58,18 @@ function ChangePasswordForm() {
         toast.success(t.passwordChangedSuccess);
         router.push("/");
       } else {
-        toast.error(res.data.message || t.passwordChangeFailed);
+        toast.error(res.data?.message || res.error || t.passwordChangeFailed);
       }
-    } catch (error) {
-      console.error(error);
-      toast.error(t.passwordChangeFailed);
+    } catch (err: unknown) {
+      // Narrow error type safely
+      const error =
+        err && typeof err === "object" && "data" in err
+          ? (err as { data?: { message: string }; error?: string })
+          : null;
+
+      toast.error(
+        error?.data?.message || error?.error || t.passwordChangeFailed
+      );
     } finally {
       setIsLoading(false);
     }
@@ -97,8 +105,8 @@ function ChangePasswordForm() {
     <div className="bg-white p-8 rounded-2xl shadow-xl">
       <div className="text-center">
         <div className="flex justify-center items-center mb-6">
-          <div className="bg-blue-600 text-white p-3 rounded-lg mr-3">
-            <FaRobot className="text-2xl" />
+          <div className="bg-gray-50 text-white p-2 rounded-lg mr-2 animate-pulse">
+            <Image src="/logo.ico" alt="Logo" width={24} height={24} />
           </div>
           <span className="text-3xl font-bold text-blue-800">Wekil AI</span>
         </div>

@@ -1,13 +1,13 @@
 import { createSlice, createAsyncThunk} from "@reduxjs/toolkit";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+const API_URL = process.env.NEW_NEXT_PUBLIC_API_URL as string;
 
 interface DraftSection {
   heading: string;
   text: string;
 }
 
-interface Draft {
+export interface Draft {
   title: string;
   sections: DraftSection[];
 }
@@ -52,22 +52,30 @@ const getErrorMessage = async (response: Response, defaultMsg: string) => {
 
 
 // 1. Create Agreement
+// agreementsSlice.ts
 export const createAgreement = createAsyncThunk<
   { message: string },
-  Agreement,
+  { agreementData: Agreement; token: string }, 
   { rejectValue: string }
->("agreement/create", async (agreementData, { rejectWithValue }) => {
+>("agreement/create", async ({ agreementData, token }, { rejectWithValue }) => {
   try {
+    console.log("Creating agreement with data:", agreementData);
+
     const response = await fetch(`${API_URL}/api/agreements/create`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, 
+      },
       body: JSON.stringify(agreementData),
     });
 
-    if (!response.ok) throw new Error(await getErrorMessage(response, "Error creating agreement"));
+    if (!response.ok) {
+      throw new Error(await getErrorMessage(response, "Error creating agreement"));
+    }
 
     const data = await response.json();
-    return { message: data.data.message };
+    return data.data;
   } catch (err: unknown) {
     return rejectWithValue(err instanceof Error ? err.message : "Error creating agreement");
   }

@@ -1,5 +1,12 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
+
+interface VerifyOtpResponse {
+  code: string;
+  message: string;
+  success: boolean;
+}
+
 interface User {
   email: string;
   first_name?: string;
@@ -197,38 +204,41 @@ export const forgotPassword = createAsyncThunk<
     return rejectWithValue(getErrorMessage(error));
   }
 });
-
-// reset Password
 export const resetPassword = createAsyncThunk<
-  { data: { message: string }; success: boolean },
+  { data?: { message: string }; error?: string; success: boolean },
   { email: string; otp: string; new_password: string },
-  { rejectValue: string }
->("auth/resetPassword", async (data, { rejectWithValue }) => {
-  try {
-    const response = await fetch(`${API_URL}/api/auth/reset-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
+  { rejectValue: { data?: { message: string }; error?: string; success: boolean } }
+>(
+  "auth/resetPassword",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      const responseData = await response.json();
+
+      if (!response.ok || responseData.success === false) {
+        // Pass full response to rejectWithValue
+        return rejectWithValue(responseData);
+      }
+
+      return responseData;
+    } catch (error: unknown) {
+      return rejectWithValue({
+        error: error instanceof Error ? error.message : String(error),
+        success: false,
+      });
     }
-
-    const responseData = await response.json();
-    return responseData;
-  } catch (error: unknown) {
-    return rejectWithValue(getErrorMessage(error));
   }
-});
+);
 
-// verify otp
+
 export const verifyOtp = createAsyncThunk<
-  { data: { message?: string; error?: string }; success: boolean },
-  { email: string; otp: string },
+  VerifyOtpResponse, // correct type for fulfilled payload
+  { email: string; otp: string }, // args
   { rejectValue: string }
 >("auth/verifyOtp", async (data, { rejectWithValue }) => {
   try {
@@ -240,13 +250,14 @@ export const verifyOtp = createAsyncThunk<
       body: JSON.stringify(data),
     });
 
+    const responseData = await response.json();
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      return rejectWithValue(responseData.message || `HTTP error! status: ${response.status}`);
     }
 
-    const responseData = await response.json();
-    return responseData;
+    console.log(responseData, "responseData");
+    return responseData as VerifyOtpResponse; // ✅ return all fields
   } catch (error: unknown) {
     return rejectWithValue(getErrorMessage(error));
   }
@@ -369,17 +380,23 @@ const authSlice = createSlice({
       state.loading = true;
       state.error = null;
       state.success = null;
+      state.message = null;
     });
+
     builder.addCase(resetPassword.fulfilled, (state, action) => {
       state.loading = false;
-      state.message = action.payload.data.message;
       state.success = action.payload.success;
+      state.message = action.payload.data?.message || null;
+      state.error = action.payload.error || null;
     });
+
     builder.addCase(resetPassword.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.payload || "Reset password failed";
-      state.success = false;
+      state.success = action.payload?.success ?? false;
+      state.error = action.payload?.error || "Reset password failed";
+      state.message = action.payload?.data?.message || null;
     });
+
 
     // Verify OTP
     builder.addCase(verifyOtp.pending, (state) => {
@@ -389,9 +406,11 @@ const authSlice = createSlice({
     });
     builder.addCase(verifyOtp.fulfilled, (state, action) => {
       state.loading = false;
-      state.message = action.payload.data.message || action.payload.data.error || null;
+      state.message = action.payload.message;
       state.success = action.payload.success;
+      state.code = action.payload.code;
     });
+
     builder.addCase(verifyOtp.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload || "OTP verification failed";

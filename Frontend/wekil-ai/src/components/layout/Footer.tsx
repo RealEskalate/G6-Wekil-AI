@@ -1,6 +1,6 @@
-import { FaRobot } from "react-icons/fa";
 import { translations } from "@/lib/translations/generalTranslations";
 import { useLanguage } from "@/context/LanguageContext";
+import Image from "next/image";
 
 export default function Footer() {
   const { lang } = useLanguage();
@@ -13,8 +13,8 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center mb-4">
-              <div className="bg-blue-600 text-white p-2 rounded-lg mr-2">
-                <FaRobot className="text-xl" />
+              <div className="bg-gray-50 text-white p-2 rounded-lg mr-2 animate-pulse">
+                <Image src="/logo.ico" alt="Logo" width={24} height={24} />
               </div>
               <span className="text-xl font-bold">{t.footerBrand}</span>
             </div>

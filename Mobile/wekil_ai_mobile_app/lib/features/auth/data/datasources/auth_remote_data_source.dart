@@ -28,7 +28,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   // Default to deployed server if not provided
   AuthRemoteDataSourceImpl({required this.client, String? baseUrl})
-      : baseUrl = baseUrl ?? 'https://g6-wekil-ai-1.onrender.com';
+  : baseUrl = baseUrl ?? 'https://g6-wekil-ai-forserverdeployment.onrender.com';
 
   @override
   Future<ApiResponseMessageModel> registerIndividual(UserModel user, String password) async {

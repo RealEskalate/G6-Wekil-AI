@@ -8,7 +8,7 @@ const Contracttype: ("service" | "loan" | "sale" | "nonDisclosure")[] = [
   "nonDisclosure",
 ];
 import { dashboardPageTranslation } from "@/lib/translations/dashboardPageTranslation";
-import { data1, data2, data3, data4 } from "@/types/Contracttype";
+import { ContractFormat } from "@/types/Contracttype";
 import { DashBoardContract } from "@/components/dashboard/DashBoardContract";
 import Link from "next/link";
 import { Globe } from "lucide-react";
@@ -17,20 +17,52 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import WeKilAILoader from "@/components/ui/WekilAILoader";
+import { getAgreementByUserId } from "@/lib/ContractGetAgreements";
+import {
+  convertIntakeToContractFormat,
+  Intake,
+} from "./my-contracts/[agreementId]/ShowAgreement";
 
 const Dashboard = () => {
   const { lang, setLang } = useLanguage();
-  const { status } = useSession();
   const router = useRouter();
   const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [contractList, setContractList] = useState<ContractFormat[] | null>();
+  const { data: session, status } = useSession();
+  const [pageNumber, setPageNumber] = useState<number>(1);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/");
     } else if (status === "authenticated") {
       setIsAuthChecked(true);
+      const fetch = async () => {
+        if (session?.user) {
+          try {
+            const res = await getAgreementByUserId(
+              session.user.accessToken || "",
+              pageNumber
+            );
+
+            if (!res?.data || !Array.isArray(res.data)) {
+              setContractList([]);
+              return;
+            }
+
+            setContractList(
+              res.data.map((item: Intake) =>
+                convertIntakeToContractFormat(item)
+              )
+            );
+          } catch (error) {
+            console.error("Error fetching agreements:", error);
+            setContractList([]);
+          }
+        }
+      };
+      fetch();
     }
-  }, [status, router]);
+  }, [router, session?.user, status,pageNumber]);
 
   if (status === "loading" || !isAuthChecked) {
     return (
@@ -39,6 +71,7 @@ const Dashboard = () => {
       </div>
     );
   }
+
   return (
     <div className="bg-gray-50 sm:pl-6 lg:pl-8 h-full">
       <div className="p-4 sm:p-6 lg:p-8 w-auto">
@@ -98,15 +131,21 @@ const Dashboard = () => {
             {" "}
             {dashboardPageTranslation[lang].recentContracts}
           </p>
-          <button className="rounded-full px-4 py-1 bg-gray-50 text-blue-950 hover:text-blue-400 font-bold border border-gray-200">
-            {dashboardPageTranslation[lang].viewAll}
-          </button>
         </div>
-        <DashBoardContract contract={data1} />
-        <DashBoardContract contract={data2} />
-        <DashBoardContract contract={data3} />
-        <DashBoardContract contract={data4} />
+        {contractList?.map((item: ContractFormat, idx) => (
+          <DashBoardContract contract={item} key={idx} />
+        ))}
       </div>
+      {
+      contractList != null ? (<div className="flex my-8 justify-around">
+        <button disabled={pageNumber==1} className="rounded-full mb-5 px-8 py-1 bg-gray-50 text-blue-950 hover:text-blue-400 font-bold border border-gray-200" onClick={()=>{setPageNumber(pageNumber-1)}}>
+          {lang == "en" ? "PREV" : "ተመለስ"}
+        </button>
+        <button className="rounded-full mb-5 px-8 py-1 bg-gray-50 text-blue-950 hover:text-blue-400 font-bold border border-gray-200" onClick={()=>{setPageNumber(pageNumber+1)}}>
+          {lang == "en" ? "NEXT" : "ቀጥል"}
+        </button>
+      </div>) : <p className="text-xl font-extrabold text-center my-8">No contracts yet</p>
+      }
     </div>
   );
 };

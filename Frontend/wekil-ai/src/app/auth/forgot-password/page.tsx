@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { FaEnvelope, FaRobot } from "react-icons/fa";
+import { FaEnvelope } from "react-icons/fa";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import { authTranslations } from "@/lib/translations/authTranslations";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/lib/redux/store";
 import { forgotPassword } from "@/lib/redux/slices/authSlice";
+import Image from "next/image";
 
 function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -59,8 +60,8 @@ function ForgotPasswordForm() {
     <div className="bg-white p-8 rounded-2xl shadow-xl">
       <div className="text-center">
         <div className="flex justify-center items-center mb-6">
-          <div className="bg-blue-600 text-white p-3 rounded-lg mr-3">
-            <FaRobot className="text-2xl" />
+          <div className="bg-gray-50 text-white p-2 rounded-lg mr-2 animate-pulse">
+            <Image src="/logo.ico" alt="Logo" width={24} height={24} />
           </div>
           <span className="text-3xl font-bold text-blue-800">Wekil AI</span>
         </div>

@@ -29,7 +29,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<List<Agreement>> getTopAgreements({int limit = 3}) async {
+  Future<List<Agreement>> getTopAgreements({int limit = 5}) async {
     final list = await remote.fetchAgreements();
     return list.take(limit).toList();
   }
@@ -44,5 +44,10 @@ class DashboardRepositoryImpl implements DashboardRepository {
   @override
   Future<AppNotification?> getNotification() async {
     return remote.fetchNotification();
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getAgreementById(String agreementId) async {
+    return await remote.fetchAgreementById(agreementId);
   }
 }

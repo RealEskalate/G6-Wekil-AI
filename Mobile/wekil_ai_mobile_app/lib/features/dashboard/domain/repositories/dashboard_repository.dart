@@ -8,4 +8,5 @@ abstract class DashboardRepository {
   Future<List<Agreement>> getTopAgreements({int limit = 3});
   Future<Individual> getProfile();
   Future<AppNotification?> getNotification();
+  Future<Map<String, dynamic>?> getAgreementById(String agreementId);
 }

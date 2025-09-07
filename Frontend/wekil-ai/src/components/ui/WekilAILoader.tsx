@@ -9,8 +9,8 @@ export default function WeKilAILoader() {
         width={200}
         height={200}
         className="object-contain"
-        unoptimized
-      />
+        unoptimized 
+      />  
     </div>
   );
 }

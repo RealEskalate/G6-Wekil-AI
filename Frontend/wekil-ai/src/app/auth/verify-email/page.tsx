@@ -29,11 +29,11 @@ export default function VerifyEmail() {
       setLoading(false);
       return;
     }
+
     try {
       const res = await dispatch(
         verifyOtp({ email: user.email, otp })
       ).unwrap();
-      console.log(res.success);
 
       if (res.success) {
         toast.success(t.emailVerifiedSuccess);
@@ -41,11 +41,11 @@ export default function VerifyEmail() {
           window.location.href = "/";
         }, 1500);
       } else {
-        setMessage(res.data.error || "❌ Invalid OTP, please try again.");
-        toast.error(res.data.error || t.somethingWentWrong);
+        setMessage(res.message || "❌ Invalid OTP, please try again.");
+        toast.error(res.message || t.somethingWentWrong);
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       toast.error(t.somethingWentWrong);
     } finally {
       setLoading(false);

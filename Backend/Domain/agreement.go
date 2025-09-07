@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"encoding/json"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -27,11 +28,20 @@ type Agreement struct {
 	Status              string             `json:"status" bson:"status,omitempty"`
 	CreatedAt           time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt           time.Time          `json:"updated_at" bson:"updated_at"`
+	DeletedAt           time.Time          `json:"deleted_at" bson:"deleted_at"`
 	IsDeletedByCreator  bool               `bson:"is_deleted_by_creator" json:"is_deleted_by_creator"`
 	IsDeletedByAcceptor bool               `bson:"is_deleted_by_acceptor" json:"is_deleted_by_acceptor"`
-	DeletedAt           time.Time          `json:"deleted_at" bson:"deleted_at"`
 	// IsDeleted           bool               `json:"is_deleted,omitempty" bson:"is_deleted,omitempty"` //? I don't know for sure if we need this one anymore. since we can achive the same logic by using IsDeletedByCreator && IsDeletedByAcceptor
 }
+
+func (s Agreement) String() string {
+	res, err := json.MarshalIndent(s, "", "  ")
+	if err != nil {
+		return "<Can not generate a string>"
+	}
+	return string(res)
+}
+
 // Agreement with intake
 type AgreementIntake struct {
 	ID                  primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
@@ -99,7 +109,7 @@ type AgreementRequest struct {
 	Language     string               `json:"language"`
 }
 type JustForSaveSake struct {
-	CreatorID        primitive.ObjectID
+	CreatorParty     *Party
 	AgreementReqeust *AgreementRequest
 	AcceptorEmail    string
 }

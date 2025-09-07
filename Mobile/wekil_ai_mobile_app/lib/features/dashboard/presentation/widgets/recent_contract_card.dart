@@ -32,10 +32,14 @@ class RecentContractCard extends StatelessWidget {
     switch ((status ?? '').toLowerCase()) {
       case 'draft':
         return const Color(0xFF3B82F6); // blue
+      case 'pending':
+        return const Color(0xFFF59E0B); // amber
       case 'exported':
         return const Color(0xFF10B981); // green
       case 'signed':
         return const Color(0xFF14B8A6); // teal
+      case 'rejected':
+        return const Color(0xFFEF4444); // red
       default:
         return Colors.grey;
     }
@@ -104,7 +108,7 @@ class RecentContractCard extends StatelessWidget {
                   lowercase: true,
                 ),
                 const Spacer(),
-                _EditIcon(onPressed: onEdit),
+                // edit removed per UX: no edit action on recent card
               ],
             ),
             const SizedBox(height: 10),
@@ -145,7 +149,9 @@ class RecentContractCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '$amountStr ${contract.currency}',
+                  contract.currency.trim().isEmpty
+                      ? amountStr
+                      : '$amountStr ${contract.currency}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -185,34 +191,6 @@ class _Pill extends StatelessWidget {
           color: color.darken(0.1),
           fontSize: 12,
           fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-class _EditIcon extends StatelessWidget {
-  final VoidCallback? onPressed;
-  const _EditIcon({this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkResponse(
-      onTap: onPressed,
-      radius: 18,
-      child: Container(
-        width: 32,
-        height: 28,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: theme.dividerColor.withOpacity(.25)),
-        ),
-        child: const AppSvgIcon(
-          name: 'pencil-square',
-          size: 16,
-          fallback: Icons.edit_outlined,
         ),
       ),
     );

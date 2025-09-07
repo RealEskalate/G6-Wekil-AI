@@ -20,7 +20,7 @@ type UserUseCase struct {
 	unverifiedUserCollection domainInterface.IOTPRepository
 	auth                     domainInterface.IAuthentication
 	userValidation           domainInterface.IUserValidation
-	NotificationCollection   domainInterface.INotification
+	NotificationCollection   domainInterface.INotification_
 	OTPSevice                domainInterface.IOTPService
 }
 
@@ -185,6 +185,7 @@ func (a *UserUseCase) Login(email, password string) (string,string, string,error
 	}
 	accessClaims := &domain.UserClaims{
 		UserID:      user.ID.Hex(),
+		UserName: user.FirstName + " " + user.MiddleName,
 		Email:       user.Email,
 		IsVerified:  true,
 		AccountType: user.AccountType,
@@ -196,9 +197,9 @@ func (a *UserUseCase) Login(email, password string) (string,string, string,error
 	}
 	refreshClaims := &domain.UserClaims{
 		UserID:      user.ID.Hex(),
+		UserName: user.FirstName + " " + user.MiddleName,
 		Email:       user.Email,
 		IsVerified:  true,
-		AccountType: user.AccountType,
 		TokenType:   domainInterface.AccessToken,
 	}
 	// Generate Refresh Token
@@ -264,8 +265,8 @@ func (u *UserUseCase) UpdateProfile(ctx context.Context, email string, updateReq
 	return u.userCollection.UpdateProfile(ctx, email, updateData)
 }
 
-func (u *UserUseCase) GetNotifications(userID string, page, limit int64) ([]domain.Notification, error) {
-	notify, err := u.NotificationCollection.FindByReceiverID(context.Background(), userID, page, limit)
+func (u *UserUseCase) GetNotifications(userID string, page, limit int64) ([]*domain.Notification_, error) {
+	notify, err := u.NotificationCollection.FindByReceiverID_(context.Background(), userID, page, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -332,6 +333,7 @@ func (uc *UserUseCase) GoogleNextJS(ctx context.Context, profile domain.GooglePr
 	// 3. Generate access token
 	accessClaims := &domain.UserClaims{
 		UserID:      user.ID.Hex(),
+		UserName: user.FirstName + " " + user.MiddleName,
 		Email:       user.Email,
 		IsVerified:  user.IsVerified,
 		AccountType: user.AccountType,
@@ -345,6 +347,7 @@ func (uc *UserUseCase) GoogleNextJS(ctx context.Context, profile domain.GooglePr
 	// 4. Generate refresh token
 	refreshClaims := &domain.UserClaims{
 		UserID:      user.ID.Hex(),
+		UserName: user.FirstName + " " + user.MiddleName,
 		Email:       user.Email,
 		IsVerified:  user.IsVerified,
 		AccountType: user.AccountType,
@@ -365,7 +368,7 @@ func (uc *UserUseCase) GoogleNextJS(ctx context.Context, profile domain.GooglePr
 	return user, accessToken, refreshToken, nil
 }
 
-func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository, notify domainInterface.INotification,OtpService domainInterface.IOTPService) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
+func NewUserUseCase(AUTH domainInterface.IAuthentication, UserColl domainInterface.IIndividualRepository,userValid domainInterface.IUserValidation, unverifiedUserColl domainInterface.IOTPRepository, notify domainInterface.INotification_,OtpService domainInterface.IOTPService) domainInterface.IUserUseCase { //! Don't forget to pass the interfaces of other collections defined on the top
 	return &UserUseCase{
 		auth:                     AUTH,
 		userCollection:           UserColl,

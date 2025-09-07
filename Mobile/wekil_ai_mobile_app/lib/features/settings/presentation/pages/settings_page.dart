@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:wekil_ai_mobile_app/features/widget/bottom_nav.dart';
 // import 'package:mobile/injection_container.dart' as di;
 import '../../../../injection_container.dart' as di;
+import '../../../widget/nav_bar.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/user_profile.dart';
 import '../bloc/setting_bloc.dart';
 
@@ -22,23 +25,8 @@ class SettingsPage extends StatelessWidget {
         },
         child: Builder(
           builder: (context) => Scaffold(
-            backgroundColor: const Color(0xFFF7F9FB),
-            appBar: AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0,
-              title: const Text('Settings', style: TextStyle(color: Color(0xFF1A2B3C), fontWeight: FontWeight.bold)),
-              centerTitle: true,
-              leading: IconButton(
-                icon: const Icon(Icons.menu, color: Color(0xFF1A2B3C)),
-                onPressed: () {},
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.language, color: Color(0xFF1A2B3C)),
-                  onPressed: () {},
-                ),
-              ],
-            ),
+            backgroundColor: AppColors.background,
+            appBar: NavBar(),
             body: BlocBuilder<SettingBloc, SettingState>(
               builder: (context, state) {
                 if (state is SettingLoading) {
@@ -74,22 +62,38 @@ class SettingsPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Center(
-                        child: Column(
+                      SizedBox(
+                        width: double.infinity,
+                        child: Stack(
+                          alignment: Alignment.center,
                           children: [
-                            const SizedBox(height: 8),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: IconButton(
+                                icon: const Icon(Icons.arrow_back_ios_new),
+                                color: AppColors.primary,
+                                tooltip: 'Back',
+                                onPressed: () => GoRouter.of(context).go('/dashboard', extra: 0),
                               ),
-                              padding: const EdgeInsets.all(16),
-                              child: const Icon(Icons.settings, size: 40, color: Color(0xFF1A2B3C)),
                             ),
-                            const SizedBox(height: 8),
-                            const Text('Settings', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1A2B3C))),
-                            const SizedBox(height: 16),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const SizedBox(height: 8),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.textLight,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
+                                  ),
+                                  padding: const EdgeInsets.all(16),
+                                  child: const Icon(Icons.settings, size: 40, color: AppColors.primary),
+                                ),
+                                const SizedBox(height: 8),
+                                Text('Settings', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                                const SizedBox(height: 16),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -107,7 +111,28 @@ class SettingsPage extends StatelessWidget {
                 );
               },
             ),
-            bottomNavigationBar: _BottomNavBar(),
+            bottomNavigationBar: BottomNav(
+              currentIndex: 1,
+              onItemSelected: (index) {
+                switch (index) {
+                  case 0:
+                    // Go to Dashboard tab
+                    GoRouter.of(context).go('/dashboard', extra: 0);
+                    break;
+                  case 1:
+                    // Already on Settings; do nothing
+                    break;
+                  case 2:
+                    // Go to Contracts/History tab in dashboard shell
+                    GoRouter.of(context).go('/dashboard', extra: 2);
+                    break;
+                }
+              },
+              onCreatePressed: () {
+                // Use the dedicated contracts flow start page
+                GoRouter.of(context).push('/contracts/start');
+              },
+            ),
           ),
         ),
       ),
@@ -132,12 +157,12 @@ class _ProfileSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.person, color: Color(0xFF1A2B3C)),
+                const Icon(Icons.person, color: AppColors.primary),
                 const SizedBox(width: 8),
-                const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('Profile', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
                 const Spacer(),
   IconButton(
-      icon: const Icon(Icons.edit, color: Color(0xFF1A2B3C)),
+      icon: const Icon(Icons.edit, color: AppColors.primary),
       onPressed: () {
     final bloc = context.read<SettingBloc>();
     GoRouter.of(context).push('/profile-preview', extra: bloc);
@@ -153,7 +178,7 @@ class _ProfileSection extends StatelessWidget {
                   if (url != null && url.startsWith('http')) {
                     return CircleAvatar(
                       radius: 24,
-                      backgroundColor: const Color(0xFF1A2B3C),
+                      backgroundColor: AppColors.primary,
                       backgroundImage: NetworkImage(url),
                     );
                   }
@@ -168,10 +193,10 @@ class _ProfileSection extends StatelessWidget {
                   }
                   return CircleAvatar(
                     radius: 24,
-                    backgroundColor: const Color(0xFF1A2B3C),
+                    backgroundColor: AppColors.primary,
                     child: Text(
                       initials,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textLight),
                     ),
                   );
                 }),
@@ -186,25 +211,25 @@ class _ProfileSection extends StatelessWidget {
                             ' ${profile!.middleName != null && profile!.middleName!.isNotEmpty ? profile!.middleName : ''}'
                             ' ${profile!.lastName.isNotEmpty ? profile!.lastName : '-'}'
                           : '-',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1A2B3C)),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         profile != null && profile!.email.isNotEmpty ? profile!.email : '-',
-                        style: const TextStyle(color: Color(0xFF1A2B3C)),
+                        style: const TextStyle(color: AppColors.textDark),
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          const Icon(Icons.phone, size: 16, color: Color(0xFF1A2B3C)),
+                          const Icon(Icons.phone, size: 16, color: AppColors.primary),
                           const SizedBox(width: 4),
-                          Text(profile != null && profile!.telephone.isNotEmpty ? profile!.telephone : '-', style: const TextStyle(color: Color(0xFF1A2B3C))),
+                          Text(profile != null && profile!.telephone.isNotEmpty ? profile!.telephone : '-', style: const TextStyle(color: AppColors.textDark)),
                         ],
                       ),
                       const SizedBox(height: 8),
                       
                       if (profile?.address != null)
-                        Text('Address: ${profile!.address}', style: const TextStyle(color: Color(0xFF1A2B3C))),
+                        Text('Address: ${profile!.address}', style: const TextStyle(color: AppColors.textDark)),
                     ],
                   ),
                 ),
@@ -231,9 +256,9 @@ class _PreferencesSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.language, color: Color(0xFF1A2B3C)),
+                const Icon(Icons.language, color: AppColors.primary),
                 const SizedBox(width: 8),
-                const Text('Preferences', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('Preferences', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
               ],
             ),
             const SizedBox(height: 12),
@@ -258,14 +283,14 @@ class _SwitchTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: const Color(0xFF1A2B3C)),
+    Icon(icon, color: AppColors.primary),
         const SizedBox(width: 8),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+      Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark)),
+      Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)),
             ],
           ),
         ),
@@ -292,13 +317,13 @@ class _PrivacySection extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.security, color: Color(0xFF1A2B3C)),
+                const Icon(Icons.security, color: AppColors.primary),
                 const SizedBox(width: 8),
-                const Text('Privacy & Security', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('Privacy & Security', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
               ],
             ),
             const SizedBox(height: 12),
-            const Text('Data Storage', style: TextStyle(fontWeight: FontWeight.w500)),
+            const Text('Data Storage', style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.textDark)),
             const Text('All contracts are stored locally on your device', style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 8),
             Row(
@@ -329,29 +354,29 @@ class _SupportSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.support_agent, color: Color(0xFF1A2B3C)),
+                const Icon(Icons.support_agent, color: AppColors.primary),
                 const SizedBox(width: 8),
-                const Text('Support', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('Support', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
               ],
             ),
             const SizedBox(height: 12),
             ListTile(
-              leading: const Icon(Icons.help_outline, color: Color(0xFF1A2B3C)),
-              title: const Text('Help & Support', style: TextStyle(color: Color(0xFF1A2B3C))),
+              leading: const Icon(Icons.help_outline, color: AppColors.primary),
+              title: const Text('Help & Support', style: TextStyle(color: AppColors.textDark)),
               onTap: () {},
               contentPadding: EdgeInsets.zero,
               minLeadingWidth: 0,
             ),
             ListTile(
-              leading: const Icon(Icons.info_outline, color: Color(0xFF1A2B3C)),
-              title: const Text('About Wekil AI', style: TextStyle(color: Color(0xFF1A2B3C))),
+              leading: const Icon(Icons.info_outline, color: AppColors.primary),
+              title: const Text('About Wekil AI', style: TextStyle(color: AppColors.textDark)),
               onTap: () {},
               contentPadding: EdgeInsets.zero,
               minLeadingWidth: 0,
             ),
             const SizedBox(height: 8),
-            Center(
-              child: const Text('Version 1.0', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const Center(
+              child: Text('Version 1.0', style: TextStyle(fontSize: 12, color: Colors.grey)),
             ),
           ],
         ),
@@ -387,20 +412,4 @@ class _SignOutButton extends StatelessWidget {
   }
 }
 
-class _BottomNavBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      backgroundColor: Colors.white,
-      selectedItemColor: const Color(0xFF1AC9A2),
-      unselectedItemColor: const Color(0xFF1A2B3C),
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-        BottomNavigationBarItem(icon: Icon(Icons.add_circle, color: Color(0xFF1AC9A2)), label: 'Create Contract'),
-        BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'My Contracts'),
-      ],
-      currentIndex: 1,
-      onTap: (i) {},
-    );
-  }
-}
+// Removed unused _BottomNavBar widget

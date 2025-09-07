@@ -31,10 +31,10 @@ func main() {
 	auth := infrastracture.NewJWTAuthentication(config.SigningKey)
 	unverifiedUserRepo := repository.NewUnverifiedUserRepository(mongoClient.Client)
 	sweetNotificationRepo := repository.NewNotification_Repository(mongoClient.Client)
-	otpService := infrastracture.NewOTPService()
-	userUsecase := usecases.NewUserUseCase(auth, userRepo, password_service, unverifiedUserRepo, sweetNotificationRepo, otpService)
+	generalEmailService := infrastracture.NewGeneralEmailService()
+	userUsecase := usecases.NewUserUseCase(auth, userRepo, password_service, unverifiedUserRepo, sweetNotificationRepo, generalEmailService)
 
-	aiInfra, err := ai_interaction.NewAIInteraction(apiKey)
+	aiInfra, err := ai_interaction.NewAIInteraction()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func main() {
 	pendingRepo := repository.NewPendingAgreementRepository(mongoClient.Client, config.MONGODB, "pending")
 	intakeRepo := repository.NewIntakeRepository(mongoClient.Client, config.MONGODB, "intake")
 	agreementRepo := repository.NewAgreementRepository(mongoClient.Client, config.MONGODB, "agreement")
-	agreementUsecase := usecases.NewAgreementUseCase(intakeRepo, agreementRepo, pendingRepo, aiInfra, sweetNotificationRepo)
+	agreementUsecase := usecases.NewAgreementUseCase(intakeRepo, agreementRepo, pendingRepo, aiInfra, sweetNotificationRepo, generalEmailService)
 	agreementController := controllers.NewAgreementController(agreementUsecase, aiInfra)
 	routers.Router(userController, aiController, agreementController)
 }

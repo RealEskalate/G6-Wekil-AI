@@ -18,7 +18,8 @@ const (
 )
 
 type AgreementRepository struct {
-	collection *mongo.Collection
+	collection        *mongo.Collection
+	pendingCollection *mongo.Collection
 }
 
 // GetAgreementsByFilterAndPartyID implements domain.IAgreementRepo.
@@ -207,9 +208,26 @@ func (a *AgreementRepository) UpdateAgreement(ctx context.Context, agreementID p
 
 }
 
+
+func (r *AgreementRepository) GetPendingAgreement(ctx context.Context, agreementID primitive.ObjectID, email string) (*domain.AgreementIntake, error) {
+    var pending domain.AgreementIntake
+    err := r.pendingCollection.FindOne(ctx, bson.M{
+        "_id":   agreementID,
+        "email": email,
+    }).Decode(&pending)
+
+    if err != nil {
+        return nil, err
+    }
+    return &pending, nil
+}
+
+
+
 func NewAgreementRepository(client *mongo.Client, dbName, collectionName string) domainInterface.IAgreementRepo {
 	coll := client.Database(dbName).Collection(collectionName)
 	return &AgreementRepository{
 		collection: coll,
+		pendingCollection: client.Database(dbName).Collection("pending"),
 	}
 }

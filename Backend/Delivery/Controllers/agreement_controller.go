@@ -349,6 +349,59 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 	)
 }
 
+func (a *AgreementController) GetAgreementByID_GET(ctx *gin.Context) {
+	agreementID := ctx.Param("agreement_id")
+	if agreementID == "" {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Missing agreement_id in query parameters",
+			},
+		})
+		return
+	}
+
+	userStringID := ctx.GetString("user_id")
+	userPrimitiveID, err := primitive.ObjectIDFromHex(userStringID)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Invalid request payload (the ID wasn't correct format) / Unauthorized User",
+			},
+		})
+		return
+	}
+
+	agreementPrimitiveID, err := primitive.ObjectIDFromHex(agreementID)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Invalid request payload (the ID wasn't correct format) / invalid agreement ID",
+			},
+		})
+		return
+	}
+
+	res, err := a.AgreementUseCase.GetAgreementByIDIntake(agreementPrimitiveID, userPrimitiveID)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Unable to retrieve the agreement. Please try again later.",
+				"error":   err.Error(),
+			},
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    res,
+	})
+}
+
 // GetAgreementByUserID implements domain.IAgreementController.
 // ? this one is only for pagination purpose
 // ? with 

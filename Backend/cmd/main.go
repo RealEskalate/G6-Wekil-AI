@@ -20,6 +20,7 @@ func main() {
 		log.Fatal("❌Failed to connect:", err)
 	}
 	apiKey := config.GEMINI_API_KEY
+	log.Println("🤖", apiKey)
 	if apiKey == "" {
 		log.Fatal("❌ GEMINI_API_KEY not set")
 	}
@@ -29,12 +30,11 @@ func main() {
 	userRepo := repository.NewUserRepository(mongoClient.Client, config.MONGODB, "user")
 	auth := infrastracture.NewJWTAuthentication(config.SigningKey)
 	unverifiedUserRepo := repository.NewUnverifiedUserRepository(mongoClient.Client)
-	NotifationRepo := repository.NewNotificationRepository(mongoClient.Client)
-	otpService := infrastracture.NewOTPService()
-	userUsecase := usecases.NewUserUseCase(auth,userRepo,password_service,unverifiedUserRepo,NotifationRepo,otpService)
+	sweetNotificationRepo := repository.NewNotification_Repository(mongoClient.Client)
+	generalEmailService := infrastracture.NewGeneralEmailService()
+	userUsecase := usecases.NewUserUseCase(auth, userRepo, password_service, unverifiedUserRepo, sweetNotificationRepo, generalEmailService)
 
-
-	aiInfra, err := ai_interaction.NewAIInteraction(apiKey)
+	aiInfra, err := ai_interaction.NewAIInteraction()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,17 +43,13 @@ func main() {
 
 	aiController := controllers.NewAIController(aiUsecase)
 
-	oAuthusecase := usecases.NewOAuthUsecase(userRepo,auth)
-	userController := controllers.NewUserController(userUsecase,oAuthusecase)
+	oAuthusecase := usecases.NewOAuthUsecase(userRepo, auth)
+	userController := controllers.NewUserController(userUsecase, oAuthusecase)
 
-	pendingRepo := repository.NewPendingAgreementRepository(mongoClient.Client,config.MONGODB,"pending")
-	intakeRepo := repository.NewIntakeRepository(mongoClient.Client,config.MONGODB,"intake")
-	agreementRepo := repository.NewAgreementRepository(mongoClient.Client,config.MONGODB,"agreement")
-	agreementUsecase := usecases.NewAgreementUseCase(intakeRepo, agreementRepo, pendingRepo,aiInfra)
+	pendingRepo := repository.NewPendingAgreementRepository(mongoClient.Client, config.MONGODB, "pending")
+	intakeRepo := repository.NewIntakeRepository(mongoClient.Client, config.MONGODB, "intake")
+	agreementRepo := repository.NewAgreementRepository(mongoClient.Client, config.MONGODB, "agreement")
+	agreementUsecase := usecases.NewAgreementUseCase(intakeRepo, agreementRepo, pendingRepo, aiInfra, sweetNotificationRepo, generalEmailService)
 	agreementController := controllers.NewAgreementController(agreementUsecase, aiInfra)
-    routers.Router(userController, aiController, agreementController)
+	routers.Router(userController, aiController, agreementController)
 }
-
-
-
-

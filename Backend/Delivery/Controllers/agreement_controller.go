@@ -20,7 +20,7 @@ type AgreementController struct {
 
 // CreateAgreementRequest represents the expected JSON payload for creating an agreement.
 type CreateAgreementRequest struct {
-	Intake        *domain.Draft      `json:"draft"`
+	Draft         *domain.Draft      `json:"draft"`
 	Status        string             `json:"status"`
 	PDFURL        string             `json:"pdf_url"`
 	CreatorID     primitive.ObjectID `json:"creator_id"`
@@ -36,8 +36,9 @@ type DuplicateAgreementRequest struct {
 }
 
 // GetAgreementByFilter implements domain.IAgreementController.
-// ?
+// * FINISHED
 func (a *AgreementController) GetAgreementByFilter(ctx *gin.Context) {
+	log.Println("☑️", ctx.Query("page"))
 	pageNumber, err := strconv.Atoi(ctx.Query("page"))
 	if err != nil {
 		ctx.AbortWithStatusJSON(
@@ -68,12 +69,14 @@ func (a *AgreementController) GetAgreementByFilter(ctx *gin.Context) {
 		AgreementStatus:     ctx.Query("status"),
 		AgreementPageNumber: pageNumber,
 	}
+	log.Printf("❓ => %#v\n", agreementFilter)
 	resList, err := a.AgreementUseCase.GetAgreementsByUserIDAndFilter(userPrimitiveID, agreementFilter.AgreementPageNumber, &agreementFilter)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"success": false,
 			"data": gin.H{
-				"message": err.Error(),
+				"message": "Unable to retrieve agreements. Please try again later.",
+				"error": err.Error(),
 			},
 		})
 		return
@@ -87,6 +90,7 @@ func (a *AgreementController) GetAgreementByFilter(ctx *gin.Context) {
 }
 
 // CreateAgreement implements domain.IAgreementController.
+// * FINISHED
 func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 	var req CreateAgreementRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -119,7 +123,7 @@ func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 		return
 	}
 	req.CreatorID = creatorID_ // ASSIGN THE USER IT'S ID
-	newIntakeFromDraft, err := a.AIInteraction.GenerateIntake(context.Background(), req.Intake.String(), domain.EnglishLang)
+	newIntakeFromDraft, err := a.AIInteraction.GenerateIntake(context.Background(), req.Draft.String(), domain.EnglishLang)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -169,6 +173,7 @@ func (a *AgreementController) CreateAgreement(ctx *gin.Context) {
 }
 
 // DeleteAgreement implements domain.IAgreementController.
+// * FINISHED
 func (a *AgreementController) DeleteAgreement(ctx *gin.Context) {
 	var getID domain.GetAgreementID
 	userStringID := ctx.GetString("user_id")
@@ -271,7 +276,10 @@ func (a *AgreementController) DuplicateAgreement(ctx *gin.Context) {
 		}
 		ctx.JSON(status, gin.H{
 			"success": false,
-			"data":    gin.H{"message": msg},
+			"data":    gin.H{
+				"message": msg,
+				"error":err.Error(),
+		},
 		})
 		return
 	}
@@ -302,7 +310,7 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 		return
 	}
 	userPrimitiveID, err := primitive.ObjectIDFromHex(userStringID)
-	log.Println("⚡", userPrimitiveID, err, "from userStringId", userStringID)
+	// log.Println("⚡", userPrimitiveID, err, "from userStringId", userStringID)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -322,12 +330,14 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 		})
 		return
 	}
-	res, err := a.AgreementUseCase.GetAgreementByID(agreementID, userPrimitiveID)
+	res, err := a.AgreementUseCase.GetAgreementByIDIntake(agreementID, userPrimitiveID)
+	// log.Print("data------------------------:-", res)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"data": gin.H{
-				"message": err.Error(),
+				"message": "Unable to retrieve the agreement. Please try again later.",
+				"error": err.Error(),
 			},
 		})
 		return
@@ -343,14 +353,16 @@ func (a *AgreementController) GetAgreementByID(ctx *gin.Context) {
 
 // GetAgreementByUserID implements domain.IAgreementController.
 // ? this one is only for pagination purpose
+// ? now it uses query
+// * FINISHED
 func (a *AgreementController) GetAgreementByUserID(ctx *gin.Context) {
 	userStringID := ctx.GetString("user_id")
-	var agreementFilter domain.AgreementFilter
-	if err := ctx.ShouldBindJSON(&agreementFilter); err != nil {
+	pageNumber, err := strconv.Atoi(ctx.Query("page"))
+	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"data": gin.H{
-				"message": "Invalid request payload",
+				"message": "Invalid page number",
 			},
 		})
 		return
@@ -366,12 +378,13 @@ func (a *AgreementController) GetAgreementByUserID(ctx *gin.Context) {
 		return
 	}
 
-	listAgr, err := a.AgreementUseCase.GetAgreementsByUserID(userPrimitiveID, agreementFilter.AgreementPageNumber)
+	listAgr, err := a.AgreementUseCase.GetAgreementsByUserID(userPrimitiveID, pageNumber)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"success": false,
 			"data": gin.H{
-				"message": err.Error(),
+				"message": "Unable to retrieve the agreement. Please try again later.",
+				"error": err.Error(),
 			},
 		})
 		return
@@ -384,6 +397,7 @@ func (a *AgreementController) GetAgreementByUserID(ctx *gin.Context) {
 }
 
 // SaveAgreement implements domain.IAgreementController.
+// * FINISHED
 func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 	log.Println("✅ in SaveAgreement")
 	var aR domain.AgreementRequest
@@ -416,19 +430,35 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 			"success": false,
 			"data": gin.H{
 				"message": fmt.Sprintf("your agreement is complex | %s", res.Category),
+				"error":   err.Error(),
 			},
 		})
 		return
 	}
 
 	// create the intake form the draft
-	intake, err := a.AIInteraction.GenerateIntake(context.Background(), aR.DraftText, domain.EnglishLang)
+	intake, err := a.AIInteraction.GenerateIntake(context.Background(), aR.DraftText, aR.Language)
 	log.Printf("✅ INTAKE RESULT \n%#v\n ERROR \n %#v\n", intake, err)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"data": gin.H{
 				"message": "Unable to create an Intake on your Draft",
+			},
+		})
+		return
+	}
+
+	//?
+	//? we need to generate a title for the agreement using the AI, but it have a risk of not generating the real title from the user draft
+	theTitle, err := a.AIInteraction.TitleGenerateHelper(context.Background(), aR.DraftText, aR.Language)
+	if err != nil {
+
+		ctx.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{
+			"success": false,
+			"data": gin.H{
+				"message": "Unable to create Agreement Title",
+				"error":   err.Error(),
 			},
 		})
 		return
@@ -440,9 +470,16 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 	} else {
 		email_to_send = aR.AgrementInfo.PartyA.Email
 	}
+	// direct injection of the title in the object
+	aR.AgrementInfo.AgreementTitle = theTitle
 
-	// pass the intake to the CreateAgreement
-	agreement, err := a.AgreementUseCase.CreateAgreement(intake, aR.AgrementInfo.Status, aR.AgrementInfo.PDFURL, userID, email_to_send, aR.AgrementInfo.CreatorSigned)
+	// pass the intake to the CreateAgreementSave
+	passSave := &domain.JustForSaveSake{
+		CreatorParty:     &domain.Party{Name: ctx.GetString("user_name"), ID: userID, Email: ownerEmail},
+		AgreementReqeust: &aR,
+		AcceptorEmail:    email_to_send,
+	}
+	agreement, err := a.AgreementUseCase.CreateAgreementSave(intake, passSave)
 	log.Printf("✅ AGREEMENT RESULT \n%#v\n ERROR \n %#v\n", agreement, err)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -453,16 +490,21 @@ func (a *AgreementController) SaveAgreement(ctx *gin.Context) {
 		})
 		return
 	}
+	saved_ := ""
+	if aR.AgrementInfo.Status == domain.PENDING_STATUS {
+		saved_ = "and saved "
+	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
-			"message":      "Agreement draft saved successfully.",
+			"message":      fmt.Sprintf("Agreement draft saved %ssuccessfully.", saved_),
 			"agreement_id": agreement.ID.Hex(),
 		},
 	})
 }
 
 // SendAgreement implements domain.IAgreementController.
+// TODO: DELETE THIS ONE IT'S NOT NESSACARY
 func (a *AgreementController) SendAgreement(ctx *gin.Context) {
 	panic("unimplemented")
 }
@@ -502,7 +544,7 @@ func (a *AgreementController) SignitureHandling(ctx *gin.Context) {
 		})
 		return
 	}
-	if signRequest.DeclineRequest == signRequest.SignRequest {
+	if signRequest.DeclineRequest == signRequest.SignRequest { //? if both are false OR both are true then it's a problem
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"data": gin.H{
@@ -511,8 +553,8 @@ func (a *AgreementController) SignitureHandling(ctx *gin.Context) {
 		})
 		return
 	}
-	if err := a.AgreementUseCase.SignAgreement(agrementID, userID); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusNotModified, gin.H{
+	if err := a.AgreementUseCase.SignAgreement(agrementID, userID, signRequest.SignRequest); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusNotImplemented, gin.H{
 			"success": false,
 			"data": gin.H{
 				"message": err.Error(),
@@ -520,13 +562,21 @@ func (a *AgreementController) SignitureHandling(ctx *gin.Context) {
 		})
 		return
 	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
-			"message": "Agreement signed successfully.",
-		},
-	})
+	if signRequest.SignRequest {
+		ctx.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"data": gin.H{
+				"message": "Agreement signed successfully.",
+			},
+		})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"data": gin.H{
+				"message": "Agreement declined successfully.",
+			},
+		})
+	}
 }
 
 // UpdateAgreement implements domain.IAgreementController.

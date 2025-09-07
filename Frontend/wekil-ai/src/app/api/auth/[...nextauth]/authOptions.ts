@@ -23,12 +23,21 @@ async function refreshBackendSession(token: ExtendedJWT): Promise<ExtendedJWT> {
 
     if (!res.ok) {
       console.warn("Refresh failed:", res.status, await res.text());
-      return { ...token, };
+      return { ...token, error: "RefreshTokenError" };
     }
-    return { ...token,
-      accessToken: res.headers.get("Authorization")?.replace("Bearer ", ""),
-      accessTokenExpires: Date.now() + 10 * 60 * 1000,
-      error: undefined
+
+    const accessToken = res.headers
+      .get("Authorization")
+      ?.replace("Bearer ", "");
+    if (!accessToken) {
+      return { ...token, error: "NoAccessTokenReturned" };
+    }
+
+    return {
+      ...token,
+      accessToken,
+      accessTokenExpires: Date.now() + 10 * 60 * 1000, // 10 min
+      error: undefined,
     };
   } catch (err) {
     console.error("Error refreshing session:", err);
@@ -39,37 +48,42 @@ async function refreshBackendSession(token: ExtendedJWT): Promise<ExtendedJWT> {
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-  clientId: process.env.GOOGLE_CLIENT_ID!,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-  async profile(profile) {
-    // Send Google profile to your backend for registration/login
-    const res = await fetch(`${API_URL}/auth/nextjs`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(profile),
-    });
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      async profile(profile) {
+        // Send Google profile to your backend for registration/login
+        const res = await fetch(`${API_URL}/auth/nextjs`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(profile),
+          credentials: "include",
+        });
 
-    if (!res.ok) {
-      throw new Error("Google login failed");
-    }
+        if (!res.ok) {
+          throw new Error("Google login failed");
+        }
 
-    const data = await res.json();
-    const account_type = data?.data?.account_type;
-    const accessToken = res.headers.get("Authorization")?.replace("Bearer ", "");
+        const data = await res.json();
+        const account_type = data?.data?.account_type;
+        const accessToken = res.headers
+          .get("Authorization")
+          ?.replace("Bearer ", "");
 
-
-    return {
-      id: profile.sub, 
-      name: profile.name,
-      email: profile.email,
-      image: profile.picture,
-      account_type,
-      accessToken,
-      accessTokenExpires: Date.now() + 10 * 60 * 1000,
-    } as User & { account_type?: string; accessToken?: string; accessTokenExpires?: number};
-  },
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+          account_type,
+          accessToken,
+          accessTokenExpires: Date.now() + 10 * 60 * 1000,
+        } as User & {
+          account_type?: string;
+          accessToken?: string;
+          accessTokenExpires?: number;
+        };
+      },
     }),
-
 
     CredentialsProvider({
       name: "Credentials",
@@ -94,7 +108,9 @@ export const authOptions: NextAuthOptions = {
 
         const data = await res.json();
         const account_type = data?.data?.account_type;
-        const accessToken = res.headers.get("Authorization")?.replace("Bearer ", "");
+        const accessToken = res.headers
+          .get("Authorization")
+          ?.replace("Bearer ", "");
 
         if (!accessToken) throw new Error("No access token returned");
 
@@ -102,7 +118,6 @@ export const authOptions: NextAuthOptions = {
           account_type,
           rememberMe: credentials?.rememberMe === "true",
           accessToken: accessToken,
-          
         } as User & {
           account_type?: string;
           rememberMe?: boolean;
@@ -153,7 +168,13 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    async session({ session, token }: { session: Session; token: ExtendedJWT }) {
+    async session({
+      session,
+      token,
+    }: {
+      session: Session;
+      token: ExtendedJWT;
+    }) {
       return {
         ...session,
         user: {

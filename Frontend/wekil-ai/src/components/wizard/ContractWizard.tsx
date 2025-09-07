@@ -111,6 +111,25 @@ interface Translations {
   invalidEmail: string;
 }
 
+// ✅ Safe for Next.js + TS
+const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error("Operation timed out"));
+    }, ms);
+
+    promise
+      .then((res) => {
+        clearTimeout(timer);
+        resolve(res);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+};
+
 export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const { lang, setLang } = useLanguage();
@@ -226,38 +245,50 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
     if (currentStep === 1) {
       setIsCheckingComplexity(true);
 
-      const res = await dispatch(
-        classifyApi({ text: description, language: agreementLanguage })
-      );
+      try {
+        await withTimeout(
+          (async () => {
+            const res = await dispatch(
+              classifyApi({ text: description, language: agreementLanguage })
+            );
 
-      setIsCheckingComplexity(false);
+            setIsCheckingComplexity(false);
 
-      if (classifyApi.fulfilled.match(res) && res.payload) {
-        const classification = (
-          res.payload as {
-            data?: { payload?: { category?: string; reasons?: string[] } };
-          }
-        )?.data?.payload;
+            if (classifyApi.fulfilled.match(res) && res.payload) {
+              const classification = (
+                res.payload as {
+                  data?: {
+                    payload?: { category?: string; reasons?: string[] };
+                  };
+                }
+              )?.data?.payload;
 
-        const type = classification?.category;
+              const type = classification?.category;
 
-        if (type === "basic") {
-          toast.success("Your prompt is Basic");
-          setCurrentStep((prev) => prev + 1);
-        } else if (type) {
-          toast.error(
-            `Your prompt is ${type} due to ${
-              classification?.reasons?.[0] ?? "unspecified reason"
-            }, please consult a lawyer.`
-          );
-        } else {
-          toast.error("Invalid classification response");
-        }
-      } else {
-        toast.error(
-          (res as { payload?: { message?: string } }).payload?.message ??
-            "Classification failed"
+              if (type === "basic") {
+                toast.success("Your prompt is Basic");
+                setCurrentStep((prev) => prev + 1);
+              } else if (type) {
+                toast.error(
+                  `Your prompt is ${type} due to ${
+                    classification?.reasons?.[0] ?? "unspecified reason"
+                  }, please consult a lawyer.`
+                );
+              } else {
+                toast.error("Invalid classification response");
+              }
+            } else {
+              toast.error(
+                (res as { payload?: { message?: string } }).payload?.message ??
+                  "Classification failed"
+              );
+            }
+          })(),
+          6000
         );
+      } catch (err) {
+        toast.error("Server is Busy, Unable to classify it complexity")
+        setIsCheckingComplexity(false)
       }
     } else if (currentStep === 4) {
       setContractData({
@@ -272,74 +303,104 @@ export function ContractWizard({ onBackToDashboard }: ContractWizardProps) {
       let draftData: ApiContractDraft | undefined;
       let attempts = 0;
 
-      while (attempts < 3) {
-        attempts += 1;
+      const overallTimeout = 15000;
 
-        const resultAction = await dispatch(
-          generateDraft({
-            intake: intakeData,
-            language: contractData.agreementLanguage,
-          })
+      try {
+        await withTimeout(
+          (async () => {
+            while (attempts < 3) {
+              attempts += 1;
+
+              const resultAction = await dispatch(
+                generateDraft({
+                  intake: intakeData,
+                  language: contractData.agreementLanguage,
+                })
+              );
+
+              if (generateDraft.fulfilled.match(resultAction)) {
+                draftData = (
+                  resultAction.payload as { payload?: ApiContractDraft }
+                )?.payload;
+
+                if (draftData?.sections) {
+                  const draft = convertInterfaceContractDraft(draftData);
+                  setIntialDraftdata(draft);
+                  toast.success("Draft generated successfully");
+                  setCurrentStep((prev) => prev + 1);
+                  return;
+                }
+              } else {
+                toast.error(
+                  (resultAction as { payload?: { message?: string } }).payload
+                    ?.message ?? "Draft generation failed"
+                );
+              }
+            }
+
+            throw new Error("Draft generation failed");
+          })(),
+          overallTimeout
         );
-
-        if (generateDraft.fulfilled.match(resultAction)) {
-          draftData = (resultAction.payload as { payload?: ApiContractDraft })
-            ?.payload;
-
-          if (draftData?.sections) {
-            const draft = convertInterfaceContractDraft(draftData);
-            setIntialDraftdata(draft);
-            toast.success(
-              attempts === 1
-                ? "Draft generated successfully"
-                : `Draft generated successfully (attempt ${attempts})`
-            );
-            setCurrentStep((prev) => prev + 1);
-            return;
-          }
-        } else {
-          toast.error(
-            (resultAction as { payload?: { message?: string } }).payload
-              ?.message ?? "Draft generation failed"
-          );
-          return;
-        }
+      } catch (err) {
+        toast.error(
+          err instanceof Error
+            ? err.message
+            : "Server is busy. Please try again later."
+        );
       }
-
-      toast.error("Draft generation failed. Please try again later.");
     } else if (currentStep === 5) {
       const text = getFullDraftText(intialDraftdata!);
-      console.log("Final draft text:", text);
 
-      const res = await dispatch(
-        finalPreview({
-          draft: text,
-          parties: parties.map((item) => ({
-            name: item.fullName,
-            address: "",
-            email: item.email,
-          })),
-          language: agreementLanguage || "en",
-        })
-      );
+      try {
+        await withTimeout(
+          (async () => {
+            const res = await dispatch(
+              finalPreview({
+                draft: text,
+                parties: parties.map((item) => ({
+                  name: item.fullName,
+                  address: "",
+                  email: item.email,
+                })),
+                language: agreementLanguage || "en",
+              })
+            );
 
-      if (finalPreview.fulfilled.match(res) && res.payload) {
-        const category = res.payload.classification.category;
-        if (category !== "basic") {
-          toast.error(
-            `Your agreement is classified as ${category}: ${res.payload.classification.reasons.join(
-              ", "
-            )}`
-          );
-        } else {
-          toast.success("Your agreement is Basic");
-        }
-        setCurrentStep((prev) => prev + 1);
-      } else {
-        toast.error(
-          (res as { payload?: { message?: string } })?.payload?.message ||
-            "Final preview failed"
+            if (finalPreview.fulfilled.match(res) && res.payload) {
+              const category = res.payload.classification.category;
+              if (category !== "basic") {
+                toast.error(
+                  `Your agreement is classified as ${category}: ${res.payload.classification.reasons.join(
+                    ", "
+                  )}`
+                );
+              } else {
+                toast.success("Your agreement is Basic");
+              }
+              setCurrentStep((prev) => prev + 1);
+            } else {
+              toast.error(
+                (res as { payload?: { message?: string } })?.payload?.message ||
+                  "Final preview failed"
+              );
+            }
+          })(),
+          12000
         );
+      } catch (err) {
+        toast.error(
+          err instanceof Error
+            ? err.message
+            : "Server is busy. Please try again later."
+        );
+        const userWill = window.confirm(
+          "We could not check the complexity of final draft would you like to pass with your own consent?"
+        );
+        if (userWill) {
+          toast.success("You have passed with your own will");
+          setCurrentStep((prev) => prev + 1);
+        }
       }
     } else if (currentStep < steps.length - 1) {
       setCurrentStep((prev) => prev + 1);

@@ -6,7 +6,6 @@ import {
   Shield,
   Download,
   Eye,
-  Delete,
   Loader2,
 } from "lucide-react";
 const contractTypes = {
@@ -41,10 +40,6 @@ export const options = [
     icon: <Eye className="inline mx-2 w-4 h-4 rounded-full  text-blue-400 " />,
   },
   {
-    label: "delete",
-    icon: <Delete className="inline mx-2 w-4 h-4 rounded-full  text-red-500" />,
-  },
-  {
     label: "Export",
     icon: (
       <Download className="inline mx-2 w-4 h-4 rounded-full  text-blue-400 " />
@@ -54,8 +49,8 @@ export const options = [
 
 async function handleExport(pdfUrl: string, lang: "am" | "en",setIsExporting: (arg:boolean) => void) {
   try {
-    const response = await fetch(
-      "https://drive.google.com/file/d/1Vf3VFt5Uzqvm7yCCM58ujSO_b8iRHMsA/view?usp=drive_link"
+    const response = await fetch(pdfUrl || 
+      "https://drive.google.com/file/d/1mgFgv6MG14m-HTJ9qgVaPXTU5gN4_FT2/view?usp=sharing"
     );
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
@@ -90,6 +85,7 @@ export const DashBoardContract: React.FC<DashBoardContractProps> = ({
   const router = useRouter();
   const { lang } = useLanguage();
   const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [isShowing, setIsShowing] = useState<boolean>(false);
   return (
     <div className="mx-4 my-4 md:p-4 bg-white border border-gray-200 rounded-2xl shadow-2xl shadow-gray-200 grid grid-cols-8 gap-3">
       <div className="col-span-1 flex align-middle">
@@ -121,31 +117,37 @@ export const DashBoardContract: React.FC<DashBoardContractProps> = ({
       <div className="col-span-8 md:col-span-3 flex items-center mb-4">
         {options.map((item, index) => (
           <div
-            className="inline mx-2 text-gray-700 hover:text-blue-400 bg-gray-100 font-semibold border border-gray-200 shadow-5xl shadow-gray-500 cursor-pointer px-3 py-1 rounded-full"
+            className=" inline mx-2 text-gray-700 hover:text-blue-400 bg-gray-100 font-semibold border border-gray-200 shadow-5xl shadow-gray-500 cursor-pointer px-3 py-1 rounded-full"
             key={index}
             onClick={() => {
               if (item.label == "show") {
+                setIsShowing(true)
                 router.push(`dashboard/my-contracts/${contract.id}`);
               } else if (item.label == "Export") {
                 setIsExporting(true);
                 handleExport(contract.pdfURl, lang,setIsExporting);
-                
               }
             }}
           >
             {item.label == "Export" ? (
               !isExporting ? (
                 <>
-                  <Download className="w-4 h-4" />
+                  <Download className="w-4 h-4 inline" />
                   {lang == "en" ? "Export" : "አውርድ"}
                 </>
               ) : (
                 <span className="w-32 flex items-center">
-                  <Loader2 />
+                  <Loader2 className="inline mx-2 w-4 h-4 rounded-full  text-blue-400 "/>
                   {lang == "en" ? "Exporting" : "በማውረድ ላይ"}
                 </span>
               )
             ) : (
+              isShowing ? (
+                <span className="w-32 flex items-center">
+                  <Loader2 className="inline mx-2 w-4 h-4 rounded-full  text-blue-400 "/>
+                  {lang == "en" ? "Loading" : "በመሞከር ላይ"}
+                </span>
+              ):
               <>
                 {item.icon}
                 {item.label}

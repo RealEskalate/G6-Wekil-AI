@@ -62,7 +62,7 @@ const Dashboard = () => {
       };
       fetch();
     }
-  }, [router, session?.user, status,pageNumber]);
+  }, [router, session?.user, status, pageNumber]);
 
   if (status === "loading" || !isAuthChecked) {
     return (
@@ -136,16 +136,32 @@ const Dashboard = () => {
           <DashBoardContract contract={item} key={idx} />
         ))}
       </div>
-      {
-      contractList != null ? (<div className="flex my-8 justify-around">
-        <button disabled={pageNumber==1} className="rounded-full mb-5 px-8 py-1 bg-gray-50 text-blue-950 hover:text-blue-400 font-bold border border-gray-200" onClick={()=>{setPageNumber(pageNumber-1)}}>
-          {lang == "en" ? "PREV" : "ተመለስ"}
-        </button>
-        <button className="rounded-full mb-5 px-8 py-1 bg-gray-50 text-blue-950 hover:text-blue-400 font-bold border border-gray-200" onClick={()=>{setPageNumber(pageNumber+1)}}>
-          {lang == "en" ? "NEXT" : "ቀጥል"}
-        </button>
-      </div>) : <p className="text-xl font-extrabold text-center my-8">No contracts yet</p>
-      }
+      {contractList != null && contractList.length  ? (
+        <div className="flex my-8 justify-around">
+          <button
+            disabled={pageNumber == 1}
+            className="rounded-full mb-5 px-8 py-1 bg-gray-50 text-blue-950 hover:text-blue-400 font-bold border border-gray-200"
+            onClick={() => {
+              setPageNumber(pageNumber - 1);
+            }}
+          >
+            {lang == "en" ? "PREV" : "ተመለስ"}
+          </button>
+          <button
+            className="rounded-full mb-5 px-8 py-1 bg-gray-50 text-blue-950 hover:text-blue-400 font-bold border border-gray-200"
+            onClick={() => {
+              setPageNumber(pageNumber + 1);
+            }}
+          >
+            {lang == "en" ? "NEXT" : "ቀጥል"}
+          </button>
+        </div>
+      ) : (
+        <p className=" inline text-xl font-extrabold text-center my-8">
+          No contracts yet  
+        </p>
+      )}
+
     </div>
   );
 };
